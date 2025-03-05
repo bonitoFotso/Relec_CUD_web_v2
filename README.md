@@ -1,50 +1,42 @@
-# React + TypeScript + Vite
+# Documentation API
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Base URL
+`127.0.0.1:8000/api/v1/`
 
-Currently, two official plugins are available:
+## Authentication
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/login` | POST | Authentification utilisateur | email, password |
+| `/logout` | POST | Déconnexion | - |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+*Note: L'authentification utilise des tokens Bearer*
 
-## Expanding the ESLint configuration
+## Gestion des Utilisateurs
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/users/index` | GET | Liste tous les utilisateurs | - |
+| `/users/create` | GET | Affiche le formulaire de création | - |
+| `/users/store` | POST | Enregistre un nouvel utilisateur | name, email, phone, sex, password, role |
+| `/users/edit` | POST | Affiche le formulaire d'édition | id |
+| `/users/update` | GET | Met à jour un utilisateur | name, email, phone, sex, password, role |
+| `/users/delete` | POST | Supprime un utilisateur | id |
+| `/users/assignpermissions` | POST | Assigne des permissions | role_id, permissions |
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Gestion des Missions
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/missions/index` | GET | Liste toutes les missions | - |
+| `/missions/show` | POST | Affiche une mission spécifique | id |
+| `/missions/create` | GET | Affiche le formulaire de création | - |
+| `/missions/store` | POST | Enregistre une nouvelle mission | user_id, title, description, street_id, intervention_type_id |
+| `/missions/edit` | POST | Affiche le formulaire d'édition | id |
+| `/missions/delete` | POST | Supprime une mission | id |
+| `/missions/assign-mission-agents` | POST | Assigne un agent à une mission | user_id, mission_id |
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Gestion des Autocollants (Stickers)
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/stickers/index` | GET | Liste tous les autocollants | - |
+| `/stickers/show` | POST | Affiche un autocollant spécifique | id |
+| `/stickers/create` | GET | Affiche le formulaire de création | - |
+| `/stickers/store` | POST | Enregistre un nouvel autocollant | count, mission_id, equipment_type_id |
