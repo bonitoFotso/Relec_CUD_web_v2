@@ -35,13 +35,11 @@ const App: React.FC = () => {
             {/* Routes privées avec Layout */}
             <Route element={<PrivateRoute element={<Layout />} />}>
               {/* Dashboard */}
-              <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
 
               <Route path="/settings" element={<div>Paramètres</div>} />
 
-              {/* Redirection par défaut */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
               {/* Route 404 */}
               <Route path="*" element={<div>Page non trouvée</div>} />
