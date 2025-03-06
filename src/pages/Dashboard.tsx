@@ -14,13 +14,13 @@ const StatCard: FC<{ title: string; value: string | number; description: string 
 );
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Tableau de bord</h1>
-        <p className="text-gray-600">Bienvenue, {user?.name}</p>
+        <p className="text-gray-600">Bienvenue, {currentUser?.name}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

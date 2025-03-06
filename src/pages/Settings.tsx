@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -24,7 +24,7 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700">Nom</label>
               <input
                 type="text"
-                defaultValue={user?.name}
+                defaultValue={currentUser?.name}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
             </div>
@@ -32,7 +32,7 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
-                defaultValue={user?.email}
+                defaultValue={currentUser?.email}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
             </div>
