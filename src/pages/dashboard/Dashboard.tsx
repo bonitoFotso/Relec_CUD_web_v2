@@ -11,7 +11,7 @@ const StatCard: FC<{
   title: string; 
   value: string | number; 
   description: string;
-  icon: any;
+  icon: React.ElementType;
   trend: 'up' | 'down';
   percentage: number;
 }> = ({
@@ -46,7 +46,7 @@ const StatCard: FC<{
 );
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
 
   return (
     <div className="space-y-8">
@@ -54,7 +54,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
           <p className="text-gray-500 mt-1">
-            Bienvenue, {user?.name}. Voici vos statistiques d'aujourd'hui.
+            Bienvenue, {currentUser?.name}. Voici vos statistiques d'aujourd'hui.
           </p>
         </div>
         <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">
