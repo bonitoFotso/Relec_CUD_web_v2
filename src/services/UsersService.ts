@@ -81,6 +81,12 @@ export const UserService = {
       },
     });
   },
+
+  getRoles: async (): Promise<string[]> => {
+    const { data } = await apiClient.get('/users/create');
+    console.log(data.data.roles);
+    return data.data.roles || [];
+  },
   
   assignPermissions: async (roleId: number, permissions: number[]): Promise<void> => {
     const formData = new FormData();

@@ -1,8 +1,17 @@
-// UserManagement.tsx
+// pages/UserManagement.tsx
 import React, { useState, useEffect } from 'react';
 import { useUsers } from '@/contexts/UserContext';
 import { User } from '@/services/UsersService';
+import { useForm, UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 
+// Importer nos composants
+import UserFormDialog from '@/components/UserFormDialog';
+import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -13,31 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -47,15 +31,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Spinner } from "@/components/ui/spinner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { toast } from 'sonner';
 
-// Définition du schéma de validation Zod pour le formulaire
+// Définition du schéma de validation pour le formulaire
 const userFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
   email: z.string().email({ message: "Adresse email invalide." }),
@@ -69,6 +47,8 @@ const userFormSchema = z.object({
   password: z.string().optional(),
 });
 
+type UserFormValues = z.infer<typeof userFormSchema>;
+
 const UserManagement: React.FC = () => {
   const { users, loading, error, fetchUsers, createUser, updateUser, deleteUser } = useUsers();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -76,7 +56,7 @@ const UserManagement: React.FC = () => {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof userFormSchema>>({
+  const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
@@ -94,13 +74,11 @@ const UserManagement: React.FC = () => {
 
   useEffect(() => {
     if (error) {
-      toast("Erreur",{
-        description: error,
-      });
+      toast.error(error);
     }
   }, [error]);
 
-  // Réinitialiser le formulaire et ouvrir la modal pour ajouter un nouvel utilisateur
+  // Réinitialiser le formulaire et ouvrir la modale pour ajouter un nouvel utilisateur
   const handleAddClick = () => {
     setEditingUser(null);
     form.reset({
@@ -114,7 +92,7 @@ const UserManagement: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  // Préparer le formulaire pour l'édition et ouvrir la modal
+  // Préparer le formulaire pour l'édition et ouvrir la modale
   const handleEditClick = (user: User) => {
     setEditingUser(user);
     form.reset({
@@ -129,28 +107,27 @@ const UserManagement: React.FC = () => {
   };
 
   // Gérer la soumission du formulaire (création ou mise à jour)
-  const onSubmit = async (values: z.infer<typeof userFormSchema>) => {
+  const onSubmit = async (values: UserFormValues) => {
     try {
       if (editingUser) {
         // Mise à jour de l'utilisateur existant
         await updateUser({ ...values, id: editingUser.id });
-        toast("Utilisateur mis à jour",{
-          description: "L'utilisateur a été mis à jour avec succès.",
-        });
+        toast.success("Utilisateur mis à jour"  );
       } else {
         // Création d'un nouvel utilisateur
         await createUser(values as User);
-        toast("Utilisateur créé",{
-          description: "L'utilisateur a été créé avec succès.",
-        });
+        toast.success("Utilisateur créé");
       }
       setIsDialogOpen(false);
     } catch (err) {
       console.error("Opération échouée :", err);
-      toast("Opération échouée",{
-        description: "Une erreur est survenue lors de l'opération.",
-      });
+        toast.error("Opération échouée");
     }
+  };
+
+  // Gérer la fermeture de la boîte de dialogue
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
   };
 
   // Gérer la confirmation de suppression
@@ -158,15 +135,11 @@ const UserManagement: React.FC = () => {
     if (userToDelete?.id) {
       try {
         await deleteUser(userToDelete.id);
-        toast("Utilisateur supprimé",{
-          description: "L'utilisateur a été supprimé avec succès.",
-        });
+        toast.success("Utilisateur supprimé");
         setIsAlertDialogOpen(false);
       } catch (err) {
         console.error("Suppression échouée :", err);
-        toast("Suppression échouée",{
-          description: "Une erreur est survenue lors de la suppression.",
-        });
+        toast.error("Suppression échouée");
       }
     }
   };
@@ -175,11 +148,6 @@ const UserManagement: React.FC = () => {
   const handleDeleteClick = (user: User) => {
     setUserToDelete(user);
     setIsAlertDialogOpen(true);
-  };
-
-  // Fermeture de la boîte de dialogue
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
   };
 
   return (
@@ -240,142 +208,15 @@ const UserManagement: React.FC = () => {
         </Table>
       )}
 
-      {/* Modal de création/édition d'utilisateur */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
-            </DialogTitle>
-            <DialogDescription>
-              Remplissez les informations de l'utilisateur ci-dessous.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom complet</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nom complet" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Email" type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Téléphone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Téléphone" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="sex"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sexe</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le sexe" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="M">Masculin</SelectItem>
-                        <SelectItem value="F">Féminin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rôle</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un rôle" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="admin">Administrateur</SelectItem>
-                        <SelectItem value="agent">Agent</SelectItem>
-                        <SelectItem value="admin-kes">Admin KES</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {!editingUser && (
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Mot de passe" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleDialogClose}
-                >
-                  Annuler
-                </Button>
-                <Button type="submit">
-                  {editingUser ? "Mettre à jour" : "Créer"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      {/* Utilisation du composant UserFormDialog */}
+      <UserFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        form={form as UseFormReturn<User>}
+        onSubmit={onSubmit as (values: User) => Promise<void>}
+        onCancel={handleDialogClose}
+        editingUser={editingUser}
+      />
 
       {/* Boîte de dialogue de confirmation de suppression */}
       <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
@@ -383,7 +224,7 @@ const UserManagement: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous absolument sûr?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement 
+              Cette action ne peut pas être annulée. Cela supprimera définitivement
               l'utilisateur {userToDelete?.name} et toutes ses données associées.
             </AlertDialogDescription>
           </AlertDialogHeader>

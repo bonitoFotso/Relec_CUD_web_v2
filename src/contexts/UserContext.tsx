@@ -6,6 +6,8 @@ interface UserContextType {
   users: User[];
   loading: boolean;
   error: string | null;
+  roles: string[];
+  getRoles: () => Promise<void>;
   fetchUsers: () => Promise<void>;
   createUser: (user: User) => Promise<User>;
   updateUser: (user: User) => Promise<User>;
@@ -23,7 +25,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [roles, setRoles] = useState<string[]>([]);
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -91,6 +93,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const getRoles = useCallback(async () => {
+    const fetchedRoles = await UserService.getRoles();
+    setRoles(fetchedRoles);
+  }, []);
+
   const assignPermissions = useCallback(async (roleId: number, permissions: number[]): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -110,6 +117,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     users,
     loading,
     error,
+    roles,
+    getRoles,
     fetchUsers,
     createUser,
     updateUser,

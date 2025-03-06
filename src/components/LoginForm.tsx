@@ -25,7 +25,7 @@ const LoginForm: React.FC = () => {
     try {
       await login(email, password);
       // Redirection après connexion réussie
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     }
