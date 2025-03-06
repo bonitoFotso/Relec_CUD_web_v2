@@ -3,10 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/layout/Layout';
 
 const PrivateRoute = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const location = useLocation();
 
-  if (!user) {
+  if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

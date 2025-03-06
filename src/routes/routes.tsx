@@ -1,11 +1,11 @@
 import { Navigate, RouteObject } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
-import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import Users from '../pages/Users';
 import Settings from '../pages/Settings';
 import NotFound from '../pages/NotFound';
+import LoginForm from '@/components/LoginForm';
 
 export const routes: RouteObject[] = [
   {
@@ -22,7 +22,7 @@ export const routes: RouteObject[] = [
     path: '/login',
     element: (
       <PublicRoute>
-        <Login />
+        <LoginForm />
       </PublicRoute>
     ),
   },
