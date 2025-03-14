@@ -42,7 +42,7 @@ export const Layout = () => {
 
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto">
-            <div className="container mx-auto p-4 md:p-6">
+            <div className="container mx-auto p-4 md:p-6 bg-warning">
               <Outlet />
             </div>
           </main>

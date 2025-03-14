@@ -110,7 +110,6 @@ class AuthService {
   // Connexion utilisateur
   public async login(credentials: LoginCredentials): Promise<User> {
     try {
-      console.log(credentials);
       const response = await apiClient.post(`${API_URL}/login`, credentials);
 
       // Adaptation à la structure de réponse spécifique

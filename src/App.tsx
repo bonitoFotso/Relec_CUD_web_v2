@@ -4,10 +4,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuth } from './contexts/AuthContext';
 import LoginForm from './components/LoginForm';
 import Dashboard from './pages/dashboard/Dashboard';
-import ThemeProvider from './contexts/ThemeContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Layout } from './components/layout/Layout';
 import { AppProviders } from './contexts/AppProviders';
 import UserManagement from './pages/users/Users';
+import MissionManagement from './pages/missions/MissionManagement';
+import MissionDetails from './pages/missions/MissionDetails';
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -37,6 +39,9 @@ const App: React.FC = () => {
               {/* Dashboard */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
+
+              <Route path='/missions' element={<MissionManagement />} />
+              <Route path='/missions/:id' element={<MissionDetails />} />
 
               <Route path="/settings" element={<div>Paramètres</div>} />
 

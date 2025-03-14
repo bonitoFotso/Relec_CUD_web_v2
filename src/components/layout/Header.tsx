@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { LogOut, User, Settings, Bell, Search, ChevronDown } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import LogoCustom from './Logo';
+import { ModeToggle } from '../mode-toggle';
 
 interface HeaderProps {
   mobileMenuTrigger: React.ReactNode;
@@ -58,6 +59,8 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
         <Button variant="ghost" size="icon">
           <Bell className="h-5 w-5" />
         </Button>
+
+        <ModeToggle />
 
         {/* User menu */}
         <DropdownMenu>
