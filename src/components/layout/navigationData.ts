@@ -18,7 +18,6 @@ export interface NavigationItem {
         { name: 'Dashboard', href: '/' }
       ]
     },
-    
     {
       title: "Missions",
       items: [
@@ -37,5 +36,4 @@ export interface NavigationItem {
         { name: 'Utilisateurs', href: '/users' }
       ]
     },
-    
   ];

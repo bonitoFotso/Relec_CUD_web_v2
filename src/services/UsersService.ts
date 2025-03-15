@@ -9,6 +9,7 @@ export interface User {
   sex: 'M' | 'F';
   role: string;
   password?: string;
+  status: 'active' | 'inactive';
 }
 
 export const UserService = {
