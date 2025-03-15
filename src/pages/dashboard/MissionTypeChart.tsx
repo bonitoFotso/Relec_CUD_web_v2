@@ -1,6 +1,6 @@
 // src/components/Dashboard/MissionTypeChart.tsx
 import React, { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChartData, ChartProps } from './types';
 
 // Palette de couleurs plus harmonieuse et contrastée
@@ -14,75 +14,15 @@ const COLORS = [
   '#D58936', // Orange rouille
   '#2E86AB'  // Bleu marine
 ];
-
-// Types pour les props des fonctions de rendu
-interface ActiveShapeProps {
-  cx: number;
-  cy: number;
-  innerRadius: number;
-  outerRadius: number;
-  startAngle: number;
-  endAngle: number;
-  fill: string;
-  payload: PieChartData;
-  percent: number;
-  value: number;
-  name: string;
-}
-
-interface CustomLabelProps {
+// Fonction de rendu personnalisé pour les labels
+const renderCustomizedLabel = (props: {
   cx: number;
   cy: number;
   midAngle: number;
   innerRadius: number;
   outerRadius: number;
   percent: number;
-  index: number;
-  name: string;
-  value: number;
-}
-
-// Animation personnalisée pour le secteur actif
-const renderActiveShape = (props: ActiveShapeProps) => {
-  const { 
-    cx, cy, innerRadius, outerRadius, startAngle, endAngle,
-    fill, percent, value, name
-  } = props;
-
-  return (
-    <g>
-      <text x={cx} y={cy - 5} dy={8} textAnchor="middle" fill="#333" fontSize={14} fontWeight="bold">
-        {name}
-      </text>
-      <text x={cx} y={cy + 20} textAnchor="middle" fill="#666" fontSize={12}>
-        {`${value} missions (${(percent * 100).toFixed(0)}%)`}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 10}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        strokeWidth={2}
-        stroke="#fff"
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-    </g>
-  );
-};
-
-// Fonction de rendu personnalisé pour les labels
-const renderCustomizedLabel = (props: CustomLabelProps) => {
+}) => {
   const {
     cx, cy, midAngle, innerRadius, outerRadius, percent
   } = props;
@@ -111,6 +51,7 @@ const renderCustomizedLabel = (props: CustomLabelProps) => {
     </text>
   );
 };
+
 
 // Rendu du composant CustomLegend
 const CustomLegend: React.FC<{ data: PieChartData[] }> = ({ data }) => {
@@ -145,7 +86,12 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
   // Calculer le total des missions lors du chargement ou de la mise à jour des données
   useEffect(() => {
     if (data && data.length > 0) {
-      const total = data.reduce((sum, entry) => sum + (entry as PieChartData).value, 0);
+      const total = data.reduce((sum, entry) => {
+        if ('value' in entry) {
+          return sum + entry.value;
+        }
+        return sum;
+      }, 0);
       setTotalMissions(total);
     }
   }, [data]);
@@ -160,10 +106,11 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
     }
     return data;
   }, [data]);
-  // Gestionnaires d'événements
-  const onPieEnter = (_: MouseEvent, index: number) => {
-    setActiveIndex(index);
-  };
+
+    // Gestionnaires d'événements
+    const onPieEnter = (_: MouseEvent, index: number) => {
+        setActiveIndex(index);
+      };
   
   const onPieLeave = () => {
     setActiveIndex(undefined);
@@ -183,8 +130,7 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
           <PieChart>
             <Pie
               activeIndex={activeIndex}
-              activeShape={renderActiveShape}
-              data={chartData as PieChartData[]}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -199,7 +145,7 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
               animationBegin={200}
               animationDuration={1000}
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={COLORS[index % COLORS.length]} 

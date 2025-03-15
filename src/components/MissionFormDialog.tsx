@@ -200,3 +200,10 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
 };
 
 export default MissionFormDialog;
+
+{/*
+    // Gestionnaires d'événements
+  const onPieEnter = (_: MouseEvent, index: number) => {
+    setActiveIndex(index);
+  };
+  */}
