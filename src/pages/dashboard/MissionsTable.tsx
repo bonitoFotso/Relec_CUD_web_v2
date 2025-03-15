@@ -1,73 +1,219 @@
 // src/components/Dashboard/MissionsTable.tsx
-import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronRight, Calendar, MapPin, Clock, Search, Filter, ChevronDown, Wrench } from 'lucide-react';
 import { MissionsTableProps } from './types';
-import { getMissionStatusStyles, getMissionStatusLabel } from './utils';
+import { getMissionStatusStyles, getMissionStatusLabel, getInterventionTypeName } from './utils';
+import { Mission } from '@/services/missions.service';
 
 const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+
+  // État pour suivre la ligne survolée
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="animate-pulse h-6 bg-gray-200 rounded w-1/4"></div>
+          <div className="animate-pulse h-8 bg-gray-200 rounded w-1/4"></div>
+        </div>
         <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="h-16 bg-gray-200 rounded"></div>
+          ))}
         </div>
       </div>
     );
   }
-  
+
+  // Filtrer les missions selon la recherche et le filtre de statut
+  const filteredMissions = missions.filter(mission => {
+    const matchesSearch = mission.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || mission.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Fonction pour formater une date (simulation)
+  const formatDate = (mission: Mission) => {
+    // Simulation de date basée sur l'ID pour la démo
+    const day = (mission.id * 3) % 28 + 1;
+    const month = (mission.id % 12) + 1;
+    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/2025`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Missions récentes</h2>
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="flex items-center">
+          <h2 className="text-lg font-semibold text-gray-800">Missions récentes</h2>
+          <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+            {filteredMissions.length} missions
+          </span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              className="pl-8 pr-4 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          <button
+            className="flex items-center text-sm text-gray-600 hover:text-blue-600 focus:outline-none"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-1" />
+            Filtres
+            <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showFilters ? 'transform rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
+
+      {/* Filtres additionnels (affichés conditionnellement) */}
+      {showFilters && (
+        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Statut</label>
+              <select
+                className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Tous les statuts</option>
+                <option value="in_progress">En cours</option>
+                <option value="completed">Terminée</option>
+                <option value="pending">En attente</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Type d'intervention</label>
+              <select
+                className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">Tous les types</option>
+                <option value="1">Déploiement</option>
+                <option value="2">Maintenance</option>
+                <option value="3">Urgence</option>
+                <option value="4">Inspection</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rue</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <Wrench className="h-3 w-3 mr-1" />
+                  Type
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <MapPin className="h-3 w-3 mr-1" />
+                  Rue
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Date
+                </div>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Status
+                </div>
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {missions.length > 0 ? (
-              missions.slice(0, 5).map((mission) => (
-                <tr key={mission.id} className="hover:bg-gray-50">
+            {filteredMissions.length > 0 ? (
+              filteredMissions.slice(0, 5).map((mission) => (
+                <tr 
+                  key={mission.id} 
+                  className={`${
+                    hoveredRow === mission.id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  } transition-colors duration-150`}
+                  onMouseEnter={() => setHoveredRow(mission.id)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{mission.title}</div>
+                    {mission.description && (
+                      <div className="text-xs text-gray-500 truncate max-w-xs">{mission.description}</div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{mission.intervention_type_id || "N/A"}</div>
+                    <div className="text-sm text-gray-700 font-medium">
+                      {getInterventionTypeName(mission.intervention_type_id) || "N/A"}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{mission.street_id || "N/A"}</div>
+                    <div className="text-sm text-gray-700">
+                      <div className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1 text-gray-400" />
+                        {`Rue ${mission.street_id || "N/A"}`}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    <div className="text-sm text-gray-700">{formatDate(mission)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       getMissionStatusStyles(mission.status)
                     }`}>
                       {getMissionStatusLabel(mission.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href={`/missions/${mission.id}`} className="text-blue-600 hover:text-blue-900">Détails</a>
+                    <a 
+                      href={`/missions/${mission.id}`} 
+                      className="text-blue-600 hover:text-blue-900 px-3 py-1 rounded hover:bg-blue-50 transition-colors duration-150"
+                    >
+                      Détails
+                    </a>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                  Aucune mission trouvée
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  {searchTerm || statusFilter !== 'all' 
+                    ? "Aucune mission ne correspond aux critères de recherche" 
+                    : "Aucune mission trouvée"}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-3 border-t border-gray-200">
+
+      {filteredMissions.length > 5 && (
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-500">
+          Affichage de 5 missions sur {filteredMissions.length}
+        </div>
+      )}
+
+      <div className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
+        <div className="text-xs text-gray-500">
+          Mis à jour {new Date().toLocaleTimeString()}
+        </div>
         <a href="/missions" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
           Voir toutes les missions <ChevronRight className="ml-1 w-4 h-4" />
         </a>

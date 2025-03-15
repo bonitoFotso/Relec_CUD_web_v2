@@ -28,11 +28,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Mission, MissionFormData } from '@/services/missions.service';
+import { MissionFormValues } from '@/pages/missions/MissionManagement';
 
 interface MissionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: UseFormReturn<Mission>;
+  form: UseFormReturn<MissionFormValues>;
   onSubmit: (values: Mission) => Promise<void>;
   onCancel: () => void;
   editingMission: Mission | null;
@@ -60,7 +61,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit((data) => onSubmit({...data, id: editingMission?.id || 0}))} className="space-y-4">
             <FormField
               control={form.control}
               name="title"

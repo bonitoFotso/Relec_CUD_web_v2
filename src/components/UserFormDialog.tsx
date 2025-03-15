@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUsers } from '@/contexts/UserContext';
+import { UserFormValues } from '@/pages/users/Users';
 
 interface User {
   id?: number;
@@ -41,8 +42,8 @@ interface User {
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: UseFormReturn<User>;
-  onSubmit: (values: User) => Promise<void>;
+  form: UseFormReturn<UserFormValues>;
+  onSubmit: (values: UserFormValues) => Promise<void>;
   onCancel: () => void;
   editingUser: User | null;
 }

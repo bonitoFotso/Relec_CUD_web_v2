@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUsers } from '@/contexts/UserContext';
 import { User } from '@/services/UsersService';
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
@@ -47,7 +47,7 @@ const userFormSchema = z.object({
   password: z.string().optional(),
 });
 
-type UserFormValues = z.infer<typeof userFormSchema>;
+export type UserFormValues = z.infer<typeof userFormSchema>;
 
 const UserManagement: React.FC = () => {
   const { users, loading, error, fetchUsers, createUser, updateUser, deleteUser } = useUsers();
@@ -111,7 +111,10 @@ const UserManagement: React.FC = () => {
     try {
       if (editingUser) {
         // Mise à jour de l'utilisateur existant
-        await updateUser({ ...values, id: editingUser.id });
+        await updateUser({
+          ...values, id: editingUser.id,
+          status: 'active'
+        });
         toast.success("Utilisateur mis à jour"  );
       } else {
         // Création d'un nouvel utilisateur
@@ -212,8 +215,8 @@ const UserManagement: React.FC = () => {
       <UserFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        form={form as UseFormReturn<User>}
-        onSubmit={onSubmit as (values: User) => Promise<void>}
+        form={form}
+        onSubmit={onSubmit}
         onCancel={handleDialogClose}
         editingUser={editingUser}
       />

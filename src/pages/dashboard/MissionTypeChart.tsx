@@ -1,37 +1,232 @@
 // src/components/Dashboard/MissionTypeChart.tsx
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { ChartProps } from './types';
+import React, { useState, useEffect } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
+import { PieChartData, ChartProps } from './types';
 
-const COLORS: string[] = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+// Palette de couleurs plus harmonieuse et contrastée
+const COLORS = [
+  '#4264D0', // Bleu royal
+  '#48A9A6', // Turquoise
+  '#E4B363', // Or/ocre
+  '#D56062', // Corail
+  '#8B5FBF', // Violet
+  '#567568', // Vert forêt
+  '#D58936', // Orange rouille
+  '#2E86AB'  // Bleu marine
+];
 
+// Types pour les props des fonctions de rendu
+interface ActiveShapeProps {
+  cx: number;
+  cy: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  fill: string;
+  payload: PieChartData;
+  percent: number;
+  value: number;
+  name: string;
+}
+
+interface CustomLabelProps {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+  index: number;
+  name: string;
+  value: number;
+}
+
+// Animation personnalisée pour le secteur actif
+const renderActiveShape = (props: ActiveShapeProps) => {
+  const { 
+    cx, cy, innerRadius, outerRadius, startAngle, endAngle,
+    fill, percent, value, name
+  } = props;
+
+  return (
+    <g>
+      <text x={cx} y={cy - 5} dy={8} textAnchor="middle" fill="#333" fontSize={14} fontWeight="bold">
+        {name}
+      </text>
+      <text x={cx} y={cy + 20} textAnchor="middle" fill="#666" fontSize={12}>
+        {`${value} missions (${(percent * 100).toFixed(0)}%)`}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        strokeWidth={2}
+        stroke="#fff"
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+    </g>
+  );
+};
+
+// Fonction de rendu personnalisé pour les labels
+const renderCustomizedLabel = (props: CustomLabelProps) => {
+  const {
+    cx, cy, midAngle, innerRadius, outerRadius, percent
+  } = props;
+
+  // Ne pas afficher les labels pour les petites portions
+  if (percent < 0.08) return null;
+
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  
+  // Calculer position x,y
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="#fff" 
+      fontWeight="bold"
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      fontSize={12}
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
+// Rendu du composant CustomLegend
+const CustomLegend: React.FC<{ data: PieChartData[] }> = ({ data }) => {
+  // Calculer le total pour les pourcentages
+  const total = data.reduce((sum, entry) => sum + entry.value, 0);
+  
+  return (
+    <div className="flex flex-wrap justify-center mt-4 gap-2">
+      {data.map((entry, index) => (
+        <div 
+          key={`legend-${index}`} 
+          className="flex items-center px-2 py-1 rounded-md bg-gray-50 border border-gray-100"
+        >
+          <div 
+            className="w-3 h-3 rounded-sm mr-2" 
+            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+          ></div>
+          <span className="text-xs font-medium">
+            {entry.name}: {entry.value} ({((entry.value / total) * 100).toFixed(1)}%)
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Composant principal
 const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+  const [totalMissions, setTotalMissions] = useState<number>(0);
+
+  // Calculer le total des missions lors du chargement ou de la mise à jour des données
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const total = data.reduce((sum, entry) => sum + (entry as PieChartData).value, 0);
+      setTotalMissions(total);
+    }
+  }, [data]);
+
+  // S'assurer que data est toujours défini avant le rendu
+  const chartData = React.useMemo(() => {
+    if (!data || data.length === 0) {
+      return [{
+        name: 'Aucune donnée',
+        value: 1
+      }];
+    }
+    return data;
+  }, [data]);
+  // Gestionnaires d'événements
+  const onPieEnter = (_: MouseEvent, index: number) => {
+    setActiveIndex(index);
+  };
+  
+  const onPieLeave = () => {
+    setActiveIndex(undefined);
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Répartition des missions par type</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">Répartition des missions par type</h2>
+        <div className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+          Total: {totalMissions} missions
+        </div>
+      </div>
+      
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              activeIndex={activeIndex}
+              activeShape={renderActiveShape}
+              data={chartData as PieChartData[]}
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }: { name: string, percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              label={renderCustomizedLabel}
               outerRadius={80}
+              innerRadius={30}
               fill="#8884d8"
               dataKey="value"
+              onMouseEnter={onPieEnter}
+              onMouseLeave={onPieLeave}
+              paddingAngle={2}
+              animationBegin={200}
+              animationDuration={1000}
             >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {chartData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLORS[index % COLORS.length]} 
+                  stroke="#fff"
+                  strokeWidth={1}
+                />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip
               formatter={(value: number) => [`${value} missions`, 'Quantité']}
               labelFormatter={(name: string) => `Type: ${name}`}
+              contentStyle={{
+                borderRadius: '4px',
+                borderColor: '#ddd',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+              }}
             />
           </PieChart>
         </ResponsiveContainer>
+      </div>
+      
+      {chartData.length > 1 && <CustomLegend data={chartData as PieChartData[]} />}
+      
+      <div className="mt-2 text-xs text-gray-500 text-center">
+        {chartData.length > 1 
+          ? "Passez sur un segment pour voir plus de détails" 
+          : "Aucune donnée disponible pour le moment"}
       </div>
     </div>
   );
