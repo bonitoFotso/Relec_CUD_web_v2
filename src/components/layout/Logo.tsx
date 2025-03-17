@@ -1,77 +1,55 @@
-// src/components/layout/LogoCustom.tsx
+// src/components/layout/Logo.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface LogoProps {
-  className?: string;
-  title?: string;
-  showTitle?: boolean;
-  variant?: 'default' | 'light' | 'dark';
+  variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
+  showTitle?: boolean;
+  className?: string;
 }
 
-export const LogoCustom: React.FC<LogoProps> = ({
-  className = '',
-  title = 'CRM System',
+const LogoCustom: React.FC<LogoProps> = ({
+  variant = 'light',
+  size = 'md',
   showTitle = true,
-  variant = 'default',
-  size = 'md'
+  className,
 }) => {
-  // Classes pour les différentes tailles du conteneur
-  const containerSizeClasses = {
-    sm: 'w-20 h-12',
-    md: 'w-10 h-10',
-    lg: 'w-32 h-20'
-  };
-  
-  // Classes pour les différentes variantes
-  const variantClasses = {
-    default: '',
-    light: 'bg-white',
-    dark: 'bg-gray-800'
-  };
-  
-  // Taille du texte selon la taille du logo
-  const textSizeClasses = {
-    sm: 'text-lg',
-    md: 'text-xl',
-    lg: 'text-2xl'
-  };
-  
-  // Espacement entre le logo et le texte
-  const spacingClasses = {
-    sm: 'gap-2',
-    md: 'gap-3',
-    lg: 'gap-4'
+  // Determine which logo image to use based on variant
+  const logoSrc = variant === 'dark' 
+    ? '/images/logo.png' // Assuming you have a white version
+    : '/logo.png';  // Path relative to the public folder
+
+  // Size mapping for the logo
+  const sizeClasses = {
+    sm: 'h-18',
+    md: 'h-10',
+    lg: 'h-16',
   };
 
   return (
-    <Link
-      to="/"
-      className={cn(
-        'inline-flex items-center', 
-        spacingClasses[size],
-        className
-      )}
-    >
-      <div className={cn(
-        'flex items-center justify-center overflow-hidden',
-        containerSizeClasses[size],
-        variantClasses[variant]
-      )}>
-        <img 
-          src="/logo.png" 
-          alt="Logo" 
-          className="w-full h-full " 
-        />
-      </div>
+    <div className={cn('flex items-center', className)}>
+      {/* Logo Image */}
+      <img 
+        src={logoSrc} 
+        alt="Relec-cud Logo" 
+        className={cn(sizeClasses[size], 'w-auto object-contain')}
+      />
+      
+      {/* Logo Title Text */}
       {showTitle && (
-        <span className={cn('font-bold', textSizeClasses[size])}>
-          {title}
+        <span 
+          className={cn(
+            'ml-2 font-serif text-3xl font-bold',
+            size === 'sm' && 'text-xl',
+            size === 'lg' && 'text-4xl',
+            variant === 'light' ? 'text-primary' : 'text-white'
+          )}
+        >
+          Rélec-cud
         </span>
       )}
-    </Link>
+    </div>
   );
 };
 

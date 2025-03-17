@@ -4,6 +4,7 @@ export interface NavigationItem {
     name: string;
     href: string;
     icon?: string;
+    badge?: string;
   }
   
   export interface NavigationGroup {
@@ -15,13 +16,13 @@ export interface NavigationItem {
     {
       title: "Tableau de bord",
       items: [
-        { name: 'Dashboard', href: '/' }
+        { name: 'Dashboard', href: '/', badge: '1' }
       ]
     },
     {
       title: "Missions",
       items: [
-        { name: 'Missions', href: '/missions' }
+        { name: 'Missions', href: '/missions', badge: '1' }
       ]
     },
     {

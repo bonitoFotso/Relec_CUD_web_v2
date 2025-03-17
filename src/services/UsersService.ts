@@ -15,8 +15,6 @@ export interface User {
 export const UserService = {
   getAll: async (): Promise<User[]> => {
     const { data } = await apiClient.get('/users/index');
-    console.log(data);
-    console.log(data.data.users);
     return data.data.users || [];
   },
   

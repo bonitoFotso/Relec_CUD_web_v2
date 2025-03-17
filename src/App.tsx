@@ -10,6 +10,7 @@ import { AppProviders } from './contexts/AppProviders';
 import UserManagement from './pages/users/Users';
 import MissionManagement from './pages/missions/MissionManagement';
 import MissionDetails from './pages/missions/MissionDetails';
+import EquipmentMap from './pages/maps/EquipmentMap';
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -39,6 +40,7 @@ const App: React.FC = () => {
               {/* Dashboard */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
+              <Route path='/maps' element={<EquipmentMap/>} />
 
               <Route path='/missions' element={<MissionManagement />} />
               <Route path='/missions/:id' element={<MissionDetails />} />

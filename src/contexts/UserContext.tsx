@@ -31,7 +31,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setError(null);
     try {
       const fetchedUsers = await UserService.getAll();
-      console.log(fetchedUsers);
       setUsers(fetchedUsers);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while fetching users');
