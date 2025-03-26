@@ -11,6 +11,8 @@ import UserManagement from './pages/users/Users';
 import MissionManagement from './pages/missions/MissionManagement';
 import MissionDetails from './pages/missions/MissionDetails';
 import EquipmentMap from './pages/maps/EquipmentMap';
+import UserDetail from './pages/users/UserDetails';
+import PermissionsManagement from './pages/permissions/permissions';
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -33,15 +35,15 @@ const App: React.FC = () => {
           <Routes>
             {/* Routes d'authentification sans Layout */}
             <Route path="/login" element={<LoginForm />} />
-            <Route path="/register" element={<LoginForm />} />
 
             {/* Routes privées avec Layout */}
             <Route element={<PrivateRoute element={<Layout />} />}>
               {/* Dashboard */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UserManagement />} />
+              <Route path="/permissions" element={<PermissionsManagement />}/>
+              <Route path="/users/:id" element={<UserDetail />} />
               <Route path='/maps' element={<EquipmentMap/>} />
-
               <Route path='/missions' element={<MissionManagement />} />
               <Route path='/missions/:id' element={<MissionDetails />} />
 

@@ -52,22 +52,27 @@ export const UserService = {
   },
   
   update: async (user: User): Promise<User> => {
-    const formData = new FormData();
-    Object.entries(user).forEach(([key, value]) => {
-        console.log(key, value);
-      if (value !== undefined) {
-        formData.append(key, value.toString());
-      }
-    });
-    console.log(formData);
-    
-    const { data } = await apiClient.post('/users/update', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return data.data.user;
+    try {
+      const formData = new FormData();
+      Object.entries(user).forEach(([key, value]) => {
+        if (value !== undefined) {
+          formData.append(key, value.toString());
+        }
+      });
+  
+      console.log("Données envoyées à l'API :", Object.fromEntries(formData.entries()));
+  
+      const { data } = await apiClient.put('/users/update', formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      return data.data.user;
+    } catch (error: any) {
+      console.error("Erreur de mise à jour :", error.response?.data);
+      throw error;
+    }
   },
   
   delete: async (id: number): Promise<void> => {
@@ -97,5 +102,13 @@ export const UserService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-  }
+  },
+  
+  assignRoles: async (): Promise<any> => {
+    const { data } = await apiClient.get(`/users/assignroles`);
+    console.log("assignroles",data);
+    return data;
+  },
+
+  
 };

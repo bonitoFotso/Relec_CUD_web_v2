@@ -46,10 +46,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white dark:bg-gray-950 rounded-lg shadow overflow-hidden">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center">
-          <h2 className="text-lg font-semibold text-gray-800">Missions récentes</h2>
+          <h2 className="text-lg font-semibold ">Missions récentes</h2>
           <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
             {filteredMissions.length} missions
           </span>
@@ -59,14 +59,14 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
             <input
               type="text"
               placeholder="Rechercher..."
-              className="pl-8 pr-4 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-8 pr-4 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
           <button
-            className="flex items-center text-sm text-gray-600 hover:text-blue-600 focus:outline-none"
+            className="flex items-center text-sm  hover:text-blue-600 focus:outline-none"
             onClick={() => setShowFilters(!showFilters)}
           >
             <Filter className="h-4 w-4 mr-1" />
@@ -78,10 +78,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
 
       {/* Filtres additionnels (affichés conditionnellement) */}
       {showFilters && (
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-950 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Statut</label>
+              <label className="text-xs font-medium  block mb-1">Statut</label>
               <select
                 className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={statusFilter}
@@ -94,7 +94,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Type d'intervention</label>
+              <label className="text-xs font-medium  block mb-1">Type d'intervention</label>
               <select
                 className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
@@ -111,60 +111,60 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-950">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Titre</th>
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <Wrench className="h-3 w-3 mr-1" />
                   Type
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <MapPin className="h-3 w-3 mr-1" />
                   Rue
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
                   Date
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
                   Status
                 </div>
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-right text-xs font-medium  uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-950 divide-y divide-gray-200">
             {filteredMissions.length > 0 ? (
               filteredMissions.slice(0, 5).map((mission) => (
                 <tr 
                   key={mission.id} 
                   className={`${
-                    hoveredRow === mission.id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                    hoveredRow === mission.id ? 'bg-blue-50 dark:bg-gray-700' : 'hover:bg-gray-50'
                   } transition-colors duration-150`}
                   onMouseEnter={() => setHoveredRow(mission.id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{mission.title}</div>
+                    <div className="text-sm font-medium ">{mission.title}44</div>
                     {mission.description && (
-                      <div className="text-xs text-gray-500 truncate max-w-xs">{mission.description}</div>
+                      <div className="text-xs  truncate max-w-xs">{mission.description}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-700 font-medium">
+                    <div className="text-sm  font-medium">
                       {getInterventionTypeName(mission.intervention_type_id) || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm ">
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-gray-400" />
                         {`Rue ${mission.street_id || "N/A"}`}
@@ -172,7 +172,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-700">{formatDate(mission)}</div>
+                    <div className="text-sm ">{formatDate(mission)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -193,7 +193,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-sm ">
                   {searchTerm || statusFilter !== 'all' 
                     ? "Aucune mission ne correspond aux critères de recherche" 
                     : "Aucune mission trouvée"}
@@ -205,13 +205,13 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
       </div>
 
       {filteredMissions.length > 5 && (
-        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-500">
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center text-xs ">
           Affichage de 5 missions sur {filteredMissions.length}
         </div>
       )}
 
       <div className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs ">
           Mis à jour {new Date().toLocaleTimeString()}
         </div>
         <a href="/missions" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">

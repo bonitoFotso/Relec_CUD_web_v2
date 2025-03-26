@@ -1,7 +1,7 @@
 // services/MissionsService.ts
-import { AxiosResponse, AxiosError } from 'axios';
-import apiClient from './apiClient';
-import { Sticker } from './stickers.service';
+import { AxiosResponse, AxiosError } from "axios";
+import apiClient from "./apiClient";
+import { Sticker } from "./stickers.service";
 
 // Interfaces de base
 export interface Mission {
@@ -55,6 +55,8 @@ export interface ApiResponse<T> {
 }
 
 export interface MissionsDetailsResponse {
+  status: boolean;
+  message: string;
   agents: Agent[];
   mission: Mission;
   stickers: Sticker[];
@@ -74,23 +76,27 @@ export const MissionsService = {
    */
   getAll: async (): Promise<Mission[]> => {
     try {
-      const response: AxiosResponse<ApiResponse<Mission[]>> = await apiClient.get('/missions/index');
-      
+      const response: AxiosResponse<ApiResponse<Mission[]>> =
+        await apiClient.get("/missions/index");
+
       if (!response.data.status) {
-        throw new Error(response.data.message || 'Erreur lors de la récupération des missions');
+        throw new Error(
+          response.data.message || "Erreur lors de la récupération des missions"
+        );
       }
-      
+
       return response.data.data || [];
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error('Erreur dans MissionsService.getAll:', errorMessage);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error("Erreur dans MissionsService.getAll:", errorMessage);
       throw new Error(`Impossible de récupérer les missions: ${errorMessage}`);
     }
   },
-  
+
   /**
    * Récupère une mission par son ID
    * @param id - ID de la mission
@@ -99,52 +105,65 @@ export const MissionsService = {
   getById: async (id: number): Promise<MissionsDetailsResponse> => {
     try {
       const formData = new FormData();
-      formData.append('id', id.toString());
-      
-      const response: AxiosResponse<ApiResponse<MissionsDetailsResponse>> = 
-        await apiClient.post('/missions/show', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+      formData.append("id", id.toString());
+
+      const response: AxiosResponse<MissionsDetailsResponse> =
+        await apiClient.post("/missions/show", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-      
-      if (!response.data.status || !response.data.data) {
-        throw new Error(response.data.message || 'Mission non trouvée');
+
+      if (!response.data.status || !response.data) {
+        throw new Error(response.data.message || "Mission non trouvée");
       }
-      
-      return response.data.data;
+
+      return response.data;
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error(`Erreur dans MissionsService.getById(${id}):`, errorMessage);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error(
+        `Erreur dans MissionsService.getById(${id}):`,
+        errorMessage
+      );
       throw new Error(`Mission non trouvée (ID: ${id}): ${errorMessage}`);
     }
   },
-  
+
   /**
    * Récupère les données nécessaires pour le formulaire de création
    * @returns Promise<MissionFormData> - Données pour le formulaire
    */
   getCreateFormData: async (): Promise<MissionFormData> => {
     try {
-      const response: AxiosResponse<ApiResponse<MissionFormData>> = 
-        await apiClient.get('/missions/create');
-      
+      const response: AxiosResponse<any> = await apiClient.get(
+        "/missions/create"
+      );
       if (!response.data.status) {
-        throw new Error(response.data.message || 'Erreur lors de la récupération des données du formulaire');
+        throw new Error(
+          response.data.message ||
+            "Erreur lors de la récupération des données du formulaire"
+        );
       }
-      
-      return response.data.data || {};
+      // Extraction des données directement depuis response.data
+      const { agents, streets, interventions } = response.data;
+      return { agents, streets, interventions };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error('Erreur dans MissionsService.getCreateFormData:', errorMessage);
-      throw new Error(`Impossible de récupérer les données du formulaire: ${errorMessage}`);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+      console.error(
+        "Erreur dans MissionsService.getCreateFormData:",
+        errorMessage
+      );
+      throw new Error(
+        `Impossible de récupérer les données du formulaire: ${errorMessage}`
+      );
     }
   },
-  
+
   /**
    * Crée une nouvelle mission
    * @param mission - Données de la mission à créer
@@ -153,60 +172,73 @@ export const MissionsService = {
   create: async (mission: Mission): Promise<Mission> => {
     try {
       const formData = prepareFormData(mission);
-      
-      const response: AxiosResponse<ApiResponse<{ mission: Mission }>> = 
-        await apiClient.post('/missions/store', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+
+      const response: AxiosResponse<ApiResponse<Mission>> =
+        await apiClient.post("/missions/store", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-      
-      if (!response.data.status || !response.data.data?.mission) {
-        throw new Error(response.data.message || 'Erreur lors de la création de la mission');
+      if (!response.data.status || !response.data.data) {
+        throw new Error(
+          response.data.message || "Erreur lors de la création de la mission"
+        );
       }
-      
-      return response.data.data.mission;
+      return response.data.data;
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error('Erreur dans MissionsService.create:', errorMessage);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error("Erreur dans MissionsService.create:", errorMessage);
       throw new Error(`Impossible de créer la mission: ${errorMessage}`);
     }
   },
-  
+
   /**
    * Récupère les données pour le formulaire d'édition
    * @param id - ID de la mission à éditer
    * @returns Promise<{mission: Mission; formData: MissionFormData}> - Données pour le formulaire
    */
-  getEditFormData: async (id: number): Promise<{mission: Mission; formData: MissionFormData}> => {
+  getEditFormData: async (
+    id: number
+  ): Promise<{ mission: Mission; formData: MissionFormData }> => {
     try {
       const formData = new FormData();
-      formData.append('id', id.toString());
-      
-      const response: AxiosResponse<ApiResponse<{mission: Mission; data: MissionFormData}>> = 
-        await apiClient.post('/missions/edit', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-      
+      formData.append("id", id.toString());
+
+      const response: AxiosResponse<
+        ApiResponse<{ mission: Mission; data: MissionFormData }>
+      > = await apiClient.post("/missions/edit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       if (!response.data.status || !response.data.data) {
-        throw new Error(response.data.message || 'Erreur lors de la récupération des données de la mission');
+        throw new Error(
+          response.data.message ||
+            "Erreur lors de la récupération des données de la mission"
+        );
       }
-      
+
       return {
         mission: response.data.data.mission,
-        formData: response.data.data.data || {}
+        formData: response.data.data.data || {},
       };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error(`Erreur dans MissionsService.getEditFormData(${id}):`, errorMessage);
-      throw new Error(`Impossible de récupérer les données pour l'édition (ID: ${id}): ${errorMessage}`);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error(
+        `Erreur dans MissionsService.getEditFormData(${id}):`,
+        errorMessage
+      );
+      throw new Error(
+        `Impossible de récupérer les données pour l'édition (ID: ${id}): ${errorMessage}`
+      );
     }
   },
-  
+
   /**
    * Met à jour une mission existante
    * @param mission - Données mises à jour de la mission
@@ -215,31 +247,37 @@ export const MissionsService = {
   update: async (mission: Mission): Promise<Mission> => {
     try {
       if (!mission.id) {
-        throw new Error('ID de mission requis pour la mise à jour');
+        throw new Error("ID de mission requis pour la mise à jour");
       }
-      
+
       const formData = prepareFormData(mission);
-      
-      const response: AxiosResponse<ApiResponse<{ mission: Mission }>> = 
-        await apiClient.post('/missions/update', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+
+      const response: AxiosResponse<{ mission: Mission }> =
+        await apiClient.post("/missions/update", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-      
-      if (!response.data.status || !response.data.data?.mission) {
-        throw new Error(response.data.message || 'Erreur lors de la mise à jour de la mission');
+
+      if (!response.data.mission) {
+        throw new Error("Erreur lors de la mise à jour de la mission");
       }
-      
-      return response.data.data.mission;
+
+      return response.data.mission;
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error(`Erreur dans MissionsService.update(${mission.id}):`, errorMessage);
-      throw new Error(`Impossible de mettre à jour la mission (ID: ${mission.id}): ${errorMessage}`);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error(
+        `Erreur dans MissionsService.update(${mission.id}):`,
+        errorMessage
+      );
+      throw new Error(
+        `Impossible de mettre à jour la mission (ID: ${mission.id}): ${errorMessage}`
+      );
     }
   },
-  
+
   /**
    * Supprime une mission
    * @param id - ID de la mission à supprimer
@@ -248,26 +286,34 @@ export const MissionsService = {
   delete: async (id: number): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append('id', id.toString());
-      
-      const response: AxiosResponse<ApiResponse<null>> = 
-        await apiClient.post('/missions/delete', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-      
+      formData.append("id", id.toString());
+
+      const response: AxiosResponse<ApiResponse<null>> = await apiClient.post(
+        "/missions/delete",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
       if (!response.data.status) {
-        throw new Error(response.data.message || 'Erreur lors de la suppression de la mission');
+        throw new Error(
+          response.data.message || "Erreur lors de la suppression de la mission"
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
       console.error(`Erreur dans MissionsService.delete(${id}):`, errorMessage);
-      throw new Error(`Impossible de supprimer la mission (ID: ${id}): ${errorMessage}`);
+      throw new Error(
+        `Impossible de supprimer la mission (ID: ${id}): ${errorMessage}`
+      );
     }
   },
-  
+
   /**
    * Assigne un agent à une mission
    * @param missionId - ID de la mission
@@ -277,26 +323,78 @@ export const MissionsService = {
   assignAgent: async (missionId: number, userId: number): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append('mission_id', missionId.toString());
-      formData.append('user_id', userId.toString());
-      
-      const response: AxiosResponse<ApiResponse<null>> = 
-        await apiClient.post('/missions/assign-mission-agents', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-      
+      formData.append("mission_id", missionId.toString());
+      formData.append("user_id", userId.toString());
+
+      const response: AxiosResponse<ApiResponse<null>> = await apiClient.post(
+        "/missions/assign-mission-agents",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
       if (!response.data.status) {
-        throw new Error(response.data.message || "Erreur lors de l'assignation de l'agent à la mission");
+        throw new Error(
+          response.data.message ||
+            "Erreur lors de l'assignation de l'agent à la mission"
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? error.response?.data?.message || error.message
-        : (error as Error).message;
-        
-      console.error(`Erreur dans MissionsService.assignAgent(${missionId}, ${userId}):`, errorMessage);
-      throw new Error(`Impossible d'assigner l'agent (ID: ${userId}) à la mission (ID: ${missionId}): ${errorMessage}`);
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error(
+        `Erreur dans MissionsService.assignAgent(${missionId}, ${userId}):`,
+        errorMessage
+      );
+      throw new Error(
+        `Impossible d'assigner l'agent (ID: ${userId}) à la mission (ID: ${missionId}): ${errorMessage}`
+      );
     }
-  }
+  },
+  /**
+   * Récupère les missions assignées à un agent
+   * @param userId - ID de l'agent
+   * @returns Promise<Mission[]> - Liste des missions assignées à l'agent
+   */
+
+  getMissionsByAgent: async (userId: number): Promise<Mission[]> => {
+    try {
+      const formData = new FormData();
+      formData.append("id", userId.toString());
+      console.log(userId);
+      const response: AxiosResponse<ApiResponse<Mission[]>> =
+        await apiClient.post("/missions/agent-missions", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+      console.log("donnees des missions", response.data);
+      if (!response.data.status) {
+        throw new Error(
+          response.data.message ||
+            "Erreur lors de la récupération des missions assignées"
+        );
+      }
+
+      return response.data.data || [];
+    } catch (error) {
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data?.message || error.message
+          : (error as Error).message;
+
+      console.error(
+        `Erreur dans MissionsService.getMissionsByAgent(${userId}):`,
+        errorMessage
+      );
+      throw new Error(
+        `Impossible de récupérer les missions assignées (ID agent: ${userId}): ${errorMessage}`
+      );
+    }
+  },
 };
 
 /**
@@ -306,11 +404,11 @@ export const MissionsService = {
  */
 function prepareFormData(mission: Mission): FormData {
   const formData = new FormData();
-  
+
   // Conversion des objets et tableaux en JSON si nécessaire
   Object.entries(mission).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
-      if (typeof value === 'object') {
+      if (typeof value === "object") {
         // Pour les tableaux ou objets, on les convertit en JSON
         formData.append(key, JSON.stringify(value));
       } else {
@@ -318,7 +416,7 @@ function prepareFormData(mission: Mission): FormData {
       }
     }
   });
-  
+
   return formData;
 }
 

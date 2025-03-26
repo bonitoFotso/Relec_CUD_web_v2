@@ -117,9 +117,9 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
+    <div className=" p-4 rounded-lg bg-white dark:bg-gray-950">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">Répartition des missions par type</h2>
+        <h2 className="text-lg font-semibold ">Répartition des missions par type</h2>
         <div className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
           Total: {totalMissions} missions
         </div>
@@ -169,7 +169,7 @@ const MissionTypeChart: React.FC<ChartProps> = ({ data }) => {
       
       {chartData.length > 1 && <CustomLegend data={chartData as PieChartData[]} />}
       
-      <div className="mt-2 text-xs text-gray-500 text-center">
+      <div className="mt-2 text-xs text-center">
         {chartData.length > 1 
           ? "Passez sur un segment pour voir plus de détails" 
           : "Aucune donnée disponible pour le moment"}

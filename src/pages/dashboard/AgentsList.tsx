@@ -20,21 +20,21 @@ const AgentsList: React.FC<AgentsListProps> = ({ agents, isLoading }) => {
   }
   
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white dark:bg-gray-950 rounded-lg shadow">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Agents actifs</h2>
+        <h2 className="text-lg font-semibold">Agents actifs</h2>
       </div>
       <ul className="divide-y divide-gray-200">
         {agents.length > 0 ? (
           agents.slice(0, 5).map((agent) => (
-            <li key={agent.id} className="px-4 py-3 hover:bg-gray-50">
+            <li key={agent.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 ">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                   <span className="text-gray-500">{agent.name?.charAt(0).toUpperCase() || "U"}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{agent.name}</p>
-                  <p className="text-sm text-gray-500 truncate">{agent.email}</p>
+                  <p className="text-sm font-medium  truncate">{agent.name}</p>
+                  <p className="text-sm text-gray-500  truncate">{agent.email}</p>
                 </div>
                 <div>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

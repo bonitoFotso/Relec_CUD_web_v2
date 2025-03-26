@@ -40,4 +40,9 @@
 .read-the-docs {
   color: #888;
 }
+.leaflet-container {
+  z-index: 0 !important; /* Évite qu'elle passe au-dessus des autres éléments */
+  position: relative !important; /* Garde la carte à l'intérieur de sa div */
+}
+
 

@@ -1,14 +1,20 @@
 // pages/UserManagement.tsx
-import React, { useState, useEffect } from 'react';
-import { useUsers } from '@/contexts/UserContext';
-import { User } from '@/services/UsersService';
+import React, { useState, useEffect } from "react";
+import { useUsers } from "@/contexts/UserContext";
+import { User } from "@/services/UsersService";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  PlusIcon,
+  Pencil1Icon,
+  TrashIcon,
+  EyeOpenIcon,
+} from "@radix-ui/react-icons";
+import { useNavigate } from "react-router-dom";
 
 // Importer nos composants
-import UserFormDialog from '@/components/UserFormDialog';
+import UserFormDialog from "@/components/UserFormDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -31,30 +37,42 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from 'sonner';
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDashboard } from "@/contexts/DashboardContext";
 
-// Définition du schéma de validation pour le formulaire
+// Schéma de validation pour le formulaire
 const userFormSchema = z.object({
-  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
+  name: z
+    .string()
+    .min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
   email: z.string().email({ message: "Adresse email invalide." }),
   phone: z.string().min(8, { message: "Numéro de téléphone invalide." }),
-  sex: z.enum(["M", "F"], { 
-    required_error: "Veuillez sélectionner un sexe."
-  }),
-  role: z.enum(["admin", "agent", "admin-kes"], { 
-    required_error: "Veuillez sélectionner un rôle."
-  }),
+  sex: z.enum(["M", "F"], { required_error: "Veuillez sélectionner un sexe." }),
+  role: z.string().min(2, { message: "Veuillez sélectionner un rôle." }),
   password: z.string().optional(),
 });
-
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
 const UserManagement: React.FC = () => {
-  const { users, loading, error, fetchUsers, createUser, updateUser, deleteUser } = useUsers();
+  const { currentUser } = useAuth();
+  const {
+    users,
+    loading,
+    error,
+    fetchUsers,
+    fetchAssignRoles,
+    createUser,
+    updateUser,
+    deleteUser,
+  } = useUsers();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+
+  // Boîte de dialogue pour les utilisateurs non-agents
+  const [isNotAgentDialogOpen, setIsNotAgentDialogOpen] = useState(false);
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -68,8 +86,11 @@ const UserManagement: React.FC = () => {
     },
   });
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchUsers();
+    fetchAssignRoles();
   }, [fetchUsers]);
 
   useEffect(() => {
@@ -78,7 +99,7 @@ const UserManagement: React.FC = () => {
     }
   }, [error]);
 
-  // Réinitialiser le formulaire et ouvrir la modale pour ajouter un nouvel utilisateur
+  // Ouverture du formulaire pour créer un nouvel utilisateur
   const handleAddClick = () => {
     setEditingUser(null);
     form.reset({
@@ -92,7 +113,7 @@ const UserManagement: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  // Préparer le formulaire pour l'édition et ouvrir la modale
+  // Préparation du formulaire pour l'édition
   const handleEditClick = (user: User) => {
     setEditingUser(user);
     form.reset({
@@ -100,45 +121,41 @@ const UserManagement: React.FC = () => {
       email: user.email,
       phone: user.phone,
       sex: user.sex as "M" | "F",
-      role: user.role as "admin" | "agent" | "admin-kes",
-      // Ne pas définir le mot de passe pour l'édition
+      role: user.role,
     });
     setIsDialogOpen(true);
   };
 
-  // Gérer la soumission du formulaire (création ou mise à jour)
+  // Gérer la soumission du formulaire
   const onSubmit = async (values: UserFormValues) => {
     try {
       if (editingUser) {
-        // Mise à jour de l'utilisateur existant
-        await updateUser({
-          ...values, id: editingUser.id,
-          status: 'active'
-        });
-        toast.success("Utilisateur mis à jour"  );
+        await updateUser({ ...values, id: editingUser.id, status: "active" });
+        toast.success("Utilisateur mis à jour");
       } else {
-        // Création d'un nouvel utilisateur
         await createUser(values as User);
         toast.success("Utilisateur créé");
       }
+      await fetchUsers();
+
       setIsDialogOpen(false);
     } catch (err) {
       console.error("Opération échouée :", err);
-        toast.error("Opération échouée");
+      toast.error("Opération échouée");
     }
   };
 
-  // Gérer la fermeture de la boîte de dialogue
   const handleDialogClose = () => {
     setIsDialogOpen(false);
   };
 
-  // Gérer la confirmation de suppression
+  // Confirmation de suppression
   const handleDeleteConfirm = async () => {
     if (userToDelete?.id) {
       try {
         await deleteUser(userToDelete.id);
         toast.success("Utilisateur supprimé");
+
         setIsAlertDialogOpen(false);
       } catch (err) {
         console.error("Suppression échouée :", err);
@@ -147,15 +164,23 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Préparation pour la suppression
   const handleDeleteClick = (user: User) => {
     setUserToDelete(user);
     setIsAlertDialogOpen(true);
   };
 
+  // Gestion de la visualisation des détails d'un utilisateur
+  const handleViewDetails = (user: User) => {
+    if (user.role !== "agent") {
+      setIsNotAgentDialogOpen(true);
+    } else {
+      navigate(`/users/${user.id}`);
+    }
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex  flex-col md:flex-row justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
         <Button onClick={handleAddClick}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -170,11 +195,7 @@ const UserManagement: React.FC = () => {
         </Alert>
       )}
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spinner className="h-10 w-10" />
-        </div>
-      ) : (
+      <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
         <Table>
           <TableCaption>Liste des utilisateurs</TableCaption>
           <TableHeader>
@@ -188,30 +209,51 @@ const UserManagement: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>{user.sex === 'M' ? 'Masculin' : 'Féminin'}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditClick(user)}>
-                      <Pencil1Icon className="h-4 w-4" />
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(user)}>
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {users
+              .filter((user) => user)
+              .map((user) => (
+                <TableRow key={user!.id}>
+                  <TableCell className="font-medium">{user!.name}</TableCell>
+                  <TableCell>{user!.email}</TableCell>
+                  <TableCell>{user!.phone}</TableCell>
+                  <TableCell>
+                    {user!.sex === "M" ? "Masculin" : "Féminin"}
+                  </TableCell>
+                  <TableCell>{user!.role}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(user!)}
+                        >
+                          <EyeOpenIcon className="h-4 w-4" />
+                        </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditClick(user!)}
+                      >
+                        <Pencil1Icon className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteClick(user!)}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
-      )}
+      </div>
 
-      {/* Utilisation du composant UserFormDialog */}
+      {/* Formulaire de création/édition */}
       <UserFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -221,20 +263,41 @@ const UserManagement: React.FC = () => {
         editingUser={editingUser}
       />
 
-      {/* Boîte de dialogue de confirmation de suppression */}
+      {/* Dialog de confirmation de suppression */}
       <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous absolument sûr?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement
-              l'utilisateur {userToDelete?.name} et toutes ses données associées.
+              Cette action ne peut pas être annulée. Cela supprimera
+              définitivement l'utilisateur {userToDelete?.name} et toutes ses
+              données associées.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog pour les utilisateurs non-agents */}
+      <AlertDialog
+        open={isNotAgentDialogOpen}
+        onOpenChange={setIsNotAgentDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accès refusé</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cet utilisateur n'est pas un agent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setIsNotAgentDialogOpen(false)}>
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

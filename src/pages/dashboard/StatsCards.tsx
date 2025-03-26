@@ -16,7 +16,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
   const IconComponent = iconComponents[icon] || Calendar;
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-200">
+    <div className="p-6 rounded-lg bg-white dark:bg-gray-950 transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>

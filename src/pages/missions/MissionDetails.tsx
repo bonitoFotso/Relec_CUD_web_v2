@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMissions } from '@/contexts/MissionContext';
 import { useStickers } from '@/contexts/StickerContext';
+import { useUsers } from '@/contexts/UserContext';
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +57,7 @@ import { toast } from 'sonner';
 import { MapPinIcon } from 'lucide-react';
 import StickerFormDialog from '@/components/StickerFormDialog';
 import StickerCard from '@/components/card/StickerCard';
+import { User } from '@/services/UsersService';
 
 
 export interface Agent {
@@ -79,6 +81,7 @@ type StickerFormValues = z.infer<typeof stickerFormSchema>;
 const MissionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getUserById  }=useUsers();
   const { getMission, formData: missionFormData, fetchFormData: fetchMissionFormData, deleteMission, assignAgent } = useMissions();
   const {
     fetchFormData: fetchStickerFormData,
@@ -87,6 +90,7 @@ const MissionDetails: React.FC = () => {
   } = useStickers();
 
   const [mission, setMission] = useState<Mission | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [stickers, setStickers] = useState<Sticker[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -123,6 +127,10 @@ const MissionDetails: React.FC = () => {
         setMission(missionData.mission);
         setStickers(missionData.stickers);
         setAgents(missionData.agents);
+
+        //charger les details de l'utilisateur
+        const userData = await getUserById(parseInt(id));
+        setUser(userData || null);
 
         // Charger les stickers associés à cette mission
         // const missionStickers = await getStickersByMission(parseInt(id));
@@ -178,7 +186,7 @@ const MissionDetails: React.FC = () => {
   // Obtenir le nom de l'utilisateur
   const getUserName = (id?: number) => {
     if (!id) return 'Utilisateur inconnu';
-    const user = missionFormData.agents?.find(u => u.id === id);
+    const user = getUserById(id);
     return user?.name || 'Utilisateur inconnu';
   };
 
@@ -289,10 +297,6 @@ const MissionDetails: React.FC = () => {
             <PersonIcon className="mr-2 h-4 w-4" />
             Assigner un agent
           </Button>
-          <Button variant="outline" onClick={() => navigate(`/missions/edit/${mission.id}`)}>
-            <Pencil1Icon className="mr-2 h-4 w-4" />
-            Modifier
-          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">
@@ -368,7 +372,10 @@ const MissionDetails: React.FC = () => {
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-3">Agents assignés</h3>
+            <div>
+            <h3 className="text-sm font-medium mb-3">Agents assignés</h3>
+            </div>
+            <div className='h-44 overflow-hidden overflow-y-scroll'>
               {agents && agents.length > 0 ? (
                 <div className="space-y-2">
                   {agents.map(agent => (
@@ -384,6 +391,7 @@ const MissionDetails: React.FC = () => {
                 </p>
               )}
             </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -391,7 +399,7 @@ const MissionDetails: React.FC = () => {
       {/* Onglets pour les informations supplémentaires */}
       <Tabs defaultValue="stickers" className="w-full">
         <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-          <TabsTrigger value="stickers">Stickers</TabsTrigger>
+          <TabsTrigger value="stickers">Etiquettes</TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
         </TabsList>
 
@@ -400,14 +408,14 @@ const MissionDetails: React.FC = () => {
             <CardHeader>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="text-lg">Stickers de la mission</CardTitle>
+                  <CardTitle className="text-lg">Etiquette de la mission</CardTitle>
                   <CardDescription>
-                    Liste des stickers associés à cette mission.
+                    Liste des etiquettes associées à cette mission.
                   </CardDescription>
                 </div>
                 <Button variant="outline" onClick={handleAddStickerClick}>
                   <PlusIcon className="mr-2 h-4 w-4" />
-                  Ajouter un sticker
+                  Generer l'etiquette
                 </Button>
               </div>
             </CardHeader>

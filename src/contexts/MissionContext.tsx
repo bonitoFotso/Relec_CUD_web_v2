@@ -1,6 +1,5 @@
-// contexts/MissionContext.tsx
 import { Mission, MissionFormData, MissionsDetailsResponse, MissionsService } from '@/services/missions.service';
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 
 interface MissionContextType {
   missions: Mission[];
@@ -27,6 +26,7 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
   const [formData, setFormData] = useState<MissionFormData>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState<boolean>(false); // Indicateur d'initialisation
 
   const fetchMissions = useCallback(async () => {
     setLoading(true);
@@ -57,6 +57,15 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
       setLoading(false);
     }
   }, []);
+
+  // Charger les données une seule fois au premier montage du contexte
+  useEffect(() => {
+    if (!initialized) {
+      Promise.all([fetchMissions(), fetchFormData()]).then(() => {
+        setInitialized(true);
+      });
+    }
+  }, [initialized, fetchMissions, fetchFormData]);
 
   const getMission = useCallback(async (id: number): Promise<MissionsDetailsResponse> => {
     setLoading(true);
@@ -97,7 +106,7 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
     setError(null);
     try {
       const updatedMission = await MissionsService.update(mission);
-      setMissions(prev => 
+      setMissions(prev =>
         prev.map(m => m.id === mission.id ? updatedMission : m)
       );
       return updatedMission;
@@ -132,8 +141,7 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
     setError(null);
     try {
       await MissionsService.assignAgent(missionId, userId);
-      // Recharger la mission mise à jour
-      await MissionsService.getById(missionId) ;
+      // Recharger la mission mise à jour ou re-fetch toutes les missions
       const missions = await MissionsService.getAll();
       setMissions(missions);
     } catch (err) {

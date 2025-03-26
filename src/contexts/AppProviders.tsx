@@ -1,24 +1,31 @@
-// App provider combination
-import React, { ReactNode } from 'react';
-import { UserProvider } from './UserContext';
-import { MissionProvider } from './MissionContext';
-import { StickerProvider } from './StickerContext';
-import AuthProvider from './AuthContext';
+import React, { ReactNode, useState, useEffect } from "react";
+import { UserProvider, useUsers } from "./UserContext";
+import { MissionProvider, useMissions } from "./MissionContext";
+import { StickerProvider, useStickers } from "./StickerContext";
+import AuthProvider, { useAuth } from "./AuthContext";
+import LoadingScreen from "@/components/LoadingScreen";
+import { DashboardProvider } from "./DashboardContext";
 
 interface AppProvidersProps {
   children: ReactNode;
 }
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <AuthProvider>
-      <UserProvider>
-        <MissionProvider>
-          <StickerProvider>
-          {children}
-          </StickerProvider>
-        </MissionProvider>
-      </UserProvider>
+      <DashboardProvider>
+        <UserProvider>
+          <MissionProvider>
+            <StickerProvider>
+              <LoadingScreen isLoading={isLoading} setIsLoading={setIsLoading}>
+                {children}
+              </LoadingScreen>
+            </StickerProvider>
+          </MissionProvider>
+        </UserProvider>
+      </DashboardProvider>
     </AuthProvider>
   );
 };

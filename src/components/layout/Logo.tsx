@@ -22,8 +22,8 @@ const LogoCustom: React.FC<LogoProps> = ({
 
   // Size mapping for the logo
   const sizeClasses = {
-    sm: 'h-18',
-    md: 'h-10',
+    sm: 'hidden',
+    md: 'h-18',
     lg: 'h-16',
   };
 
@@ -33,7 +33,7 @@ const LogoCustom: React.FC<LogoProps> = ({
       <img 
         src={logoSrc} 
         alt="Relec-cud Logo" 
-        className={cn(sizeClasses[size], 'w-auto object-contain')}
+        className={cn(sizeClasses[size], 'w-72 object-contain')}
       />
       
       {/* Logo Title Text */}

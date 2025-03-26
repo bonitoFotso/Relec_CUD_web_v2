@@ -1,6 +1,5 @@
-// components/MissionFormDialog.tsx
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React, { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -27,8 +26,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Mission, MissionFormData } from '@/services/missions.service';
-import { MissionFormValues } from '@/pages/missions/MissionManagement';
+import { Spinner } from "@/components/ui/spinner"; // Ajout du Spinner
+import { Mission, MissionFormData } from "@/services/missions.service";
+import { MissionFormValues } from "@/pages/missions/MissionManagement";
+import { useUsers } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert } from "./ui/alert";
 
 interface MissionFormDialogProps {
   open: boolean;
@@ -49,6 +52,20 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
   editingMission,
   formData,
 }) => {
+  const { users } = useUsers();
+  const { currentUser } = useAuth();
+  const [loading, setLoading] = useState(false); // Ajout du state loading
+
+  // Obtenir le nom de l'utilisateur
+  const getUserName = (id: number) => {
+    const user = users?.find((u) => u.id === id);
+    return user?.name || "Utilisateur inconnu";
+  };
+
+  if (!currentUser || !currentUser.id) {
+    return <Alert variant="destructive">Aucun utilisateur connecté.</Alert>;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -61,7 +78,14 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => onSubmit({...data, id: editingMission?.id || 0}))} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(async (data) => {
+              setLoading(true); // Active le mode chargement
+              await onSubmit({ ...data, id: editingMission?.id || 0 });
+              setLoading(false); // Désactive le mode chargement après soumission
+            })}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -75,7 +99,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -83,11 +107,11 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Description de la mission"
                       className="resize-none"
                       {...field}
-                      value={field.value || ''} // Gestion des valeurs undefined
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -98,38 +122,29 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
               <FormField
                 control={form.control}
                 name="user_id"
+                defaultValue={currentUser.id}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Responsable</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un responsable" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {formData.agents?.map((user) => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={getUserName(currentUser.id)}
+                        readOnly
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="street_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rue</FormLabel>
-                    <Select 
+                    <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
                       value={field.value?.toString()}
                     >
@@ -140,7 +155,10 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                       </FormControl>
                       <SelectContent>
                         {formData.streets?.map((street) => (
-                          <SelectItem key={street.id} value={street.id.toString()}>
+                          <SelectItem
+                            key={street.id}
+                            value={street.id.toString()}
+                          >
                             {street.name}
                           </SelectItem>
                         ))}
@@ -151,14 +169,14 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="intervention_type_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type d'intervention</FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
                     value={field.value?.toString()}
                   >
@@ -179,17 +197,20 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onCancel}
-              >
+              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
                 Annuler
               </Button>
-              <Button type="submit">
-                {editingMission ? "Mettre à jour" : "Créer"}
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Spinner className="mr-2 h-4 w-4" /> 
+                    {editingMission ? "Mise à jour en cours" : "Création en cours"}
+                  </>
+                ) : (
+                  editingMission ? "Mettre à jour" : "Créer"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -200,10 +221,3 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
 };
 
 export default MissionFormDialog;
-
-{/*
-    // Gestionnaires d'événements
-  const onPieEnter = (_: MouseEvent, index: number) => {
-    setActiveIndex(index);
-  };
-  */}

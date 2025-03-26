@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings, Bell, Search, ChevronDown, MessageSquare, HelpCircle } from "lucide-react";
+import { LogOut, User, Settings, Bell, Search, ChevronDown, MessageSquare, HelpCircle, X } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import LogoCustom from './Logo';
 import { ModeToggle } from '../mode-toggle';
@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm  py-2.5 border-b shadow-sm">
-      <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+      <div className="mx-auto flex items-center justify-between">
         {/* Left section */}
         <div className="flex items-center gap-2">
           {/* Mobile Menu Button */}
@@ -54,12 +54,8 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
               showSearch ? "md:scale-90 md:opacity-70" : "scale-100 opacity-100"
             )}
           >
-            <div className="hidden md:block">
-              <LogoCustom
-                showTitle={false}
-                size="lg"
-                variant="light"
-              />
+            <div className="h-[60px]">
+              
             </div>
             <div className="md:hidden">
               <LogoCustom
@@ -81,8 +77,8 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <div className="relative mr-6">
+                <X className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Rechercher..." 
                   className="pl-9 py-5 h-9 bg-background/50 border-muted focus:ring-1 focus:ring-primary/30"
@@ -95,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
         </AnimatePresence>
 
         {/* Right section */}
-        <div className="flex items-center gap-1.5 md:gap-3">
+        <div className="flex justify-end items-center gap-1.5 md:gap-3">
           {/* Search button */}
           <Button 
             variant="ghost" 
@@ -112,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="hover:bg-primary/10 rounded-full relative">
                 <Bell className="h-4.5 w-4.5" />
-                <Badge className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-5 h-5 flex items-center justify-center text-xs bg-primary text-primary-foreground">
+                <Badge className="absolute rounded-full -top-1 -right-1 px-1.5 py-0.5 min-w-5 h-5 flex items-center justify-center text-xs bg-blue-500 text-primary-foreground">
                   3
                 </Badge>
                 <span className="sr-only">Notifications</span>
@@ -153,18 +149,6 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Help button */}
-          <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-primary/10 rounded-full">
-            <HelpCircle className="h-4.5 w-4.5" />
-            <span className="sr-only">Aide</span>
-          </Button>
-          
-          {/* Messages (optional) */}
-          <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-primary/10 rounded-full">
-            <MessageSquare className="h-4.5 w-4.5" />
-            <span className="sr-only">Messages</span>
-          </Button>
           
           {/* Theme toggle */}
           <ModeToggle />

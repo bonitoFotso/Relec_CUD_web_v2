@@ -1,5 +1,4 @@
-// components/UserFormDialog.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
   Dialog,
@@ -28,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUsers } from '@/contexts/UserContext';
 import { UserFormValues } from '@/pages/users/Users';
+import { Spinner } from './ui/spinner';
 
 interface User {
   id?: number;
@@ -57,9 +57,25 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   editingUser,
 }) => {
   const { roles, getRoles } = useUsers();
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     getRoles();
   }, [getRoles]);
+
+  // Wrapper pour gérer le state loading lors de la soumission
+  const handleSubmitWrapper = async (values: UserFormValues) => {
+    setLoading(true);
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      // Vous pouvez gérer l'erreur ici si besoin
+      console.error("Erreur lors de la soumission :", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -72,7 +88,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmitWrapper)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -189,11 +205,18 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                 type="button" 
                 variant="outline" 
                 onClick={onCancel}
+                disabled={loading}
               >
                 Annuler
               </Button>
-              <Button type="submit">
-                {editingUser ? "Mettre à jour" : "Créer"}
+              <Button type="submit" disabled={loading}>
+                {
+                  loading && <Spinner className="h-5 w-5" />
+                }
+                {loading ?
+                  (editingUser ? "Mettre à jour en cours" : "Création de l'utilisateur en cours")
+                  :(editingUser ? "Mettre à jour" : "Créer")
+                }
               </Button>
             </DialogFooter>
           </form>

@@ -25,8 +25,8 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
   const avgValue = ((data as BarChartData[]).reduce((sum, item) => sum + item.stickers, 0) / data.length);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Utilisation des stickers par mois</h2>
+    <div className="bg-white dark:bg-gray-950 p-4 rounded-lg shadow">
+      <h2 className="text-lg font-semibold mb-4">Utilisation des stickers par mois</h2>
       
       {/* Légende personnalisée */}
       <div className="flex flex-wrap mb-2 text-xs">
@@ -49,7 +49,7 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
       </div>
       
       {/* Statistiques sommaires */}
-      <div className="flex flex-wrap mb-4 text-xs text-gray-600">
+      <div className="flex flex-wrap mb-4 text-xs ">
         <div className="mr-4">Maximum: <span className="font-semibold">{maxValue} stickers</span></div>
         <div>Moyenne: <span className="font-semibold">{avgValue.toFixed(1)} stickers</span></div>
       </div>
@@ -108,7 +108,7 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
       </div>
       
       {/* Tendance */}
-      <div className="mt-2 text-xs text-gray-600">
+      <div className="mt-2 text-xs ">
         <span className="font-medium">Tendance: </span>
         {((data as BarChartData[]).length >= 2 && 
           (data as BarChartData[])[data.length - 1].stickers > (data as BarChartData[])[data.length - 2].stickers) 

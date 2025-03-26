@@ -31,10 +31,10 @@ const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts }) => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
+    <div className="bg-white dark:bg-gray-950 p-4 rounded-lg shadow">
       <div className="flex items-center mb-4">
         <AlertCircle className="w-5 h-5 text-amber-500 mr-2" />
-        <h2 className="text-lg font-semibold text-gray-800">Alertes récentes</h2>
+        <h2 className="text-lg font-semibold ">Alertes récentes</h2>
       </div>
       
       <div className="space-y-3">
@@ -52,7 +52,7 @@ const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts }) => {
             );
           })
         ) : (
-          <p className="text-sm text-gray-500 py-2">Aucune alerte active pour le moment.</p>
+          <p className="text-sm py-2">Aucune alerte active pour le moment.</p>
         )}
       </div>
     </div>

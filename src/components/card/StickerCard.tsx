@@ -43,7 +43,7 @@ const StickerCard = ({ sticker, equipment_type }: StickerProps) => {
     <Card className="w-full max-w-sm shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-medium">Sticker #{sticker.id}</CardTitle>
+          <CardTitle className="text-lg font-medium">Etiquette #{sticker.id}</CardTitle>
           <Badge variant={sticker.used ? "secondary" : "default"} className="ml-2">
             {sticker.used ? "Used" : "Available"}
           </Badge>
@@ -100,7 +100,7 @@ const StickerCard = ({ sticker, equipment_type }: StickerProps) => {
           variant="outline"
         >
           <Download size={16} />
-          Download QR Code
+          Telecharger l'etiquette
         </Button>
       </CardFooter>
     </Card>

@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // Correction du problème d'icônes dans React-Leaflet
@@ -67,8 +66,22 @@ const equipmentIcons: Record<EquipmentType, L.Icon> = {
     shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
     shadowSize: [41, 41]
   }),
-  medical: DefaultIcon, // Remplacez avec votre propre icône
-  industriel: DefaultIcon // Remplacez avec votre propre icône
+  medical: L.icon({
+    iconUrl: '/téléchargement.png',
+    iconSize: [41, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
+    shadowSize: [41, 41]
+  }),
+  industriel: L.icon({
+    iconUrl: '/images1.png',
+    iconSize: [50, 50],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
+    shadowSize: [41, 41]
+  }),
 };
 
 // Données d'exemple pour les équipements
@@ -87,7 +100,7 @@ interface AddEquipmentMarkerProps {
 // Composant pour ajouter de nouveaux équipements
 const AddEquipmentMarker: React.FC<AddEquipmentMarkerProps> = ({ onAddEquipment }) => {
   const [position, setPosition] = useState<EquipmentPosition | null>(null);
-  
+
   // const map = useMapEvents({
   //   click: (e) => {
   //     setPosition({ lat: e.latlng.lat, lng: e.latlng.lng });
@@ -119,7 +132,7 @@ const EquipmentMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  
+
   // Filtrer les équipements
   const filteredEquipments = equipments.filter(eq => {
     const matchesSearch = eq.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -137,9 +150,9 @@ const EquipmentMap: React.FC = () => {
 
   // Gérer les changements dans le formulaire
   const handleInputChange = (name: string, value: string) => {
-    setNewEquipment(prev => ({ 
-      ...prev, 
-      [name]: value 
+    setNewEquipment(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -147,9 +160,9 @@ const EquipmentMap: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!tempPosition || !newEquipment.name) return;
-    
+
     const newId = equipments.length > 0 ? Math.max(...equipments.map(e => e.id)) + 1 : 1;
-    
+
     const equipment: Equipment = {
       id: newId,
       name: newEquipment.name,
@@ -158,7 +171,7 @@ const EquipmentMap: React.FC = () => {
       status: newEquipment.status,
       lastMaintenance: newEquipment.lastMaintenance
     };
-    
+
     setEquipments(prev => [...prev, equipment]);
     setNewEquipment({
       name: '',
@@ -194,7 +207,7 @@ const EquipmentMap: React.FC = () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Carte de localisation des équipements</h1>
-      
+
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
           <Input
@@ -203,7 +216,7 @@ const EquipmentMap: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full"
           />
-          
+
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger>
               <SelectValue placeholder="Type" />
@@ -215,7 +228,7 @@ const EquipmentMap: React.FC = () => {
               <SelectItem value="industriel">Industriel</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger>
               <SelectValue placeholder="Statut" />
@@ -228,39 +241,26 @@ const EquipmentMap: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        
-        <Button
-          onClick={() => setIsAdding(!isAdding)}
-          variant={isAdding ? "destructive" : "default"}
-        >
-          {isAdding ? 'Annuler' : 'Ajouter un équipement'}
-        </Button>
+
       </div>
-      
-      {isAdding && (
-        <Alert>
-          <AlertDescription>
-            Cliquez sur la carte pour placer le nouvel équipement
-          </AlertDescription>
-        </Alert>
-      )}
-      
+
       <Card>
         <CardContent className="p-0">
-          <div className="h-[600px] w-full">
-            <MapContainer 
-              center={[48.856614, 2.3522219]} 
-              zoom={13} 
+          <div className="h-[500px] w-full overflow-hidden relative z-10">
+          <MapContainer
+              center={[48.856614, 2.3522219]}
+              zoom={13}
               style={{ height: "100%", width: "100%" }}
+              className="leaflet-container rounded-lg"
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-              
+
               {filteredEquipments.map(equipment => (
-                <Marker 
-                  key={equipment.id} 
+                <Marker
+                  key={equipment.id}
                   position={equipment.position}
                   icon={getEquipmentIcon(equipment.type)}
                 >
@@ -272,7 +272,7 @@ const EquipmentMap: React.FC = () => {
                         Statut: <Badge variant={getStatusVariant(equipment.status)}>{equipment.status}</Badge>
                       </p>
                       <p>Dernière maintenance: {equipment.lastMaintenance}</p>
-                      <Button 
+                      <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteEquipment(equipment.id)}
@@ -283,25 +283,25 @@ const EquipmentMap: React.FC = () => {
                   </Popup>
                 </Marker>
               ))}
-              
+
               {tempPosition && (
                 <Marker position={tempPosition}>
                   <Popup>Nouvel équipement</Popup>
                 </Marker>
               )}
-              
+
               {isAdding && <AddEquipmentMarker onAddEquipment={handleAddEquipmentPosition} />}
             </MapContainer>
           </div>
         </CardContent>
       </Card>
-      
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajouter un nouvel équipement</DialogTitle>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Nom:</Label>
@@ -312,11 +312,11 @@ const EquipmentMap: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="type">Type:</Label>
-              <Select 
-                value={newEquipment.type} 
+              <Select
+                value={newEquipment.type}
                 onValueChange={(value) => handleInputChange('type', value as EquipmentType)}
               >
                 <SelectTrigger id="type">
@@ -329,11 +329,11 @@ const EquipmentMap: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="status">Statut:</Label>
-              <Select 
-                value={newEquipment.status} 
+              <Select
+                value={newEquipment.status}
                 onValueChange={(value) => handleInputChange('status', value as EquipmentStatus)}
               >
                 <SelectTrigger id="status">
@@ -346,7 +346,7 @@ const EquipmentMap: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="lastMaintenance">Dernière maintenance:</Label>
               <Input
@@ -356,7 +356,7 @@ const EquipmentMap: React.FC = () => {
                 onChange={(e) => handleInputChange('lastMaintenance', e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label>Position:</Label>
               <Input
@@ -364,14 +364,14 @@ const EquipmentMap: React.FC = () => {
                 readOnly
               />
             </div>
-            
+
             <DialogFooter>
               <Button type="submit">Ajouter l'équipement</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Liste des équipements ({filteredEquipments.length})</CardTitle>
@@ -401,7 +401,7 @@ const EquipmentMap: React.FC = () => {
                   </TableCell>
                   <TableCell>{equipment.lastMaintenance}</TableCell>
                   <TableCell>
-                    <Button 
+                    <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteEquipment(equipment.id)}

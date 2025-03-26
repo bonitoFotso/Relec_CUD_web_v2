@@ -8,13 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { TrashIcon } from "@radix-ui/react-icons";
@@ -35,15 +28,17 @@ const AssignAgentDialog: React.FC<AssignAgentDialogProps> = ({
   mission,
   onAssign,
 }) => {
-  const [agents, setAgents] = useState<Array<{id: number; name: string}>>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
+  const [agents, setAgents] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // Récupération des agents dès que le dialog s'ouvre
   useEffect(() => {
     const fetchAgents = async () => {
       setLoading(true);
       try {
-        // Récupérer les agents (utilisateurs avec le rôle "agent")
+        // Récupérer tous les utilisateurs et filtrer ceux ayant le rôle "agent"
         const users = await UserService.getAll();
         const agentUsers = users.filter((user: User) => user.role === 'agent');
         setAgents(agentUsers.map((user: User) => ({ id: user.id!, name: user.name })));
@@ -60,36 +55,56 @@ const AssignAgentDialog: React.FC<AssignAgentDialogProps> = ({
     }
   }, [open]);
 
-  const handleAssign = async () => {
-    if (!selectedAgentId || !mission?.id) return;
-    
-    try {
-      await onAssign(parseInt(selectedAgentId));
-      toast.success("Agent assigné", {
-        description: "L'agent a été assigné à la mission avec succès.",
-      });
-      setSelectedAgentId('');
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Erreur lors de l\'assignation de l\'agent:', error);
-      toast.error("Impossible d'assigner l'agent à la mission.");
-    }
+  // Filtrer les agents disponibles (ceux qui ne sont pas déjà assignés)
+  const availableAgents = agents.filter(
+    (agent) => !mission?.agents?.some(a => a.id === agent.id)
+  );
+
+  // Filtrer avec la barre de recherche
+  const filteredAgents = availableAgents.filter(agent =>
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Gestion de la sélection/déselection d'un agent
+  const toggleAgentSelection = (agentId: number) => {
+    setSelectedAgentIds((prevSelected) => {
+      if (prevSelected.includes(agentId)) {
+        return prevSelected.filter(id => id !== agentId);
+      } else {
+        return [...prevSelected, agentId];
+      }
+    });
   };
 
-  // Filtrer les agents qui ne sont pas déjà assignés à cette mission
-  const availableAgents = agents.filter(
-    agent => !mission?.agents?.some(a => a.id === agent.id)
-  );
+  // Boucle pour assigner les agents un par un
+  const handleAssign = async () => {
+    if (selectedAgentIds.length === 0 || !mission?.id) return;
+    setLoading(true);
+    try {
+      for (const agentId of selectedAgentIds) {
+        await onAssign(agentId);
+      }
+      toast.success("Agents assignés", {
+        description: "Les agents ont été assignés à la mission avec succès.",
+      });
+      setSelectedAgentIds([]);
+      setSearchQuery('');
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation des agents:', error);
+      toast.error("Impossible d'assigner les agents à la mission.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            Assigner un agent à la mission
-          </DialogTitle>
+          <DialogTitle>Assigner des agents à la mission</DialogTitle>
           <DialogDescription>
-            Sélectionnez un agent à assigner à la mission : {mission?.title}
+            Sélectionnez les agents à assigner à la mission : {mission?.title}
           </DialogDescription>
         </DialogHeader>
         
@@ -123,44 +138,54 @@ const AssignAgentDialog: React.FC<AssignAgentDialogProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Barre de recherche */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Rechercher un agent"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </div>
             
-            {/* Sélection d'un nouvel agent */}
+            {/* Liste des agents disponibles dans une div scrollable */}
             <div className="py-4">
-              <Select 
-                value={selectedAgentId} 
-                onValueChange={setSelectedAgentId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableAgents.length === 0 ? (
-                    <SelectItem value="no-agents" disabled>
-                      Aucun agent disponible
-                    </SelectItem>
-                  ) : (
-                    availableAgents.map(agent => (
-                      <SelectItem key={agent.id} value={agent.id.toString()}>
-                        {agent.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              {filteredAgents.length === 0 ? (
+                <p className="text-sm text-gray-500">Aucun agent disponible</p>
+              ) : (
+                <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                  {filteredAgents.map(agent => {
+                    const isSelected = selectedAgentIds.includes(agent.id);
+                    return (
+                      <div
+                        key={agent.id}
+                        className={`flex items-center p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-200' : 'bg-slate-100'}`}
+                        onClick={() => toggleAgentSelection(agent.id)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleAgentSelection(agent.id)}
+                          className="mr-2"
+                        />
+                        <span>{agent.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
               <Button 
                 type="button" 
                 onClick={handleAssign}
-                disabled={!selectedAgentId || availableAgents.length === 0}
+                disabled={selectedAgentIds.length === 0}
               >
                 Assigner
               </Button>

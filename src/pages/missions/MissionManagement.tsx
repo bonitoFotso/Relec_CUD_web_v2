@@ -1,22 +1,21 @@
-// pages/MissionManagement.tsx
-import React, { useState, useEffect } from 'react';
-import { useMissions } from '@/contexts/MissionContext';
+import React, { useState, useEffect } from "react";
+import { useMissions } from "@/contexts/MissionContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { 
-  PlusIcon, 
+import {
+  PlusIcon,
   CalendarIcon,
   Pencil1Icon,
   TrashIcon,
-  PersonIcon
+  PersonIcon,
 } from "@radix-ui/react-icons";
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 // Importer nos composants
-import MissionFormDialog from '@/components/MissionFormDialog';
-import AssignAgentDialog from '@/components/AssignAgentDialog';
+import MissionFormDialog from "@/components/MissionFormDialog";
+import AssignAgentDialog from "@/components/AssignAgentDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,25 +39,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mission } from '@/services/missions.service';
-import { toast } from 'sonner';
-import { useUsers } from '@/contexts/UserContext';
-import { useNavigate } from 'react-router-dom';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { Mission } from "@/services/missions.service";
+import { toast } from "sonner";
+import { useUsers } from "@/contexts/UserContext";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { useDashboard } from "@/contexts/DashboardContext";
 
 // Définition du schéma de validation pour le formulaire
 const missionFormSchema = z.object({
-  title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
+  title: z
+    .string()
+    .min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
   description: z.string().optional(),
   user_id: z.number({
-    required_error: "Veuillez sélectionner un responsable."
+    required_error: "Veuillez sélectionner un responsable.",
   }),
   street_id: z.number({
-    required_error: "Veuillez sélectionner une rue."
+    required_error: "Veuillez sélectionner une rue.",
   }),
   intervention_type_id: z.number({
-    required_error: "Veuillez sélectionner un type d'intervention."
+    required_error: "Veuillez sélectionner un type d'intervention.",
   }),
 });
 
@@ -66,25 +73,27 @@ export type MissionFormValues = z.infer<typeof missionFormSchema>;
 
 const MissionManagement: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    missions, 
-    formData, 
-    loading, 
-    error, 
-    fetchMissions, 
-    fetchFormData, 
-    createMission, 
-    updateMission, 
-    deleteMission, 
-    assignAgent 
+  // Utilisation du contexte global MissionContext (chargement unique)
+  const {
+    missions,
+    formData,
+    loading,
+    error,
+    createMission,
+    updateMission,
+    deleteMission,
+    assignAgent,
+    fetchMissions, // Accessible si vous souhaitez forcer un rafraîchissement manuel
+    fetchFormData,
   } = useMissions();
-  
+  const { refresh } = useDashboard();
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [missionToDelete, setMissionToDelete] = useState<Mission | null>(null);
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { users, fetchUsers } = useUsers();
 
@@ -99,11 +108,11 @@ const MissionManagement: React.FC = () => {
     },
   });
 
+  // On suppose que les données du MissionContext et UserContext ont été chargées lors du montage initial de l'application.
+  // On garde néanmoins l'appel à fetchUsers() ici pour mettre à jour la liste des utilisateurs (agents)
   useEffect(() => {
-    fetchMissions();
-    fetchFormData();
     fetchUsers();
-  }, [fetchMissions, fetchFormData, fetchUsers]);
+  }, [fetchUsers]);
 
   useEffect(() => {
     if (error) {
@@ -111,8 +120,8 @@ const MissionManagement: React.FC = () => {
     }
   }, [error]);
 
+  // Remplir le formulaire lors de l'édition d'une mission
   useEffect(() => {
-    // Populate form when editing a mission
     if (editingMission) {
       form.reset({
         title: editingMission.title,
@@ -126,12 +135,12 @@ const MissionManagement: React.FC = () => {
 
   // Formatter la date pour l'affichage
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     try {
-      return format(new Date(dateString), 'dd MMM yyyy, HH:mm', { locale: fr });
+      return format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: fr });
     } catch (e) {
       console.error(e);
-      return 'Date invalide';
+      return "Date invalide";
     }
   };
 
@@ -150,21 +159,21 @@ const MissionManagement: React.FC = () => {
 
   // Gérer le clic sur Edit
   const handleEditClick = (mission: Mission, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
+    e.stopPropagation(); // Empêche l'événement de clic sur la ligne
     setEditingMission(mission);
     setIsFormDialogOpen(true);
   };
 
   // Gérer le clic pour assigner un agent
   const handleAssignClick = (mission: Mission, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
+    e.stopPropagation();
     setSelectedMission(mission);
     setIsAssignDialogOpen(true);
   };
 
   // Gérer le clic pour supprimer
   const handleDeleteClick = (mission: Mission, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
+    e.stopPropagation();
     setMissionToDelete(mission);
     setIsAlertDialogOpen(true);
   };
@@ -173,20 +182,20 @@ const MissionManagement: React.FC = () => {
   const onSubmit = async (values: MissionFormValues) => {
     try {
       if (editingMission) {
-        // Mise à jour de la mission existante
         await updateMission({ ...values, id: editingMission.id });
         toast.success("Mission mise à jour", {
           description: "La mission a été mise à jour avec succès.",
         });
       } else {
-        // Création d'une nouvelle mission
         await createMission(values as Mission);
         toast.success("Mission créée", {
           description: "La mission a été créée avec succès.",
         });
       }
+      // Vous pouvez appeler fetchMissions() ici si vous souhaitez rafraîchir manuellement
       setIsFormDialogOpen(false);
-      fetchMissions(); // Refresh missions after create/update
+      // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
+      refresh();
     } catch (err) {
       console.error("Opération échouée :", err);
       toast.error("Opération échouée", {
@@ -203,17 +212,20 @@ const MissionManagement: React.FC = () => {
       toast.success("Agent assigné", {
         description: "L'agent a été assigné à la mission avec succès.",
       });
+      // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
+      refresh();
       setIsAssignDialogOpen(false);
-      fetchMissions(); // Refresh missions after assignment
+      // Optionnel: rafraîchir les missions en appelant fetchMissions()
     } catch (err) {
       console.error("Assignation échouée :", err);
       toast.error("Assignation échouée", {
-        description: "Une erreur est survenue lors de l'assignation de l'agent.",
+        description:
+          "Une erreur est survenue lors de l'assignation de l'agent.",
       });
     }
   };
 
-  // Gérer la fermeture de la boîte de dialogue
+  // Fermer la boîte de dialogue de formulaire
   const handleFormDialogClose = () => {
     setIsFormDialogOpen(false);
   };
@@ -221,18 +233,23 @@ const MissionManagement: React.FC = () => {
   // Gérer la confirmation de suppression
   const handleDeleteConfirm = async () => {
     if (missionToDelete?.id) {
+      setIsDeleting(true);
       try {
         await deleteMission(missionToDelete.id);
         toast.success("Mission supprimée", {
           description: "La mission a été supprimée avec succès.",
         });
+        // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
+        refresh();
         setIsAlertDialogOpen(false);
-        fetchMissions(); // Refresh missions after delete
+        // Optionnel: rafraîchir les missions
       } catch (err) {
         console.error("Suppression échouée :", err);
         toast.error("Suppression échouée", {
           description: "Une erreur est survenue lors de la suppression.",
         });
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -243,25 +260,27 @@ const MissionManagement: React.FC = () => {
 
   // Obtenir le libellé du type d'intervention
   const getInterventionTypeName = (id: number) => {
-    const interventionType = formData?.interventions?.find(type => type.id === id);
-    return interventionType?.name || 'Type inconnu';
+    const interventionType = formData?.interventions?.find(
+      (type) => type.id === id
+    );
+    return interventionType?.name || "Type inconnu";
   };
 
   // Obtenir le nom de la rue
   const getStreetName = (id: number) => {
-    const street = formData?.streets?.find(s => s.id === id);
-    return street?.name || 'Rue inconnue';
+    const street = formData?.streets?.find((s) => s.id === id);
+    return street?.name || "Rue inconnue";
   };
 
   // Obtenir le nom de l'utilisateur
   const getUserName = (id: number) => {
-    const user = users?.find(u => u.id === id);
-    return user?.name || 'Utilisateur inconnu';
+    const user = users?.find((u) => u.id === id);
+    return user?.name || "Utilisateur inconnu";
   };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des Missions</h1>
         <Button onClick={handleAddClick}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -281,92 +300,113 @@ const MissionManagement: React.FC = () => {
           <Spinner className="h-10 w-10" />
         </div>
       ) : (
-        <Table>
-          <TableCaption>Liste des missions</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Titre</TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type d'intervention</TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rue</TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Responsable</TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agents</TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Créée le</TableHead>
-              <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {missions.length === 0 ? (
+        <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
+          <Table>
+            <TableCaption>Liste des missions</TableCaption>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                  Aucune mission trouvée. Cliquez sur "Ajouter une mission" pour commencer.
-                </TableCell>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Titre
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Type d'intervention
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Rue
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Responsable
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Créée le
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </TableHead>
               </TableRow>
-            ) : (
-              missions.map((mission) => (
-                <TableRow 
-                  key={mission.id} 
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                  onClick={() => handleDetailsClick(mission)}
-                >
-                  <TableCell className="font-medium">{mission.title}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {getInterventionTypeName(mission.intervention_type_id)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{getStreetName(mission.street_id)}</TableCell>
-                  <TableCell>{getUserName(mission.user_id)}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {mission.agents && mission.agents.length > 0 ? (
-                        mission.agents.map((agent) => (
-                          <Badge key={agent.id} variant="secondary" className="w-fit">
-                            {agent.name}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-gray-500 text-sm">Aucun agent assigné</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <div className="flex items-center gap-1">
-                      <CalendarIcon className="h-3 w-3 text-gray-500" />
-                      <span className="text-sm">{formatDate(mission.created_at)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Ouvrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e: React.MouseEvent) => handleEditClick(mission, e)}>
-                          <Pencil1Icon className="mr-2 h-4 w-4" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e: React.MouseEvent) => handleAssignClick(mission, e)}>
-                          <PersonIcon className="mr-2 h-4 w-4" />
-                          Assigner un agent
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600" 
-                          onClick={(e: React.MouseEvent) => handleDeleteClick(mission, e)}
-                        >
-                          <TrashIcon className="mr-2 h-4 w-4" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {missions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    Aucune mission trouvée. Cliquez sur "Ajouter une mission"
+                    pour commencer.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                missions.map((mission) => (
+                  <TableRow
+                    key={mission.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => handleDetailsClick(mission)}
+                  >
+                    <TableCell className="font-medium">
+                      {mission.title}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getInterventionTypeName(mission.intervention_type_id)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{getStreetName(mission.street_id)}</TableCell>
+                    <TableCell>{getUserName(mission.user_id)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <CalendarIcon className="h-3 w-3 text-gray-500" />
+                        <span className="text-sm">
+                          {formatDate(mission.created_at)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ouvrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e: React.MouseEvent) =>
+                              handleEditClick(mission, e)
+                            }
+                          >
+                            <Pencil1Icon className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e: React.MouseEvent) =>
+                              handleAssignClick(mission, e)
+                            }
+                          >
+                            <PersonIcon className="mr-2 h-4 w-4" />
+                            Assigner un agent
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600"
+                            onClick={(e: React.MouseEvent) =>
+                              handleDeleteClick(mission, e)
+                            }
+                          >
+                            <TrashIcon className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* Formulaire de mission */}
@@ -394,14 +434,25 @@ const MissionManagement: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous absolument sûr?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement 
-              la mission "{missionToDelete?.title}" et toutes ses données associées.
+              Cette action ne peut pas être annulée. Cela supprimera
+              définitivement la mission "{missionToDelete?.title}" et toutes ses
+              données associées.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
-              Supprimer
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" /> Suppression...
+                </>
+              ) : (
+                "Supprimer"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
