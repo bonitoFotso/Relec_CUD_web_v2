@@ -5,7 +5,7 @@ import { useUsers } from "@/contexts/UserContext";
 import { Mission } from "@/services/missions.service";
 import { Spinner } from "@/components/ui/spinner";
 import { Alert } from "@/components/ui/alert";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 
 const UserDetail: React.FC = () => {

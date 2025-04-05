@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Importer les icônes de Lucide React
-import { Home, Map, Users, Briefcase, LayoutDashboard, ScrollText } from "lucide-react";
+import { Home, Map, Users, Briefcase, LayoutDashboard, ScrollText, Bell, ServerCrash } from "lucide-react";
 
 // Mapping des icônes Lucide
 const iconMapping: Record<string, JSX.Element> = {
@@ -13,7 +13,9 @@ const iconMapping: Record<string, JSX.Element> = {
   briefcase: <Briefcase className="w-5 h-5" />,
   map: <Map className="w-5 h-5" />,
   users: <Users className="w-5 h-5" />,
-  permissions: <ScrollText className="w-5 h-5"/>
+  permissions: <ScrollText className="w-5 h-5"/>,
+  notifications: <Bell className="w-5 h-5"/>,
+  anomalies: <ServerCrash className="w-5 h-5"/>
 };
 
 interface SidebarProps {
@@ -30,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   }, []);
 
   return (
-    <div className="fixed w-72 py-0 h-full overflow-y-auto bg-gradient-to-b from-background to-background/95 backdrop-blur-sm">
+    <div className="fixed w-60 py-0 h-full overflow-y-auto bg-gradient-to-b from-background to-background/95 backdrop-blur-sm">
       <div className="bg-blue-950 dark:bg-gray-950  relative h-full">
         <div className="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
           <img src="/images/shape/grid-01.svg" alt="grid" />
@@ -64,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                   }}
                   className="px-4 my-1"
                 >
-                  <nav className="space-y-1.5">
+                  <nav className="space-y-1">
                     {group.items.map((item) => {
                       const isActive =
                         location.pathname === item.href ||
@@ -77,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                           key={item.name}
                           to={item.href}
                           className={cn(
-                            "group relative flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-300",
+                            "group relative flex items-center px-4 py-2.5 text-sm rounded-lg transition-all duration-300",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             isActive
                               ? "bg-white text-blue-600 font-medium shadow-sm"

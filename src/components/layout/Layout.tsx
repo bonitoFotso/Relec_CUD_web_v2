@@ -29,7 +29,7 @@ export const Layout = () => {
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <div className="flex flex-1 overflow-hidden">
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-72 border-r shadow-sm shrink-0 overflow-y-auto">
+          <aside className="hidden lg:block w-60 border-r shadow-sm shrink-0 overflow-y-auto">
             <div className="sticky top-0 max-h-screen overflow-y-auto scrollbar-thin">
               <Sidebar onItemClick={() => {}} />
             </div>
@@ -38,7 +38,7 @@ export const Layout = () => {
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto bg-blue-50 dark:bg-gray-900">
             {/* Header */}
-            <div className="fixed z-20 w-full lg:w-[calc(100%-18rem)]">
+            <div className="fixed z-20 w-full lg:w-[calc(100%-15rem)]">
             <Header
               mobileMenuTrigger={
                 <SheetTrigger asChild>
@@ -72,7 +72,7 @@ export const Layout = () => {
         </div>
 
         {/* Mobile Sidebar Sheet Content */}
-        <SheetContent side="left" className="w-72 p-0 border-r shadow-md">
+        <SheetContent side="left" className="w-60 p-0 border-r shadow-md">
           <div className="overflow-y-auto max-h-[calc(100vh-5rem)] scrollbar-thin">
             <Sidebar onItemClick={() => setIsSidebarOpen(false)} />
           </div>

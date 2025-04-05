@@ -11,7 +11,7 @@ export interface NavigationGroup {
 
 export const navigationGroups: NavigationGroup[] = [
   {
-    items: [{ name: "Dashboard", href: "/", iconName: "home" }],
+    items: [{ name: "Tableau de bord", href: "/", iconName: "home" }],
   },
   {
     items: [{ name: "Missions", href: "/missions", iconName: "briefcase" }],
@@ -24,5 +24,11 @@ export const navigationGroups: NavigationGroup[] = [
   },
   {
     items: [{ name: "Permissions", href: "/permissions", iconName: "permissions" }]
+  },
+  {
+    items: [{ name: "Notifications", href: "/notifications", iconName: "notifications" }]
+  },
+  {
+    items: [{ name: "Anomalies", href: "/anomalies", iconName: "anomalies" }]
   }
 ];

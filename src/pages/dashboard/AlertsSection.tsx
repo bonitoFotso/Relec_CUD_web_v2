@@ -1,13 +1,17 @@
 // src/components/Dashboard/AlertsSection.tsx
-import React from 'react';
-import { AlertCircle, Clock } from 'lucide-react';
-import { AlertsSectionProps, AlertProps } from './types';
-import { getAlertStyles } from './utils';
+import React from "react";
+import { AlertCircle, Clock } from "lucide-react";
+import { AlertsSectionProps, AlertProps } from "./types";
+import { getAlertStyles } from "./utils";
 
 // Composant individuel d'alerte
-const Alert: React.FC<AlertProps> = ({ type, icon: IconComponent, message }) => {
+const Alert: React.FC<AlertProps> = ({
+  type,
+  icon: IconComponent,
+  message,
+}) => {
   const style = getAlertStyles(type);
-  
+
   return (
     <div className={`p-3 ${style.bg} border-l-4 ${style.border} rounded`}>
       <div className="flex">
@@ -26,24 +30,24 @@ const Alert: React.FC<AlertProps> = ({ type, icon: IconComponent, message }) => 
 const AlertsSection: React.FC<AlertsSectionProps> = ({ alerts }) => {
   // Mapping des noms d'icônes aux composants
   const iconMapping: Record<string, React.ElementType> = {
-    'AlertCircle': AlertCircle,
-    'Clock': Clock
+    AlertCircle: AlertCircle,
+    Clock: Clock,
   };
 
   return (
     <div className="bg-white dark:bg-gray-950 p-4 rounded-lg shadow">
       <div className="flex items-center mb-4">
         <AlertCircle className="w-5 h-5 text-amber-500 mr-2" />
-        <h2 className="text-lg font-semibold ">Alertes récentes</h2>
+        <h2 className="text-lg font-semibold ">Anomalies récentes</h2>
       </div>
-      
+
       <div className="space-y-3">
         {alerts.length > 0 ? (
           alerts.map((alert, index) => {
             const IconComponent = iconMapping[alert.icon] || AlertCircle;
-            
+
             return (
-              <Alert 
+              <Alert
                 key={index}
                 type={alert.type}
                 icon={IconComponent}

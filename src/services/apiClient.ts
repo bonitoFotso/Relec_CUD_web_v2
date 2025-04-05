@@ -2,17 +2,16 @@
 import axios, { AxiosInstance } from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-// Base API client configuration
+// Configuration de base du client API
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
-  // timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
 });
 
-// Request interceptor for API calls
+// Intercepteur de requête pour les appels à l'API
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
@@ -26,7 +25,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for API calls
+// Intercepteur de réponse pour les appels à l'API
 apiClient.interceptors.response.use(
   (response) => {
     return response;
@@ -34,7 +33,7 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Handle token refresh or logout logic here
+      // Gérer ici le rafraîchissement du token ou la déconnexion
       localStorage.removeItem('auth_token');
       window.location.href = '/login';
     }

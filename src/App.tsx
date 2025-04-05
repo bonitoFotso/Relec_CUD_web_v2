@@ -13,6 +13,12 @@ import MissionDetails from './pages/missions/MissionDetails';
 import EquipmentMap from './pages/maps/EquipmentMap';
 import UserDetail from './pages/users/UserDetails';
 import PermissionsManagement from './pages/permissions/permissions';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Profil from './pages/Profil';
+import Anomalies from './pages/anomalies/Anomalies';
+import Notifications from './pages/notifications/Notifications';
+
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -48,6 +54,9 @@ const App: React.FC = () => {
               <Route path='/missions/:id' element={<MissionDetails />} />
 
               <Route path="/settings" element={<div>Paramètres</div>} />
+              <Route path="/profile" element={<Profil />} />
+              <Route path="/anomalies" element={<Anomalies />} />
+              <Route path="/notifications" element={<Notifications />} />
 
 
               {/* Route 404 */}
@@ -55,6 +64,7 @@ const App: React.FC = () => {
             </Route>
           </Routes>
         </Router>
+        <ToastContainer /> 
       </AppProviders>
     </ThemeProvider>
   );

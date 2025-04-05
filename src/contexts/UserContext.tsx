@@ -1,4 +1,5 @@
-import { User, UserService } from "@/services/UsersService";
+import EquipementService from "@/services/EquipementService";
+import { AssignRoles, User, UserService } from "@/services/UsersService";
 import { Mission, MissionsService } from "@/services/missions.service";
 import React, {
   createContext,
@@ -8,14 +9,12 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { useDashboard } from "./DashboardContext";
 
 interface UserContextType {
   users: User[];
   loading: boolean;
   error: string | null;
   roles: string[];
-  initialized: boolean;
   getRoles: () => Promise<void>;
   fetchUsers: () => Promise<void>;
   getUserById: (id: number) => User | undefined;
@@ -25,6 +24,7 @@ interface UserContextType {
   assignPermissions: (roleId: number, permissions: number[]) => Promise<void>;
   fetchAssignRoles: () => Promise<void>;
   getAgentMissions: (userId: number) => Promise<Mission[]>;
+  getAllStreetlights:() => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -34,12 +34,10 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const { refresh } = useDashboard();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
-  const [initialized, setInitialized] = useState<boolean>(false);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -47,7 +45,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       const fetchedUsers = await UserService.getAll();
       setUsers(fetchedUsers);
-      setInitialized(true); // Marquer comme chargé
     } catch (err) {
       setError(
         err instanceof Error
@@ -60,12 +57,26 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Charger les utilisateurs au premier rendu
-  useEffect(() => {
-    if (!initialized) {
-      fetchUsers();
-    }
-  }, [initialized, fetchUsers]);
+    // Nouvelle méthode assignRoles utilisant l'API GET /users/assignroles
+
+    const fetchAssignRoles = useCallback(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        await UserService.assignRoles();
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Erreur lors de la récupération des assignroles"
+        );
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+
+
 
   const getUserById = useCallback(
     (id: number): User | undefined => {
@@ -80,7 +91,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       const newUser = await UserService.create(user);
       setUsers((prevUsers) => [...prevUsers, newUser]); // Mise à jour immédiate
-      refresh(); // Rafraîchir le dashboard
+      
       return newUser;
     } catch (err) {
       setError(
@@ -93,7 +104,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [refresh]);
+  }, []);
 
   const updateUser = useCallback(async (user: User): Promise<User> => {
     setLoading(true);
@@ -103,7 +114,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setUsers((prevUsers) =>
         prevUsers.map((u) => (u.id === user.id ? updatedUser : u))
       );
-      refresh();
+      
       return updatedUser;
     } catch (err) {
       setError(
@@ -116,7 +127,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [refresh]);
+  }, []);
 
   const deleteUser = useCallback(async (id: number): Promise<void> => {
     setLoading(true);
@@ -124,7 +135,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       await UserService.delete(id);
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
-      refresh();
+      
     } catch (err) {
       setError(
         err instanceof Error
@@ -136,7 +147,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [refresh]);
+  }, []);
 
   const getRoles = useCallback(async () => {
     if (roles.length > 0) return; // Empêcher de recharger les rôles s'ils existent déjà
@@ -150,7 +161,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setError(null);
       try {
         await UserService.assignPermissions(roleId, permissions);
-        refresh();
+        
       } catch (err) {
         setError(
           err instanceof Error
@@ -163,29 +174,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setLoading(false);
       }
     },
-    [refresh]
+    []
   );
 
-  // Nouvelle méthode assignRoles utilisant l'API GET /users/assignroles
 
-  const fetchAssignRoles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      console.log("11");
-      await UserService.assignRoles();
-      console.log("22");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Erreur lors de la récupération des assignroles"
-      );
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
   const getAgentMissions = useCallback(
     async (userId: number): Promise<Mission[]> => {
       try {
@@ -200,13 +192,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     },
     []
   );
+  const getAllStreetlights = useCallback(async () => {
+    await EquipementService.getAllStreetlights();
+  }, []);
 
   const value = {
     users,
     loading,
     error,
     roles,
-    initialized,
     getRoles,
     fetchUsers,
     getUserById,
@@ -216,6 +210,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     assignPermissions,
     fetchAssignRoles,
     getAgentMissions,
+    getAllStreetlights
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

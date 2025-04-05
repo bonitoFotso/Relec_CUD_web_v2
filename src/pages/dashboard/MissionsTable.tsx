@@ -1,13 +1,29 @@
 // src/components/Dashboard/MissionsTable.tsx
-import React, { useState } from 'react';
-import { ChevronRight, Calendar, MapPin, Clock, Search, Filter, ChevronDown, Wrench } from 'lucide-react';
-import { MissionsTableProps } from './types';
-import { getMissionStatusStyles, getMissionStatusLabel, getInterventionTypeName } from './utils';
-import { Mission } from '@/services/missions.service';
+import React, { useState } from "react";
+import {
+  ChevronRight,
+  Calendar,
+  MapPin,
+  Clock,
+  Search,
+  Filter,
+  ChevronDown,
+  Wrench,
+} from "lucide-react";
+import { MissionsTableProps } from "./types";
+import {
+  getMissionStatusStyles,
+  getMissionStatusLabel,
+  getInterventionTypeName,
+} from "./utils";
+import { Mission } from "@/services/missions.service";
 
-const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+const MissionsTable: React.FC<MissionsTableProps> = ({
+  missions,
+  isLoading,
+}) => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // État pour suivre la ligne survolée
@@ -31,18 +47,23 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
   }
 
   // Filtrer les missions selon la recherche et le filtre de statut
-  const filteredMissions = missions.filter(mission => {
-    const matchesSearch = mission.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || mission.status === statusFilter;
+  const filteredMissions = missions.filter((mission) => {
+    const matchesSearch = mission.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || mission.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   // Fonction pour formater une date (simulation)
   const formatDate = (mission: Mission) => {
     // Simulation de date basée sur l'ID pour la démo
-    const day = (mission.id * 3) % 28 + 1;
+    const day = ((mission.id * 3) % 28) + 1;
     const month = (mission.id % 12) + 1;
-    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/2025`;
+    return `${day.toString().padStart(2, "0")}/${month
+      .toString()
+      .padStart(2, "0")}/2025`;
   };
 
   return (
@@ -71,7 +92,11 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
           >
             <Filter className="h-4 w-4 mr-1" />
             Filtres
-            <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showFilters ? 'transform rotate-180' : ''}`} />
+            <ChevronDown
+              className={`h-3 w-3 ml-1 transition-transform ${
+                showFilters ? "transform rotate-180" : ""
+              }`}
+            />
           </button>
         </div>
       </div>
@@ -94,10 +119,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium  block mb-1">Type d'intervention</label>
-              <select
-                className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
+              <label className="text-xs font-medium  block mb-1">
+                Type d'intervention
+              </label>
+              <select className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option value="all">Tous les types</option>
                 <option value="1">Déploiement</option>
                 <option value="2">Maintenance</option>
@@ -113,7 +138,9 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 dark:bg-gray-950">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Titre</th>
+              <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                Titre
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <Wrench className="h-3 w-3 mr-1" />
@@ -138,29 +165,41 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
                   Status
                 </div>
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium  uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-right text-xs font-medium  uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-950 divide-y divide-gray-200">
             {filteredMissions.length > 0 ? (
               filteredMissions.slice(0, 5).map((mission) => (
-                <tr 
-                  key={mission.id} 
+                <tr
+                  key={mission.id}
                   className={`${
-                    hoveredRow === mission.id ? 'bg-blue-50 dark:bg-gray-700' : 'hover:bg-gray-50'
+                    hoveredRow === mission.id
+                      ? "bg-blue-50 dark:bg-gray-700"
+                      : "hover:bg-gray-50"
                   } transition-colors duration-150`}
                   onMouseEnter={() => setHoveredRow(mission.id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium ">{mission.title}44</div>
+                    <div className="text-sm font-medium ">
+                      {mission.title.length > 15 ?
+                      mission.title.substring(0, 15).concat("..."):
+                      mission.title
+                      }
+                    </div>
                     {mission.description && (
-                      <div className="text-xs  truncate max-w-xs">{mission.description}</div>
+                      <div className="text-xs  truncate max-w-xs">
+                        {mission.description}
+                      </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm  font-medium">
-                      {getInterventionTypeName(mission.intervention_type_id) || "N/A"}
+                      {getInterventionTypeName(mission.intervention_type_id) ||
+                        "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -175,15 +214,17 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
                     <div className="text-sm ">{formatDate(mission)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      getMissionStatusStyles(mission.status)
-                    }`}>
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getMissionStatusStyles(
+                        mission.status
+                      )}`}
+                    >
                       {getMissionStatusLabel(mission.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a 
-                      href={`/missions/${mission.id}`} 
+                    <a
+                      href={`/missions/${mission.id}`}
                       className="text-blue-600 hover:text-blue-900 px-3 py-1 rounded hover:bg-blue-50 transition-colors duration-150"
                     >
                       Détails
@@ -194,8 +235,8 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
             ) : (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-sm ">
-                  {searchTerm || statusFilter !== 'all' 
-                    ? "Aucune mission ne correspond aux critères de recherche" 
+                  {searchTerm || statusFilter !== "all"
+                    ? "Aucune mission ne correspond aux critères de recherche"
                     : "Aucune mission trouvée"}
                 </td>
               </tr>
@@ -214,7 +255,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, isLoading }) =>
         <div className="text-xs ">
           Mis à jour {new Date().toLocaleTimeString()}
         </div>
-        <a href="/missions" className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center">
+        <a
+          href="/missions"
+          className="text-sm font-medium text-blue-600 hover:text-blue-500 flex items-center"
+        >
           Voir toutes les missions <ChevronRight className="ml-1 w-4 h-4" />
         </a>
       </div>

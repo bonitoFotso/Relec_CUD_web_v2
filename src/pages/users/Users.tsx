@@ -37,9 +37,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDashboard } from "@/contexts/DashboardContext";
+import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
+import { SkeletonCardDetail } from "@/components/card/SkeletonCardDetail";
 
 // Schéma de validation pour le formulaire
 const userFormSchema = z.object({
@@ -61,10 +62,10 @@ const UserManagement: React.FC = () => {
     loading,
     error,
     fetchUsers,
-    fetchAssignRoles,
     createUser,
     updateUser,
     deleteUser,
+    getAllStreetlights,
   } = useUsers();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -90,14 +91,14 @@ const UserManagement: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
-    fetchAssignRoles();
+    getAllStreetlights();
   }, [fetchUsers]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error(error);
+  //   }
+  // }, [error]);
 
   // Ouverture du formulaire pour créer un nouvel utilisateur
   const handleAddClick = () => {
@@ -195,63 +196,79 @@ const UserManagement: React.FC = () => {
         </Alert>
       )}
 
-      <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
-        <Table>
-          <TableCaption>Liste des utilisateurs</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Téléphone</TableHead>
-              <TableHead>Sexe</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users
-              .filter((user) => user)
-              .map((user) => (
-                <TableRow key={user!.id}>
-                  <TableCell className="font-medium">{user!.name}</TableCell>
-                  <TableCell>{user!.email}</TableCell>
-                  <TableCell>{user!.phone}</TableCell>
-                  <TableCell>
-                    {user!.sex === "M" ? "Masculin" : "Féminin"}
-                  </TableCell>
-                  <TableCell>{user!.role}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          <div className=" container mx-auto my-2">
+            <SkeletonCardUser />
+          </div>
+          <div className="mx-auto grid grid-cols-1 md:grid-cols-3  sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+            <SkeletonCardDetail />
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
+          <Table>
+            <TableCaption>Liste des utilisateurs</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Téléphone</TableHead>
+                <TableHead>Sexe</TableHead>
+                <TableHead>Rôle</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users
+                .filter((user) => user)
+                .map((user) => (
+                  <TableRow key={user!.id}>
+                    <TableCell className="font-medium">{user!.name}</TableCell>
+                    <TableCell>{user!.email}</TableCell>
+                    <TableCell>{user!.phone}</TableCell>
+                    <TableCell>
+                      {user!.sex === "M" ? "Masculin" : "Féminin"}
+                    </TableCell>
+                    <TableCell>{user!.role}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {/*
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewDetails(user!)}
                         >
                           <EyeOpenIcon className="h-4 w-4" />
+                        </Button>*/}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditClick(user!)}
+                        >
+                          <Pencil1Icon className="h-4 w-4" />
                         </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditClick(user!)}
-                      >
-                        <Pencil1Icon className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteClick(user!)}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(user!)}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Formulaire de création/édition */}
       <UserFormDialog

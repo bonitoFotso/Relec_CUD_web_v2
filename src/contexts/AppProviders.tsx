@@ -4,28 +4,27 @@ import { MissionProvider, useMissions } from "./MissionContext";
 import { StickerProvider, useStickers } from "./StickerContext";
 import AuthProvider, { useAuth } from "./AuthContext";
 import LoadingScreen from "@/components/LoadingScreen";
-import { DashboardProvider } from "./DashboardContext";
+import { PermissionProvider } from "./PermissionContext";
+import { EquipementProvider } from "./EquipementContext";
 
 interface AppProvidersProps {
   children: ReactNode;
 }
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(true);
-
   return (
     <AuthProvider>
-      <DashboardProvider>
-        <UserProvider>
-          <MissionProvider>
-            <StickerProvider>
-              <LoadingScreen isLoading={isLoading} setIsLoading={setIsLoading}>
+      <UserProvider>
+        <MissionProvider>
+          <StickerProvider>
+            <PermissionProvider>
+              <EquipementProvider>
                 {children}
-              </LoadingScreen>
-            </StickerProvider>
-          </MissionProvider>
-        </UserProvider>
-      </DashboardProvider>
+              </EquipementProvider>
+            </PermissionProvider>
+          </StickerProvider>
+        </MissionProvider>
+      </UserProvider>
     </AuthProvider>
   );
 };
