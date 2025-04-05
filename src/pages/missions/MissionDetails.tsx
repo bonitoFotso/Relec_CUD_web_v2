@@ -53,7 +53,7 @@ import {
 import AssignAgentDialog from '@/components/AssignAgentDialog';
 import { Mission } from '@/services/missions.service';
 import { Sticker } from '@/services/stickers.service';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { MapPinIcon } from 'lucide-react';
 import StickerFormDialog from '@/components/StickerFormDialog';
 import StickerCard from '@/components/card/StickerCard';
@@ -203,9 +203,7 @@ const MissionDetails: React.FC = () => {
 
     try {
       await deleteMission(mission.id);
-      toast.success("Mission supprimée", {
-        description: "La mission a été supprimée avec succès.",
-      });
+      toast.success("Mission supprimée");
       navigate('/missions');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la suppression';
@@ -222,9 +220,7 @@ const MissionDetails: React.FC = () => {
       // Mettre à jour les données de la mission
       const updatedMission = await getMission(mission.id);
       setMission(updatedMission.mission);
-      toast.success("Agent assigné", {
-        description: "L'agent a été assigné à la mission avec succès.",
-      });
+      toast.success("Agent assigné");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'assignation';
       toast.error(errorMessage);

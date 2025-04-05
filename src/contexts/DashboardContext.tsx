@@ -16,7 +16,7 @@ import React, {
     loading: boolean;
     error: string | null;
     stats: DashboardStats;
-    missions: Mission[];
+    //missions: Mission[];
     agents: User[];
     missionTypeData: PieChartData[];
     stickerMonthlyData: BarChartData[];
@@ -153,7 +153,7 @@ import React, {
   
     // Charger les données une seule fois au montage du contexte
     useEffect(() => {
-      fetchDashboardData();
+      // fetchDashboardData();
     }, []);
     // La fonction refresh est simplement fetchDashboardData
     const refresh = fetchDashboardData;
@@ -164,7 +164,7 @@ import React, {
           loading,
           error,
           stats,
-          missions,
+          //missions,
           agents,
           missionTypeData,
           stickerMonthlyData,

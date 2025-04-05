@@ -161,7 +161,7 @@ const AssignAgentDialog: React.FC<AssignAgentDialogProps> = ({
                     return (
                       <div
                         key={agent.id}
-                        className={`flex items-center p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-200' : 'bg-slate-100'}`}
+                        className={`flex items-center p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-200 dark:bg-blue-400' : 'bg-slate-100 dark:text-black'}`}
                         onClick={() => toggleAgentSelection(agent.id)}
                       >
                         <input

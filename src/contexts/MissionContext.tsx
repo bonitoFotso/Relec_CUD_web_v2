@@ -26,7 +26,6 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
   const [formData, setFormData] = useState<MissionFormData>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState<boolean>(false); // Indicateur d'initialisation
 
   const fetchMissions = useCallback(async () => {
     setLoading(true);
@@ -58,14 +57,7 @@ export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) =>
     }
   }, []);
 
-  // Charger les données une seule fois au premier montage du contexte
-  useEffect(() => {
-    if (!initialized) {
-      Promise.all([fetchMissions(), fetchFormData()]).then(() => {
-        setInitialized(true);
-      });
-    }
-  }, [initialized, fetchMissions, fetchFormData]);
+
 
   const getMission = useCallback(async (id: number): Promise<MissionsDetailsResponse> => {
     setLoading(true);

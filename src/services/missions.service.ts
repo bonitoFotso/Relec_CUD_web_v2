@@ -73,12 +73,11 @@ export const MissionsService = {
   /**
    * Récupère toutes les missions
    * @returns Promise<Mission[]> - Liste des missions
-   */
+*/
   getAll: async (): Promise<Mission[]> => {
     try {
       const response: AxiosResponse<ApiResponse<Mission[]>> =
-        await apiClient.get("/missions/index");
-
+      await apiClient.get("/missions/index");
       if (!response.data.status) {
         throw new Error(
           response.data.message || "Erreur lors de la récupération des missions"

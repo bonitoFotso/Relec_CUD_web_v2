@@ -33,31 +33,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Vérification de l'authentification au chargement
   useEffect(() => {
+    let isMounted = true; // Pour éviter les mises à jour après un démontage
+  
     const initAuth = async () => {
+      if (!isMounted) return;
       setLoading(true);
       try {
-        // Vérifie si un token est présent et valide
         const isValid = await AuthService.validateToken();
         if (isValid) {
-          // Récupère les informations de l'utilisateur
           const user = await AuthService.getCurrentUser();
-          setCurrentUser(user);
-          setIsAuthenticated(true);
+          if (isMounted) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+          }
         } else {
+          if (isMounted) {
+            setCurrentUser(null);
+            setIsAuthenticated(false);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Erreur d'initialisation");
           setCurrentUser(null);
           setIsAuthenticated(false);
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'initialisation');
-        setCurrentUser(null);
-        setIsAuthenticated(false);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-
+  
     initAuth();
+  
+    return () => {
+      isMounted = false;
+    };
   }, []);
+  
 
   // Fonction de connexion
   const login = async (email: string, password: string) => {
@@ -71,10 +83,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec de la connexion');
       setIsAuthenticated(false);
-      throw err;
-    } finally {
+    } 
       setLoading(false);
-    }
+    
   };
 
   // Fonction d'inscription
