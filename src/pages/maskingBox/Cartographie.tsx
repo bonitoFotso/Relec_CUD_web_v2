@@ -1,27 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-duplicate-case */
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-
-// Composants UI
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Contexte des équipements
@@ -47,47 +30,6 @@ const DefaultIcon = L.icon({
   shadowSize: [41, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-
-// Définir les icônes spécifiques
-const equipmentIcons: Record<string, L.Icon> = {
-  Lampadaires: L.icon({
-    iconUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Compteurs: L.icon({
-    iconUrl: "/téléchargement.png",
-    iconSize: [50, 50],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Amoires: L.icon({
-    iconUrl: "/images1.png",
-    iconSize: [50, 50],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Posts: L.icon({
-    iconUrl: "/kkk.png",
-    iconSize: [50, 50],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-};
 
 const EquipmentMap: React.FC = () => {
   const { streetlights, metters, cabinets, substations, loading } =
@@ -170,148 +112,6 @@ const EquipmentMap: React.FC = () => {
     Posts: filter === "all" || filter === "substations" ? substations : [],
   };
 
-  const renderTable = (category: string, data: any[]) => {
-    switch (category) {
-      case "Lampadaires":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Orientation</TableHead>
-                <TableHead>Etat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.lamp_type}</TableCell>
-                  <TableCell>{eq.orientation}</TableCell>
-                  <TableCell>{eq.support_condition}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Compteurs":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Modèle</TableHead>
-                <TableHead>Marque</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.meter_type.name}</TableCell>
-                  <TableCell>{eq.model}</TableCell>
-                  <TableCell>{eq.brand}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Amoires":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Est Fonctionnel</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.is_functional ? "Oui" : "Non"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Posts":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Nom</TableHead>
-                <TableHead>Point de repère</TableHead>
-                <TableHead>Block_route_number</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.name}</TableCell>
-                  <TableCell>{eq.popular_landmark}</TableCell>
-                  <TableCell>{eq.block_route_number}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      default:
-        return null;
-    }
-  };
   const renderPopup = (category: string, eq: any) => {
     switch (category) {
       case "Lampadaires":
@@ -518,32 +318,13 @@ const EquipmentMap: React.FC = () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-center">
-        <h1 className="text-3xl font-bold">Carte des équipements</h1>
+        <h1 className="text-3xl font-bold">Cartographie</h1>
         <div
           onClick={resetMapView}
           className="transition-all duration-200 hover:px-3 cursor-pointer bg-blue-500 text-white p-2 rounded-md flex items-center gap-2"
         >
           <p>Actualiser la carte</p>
           <RefreshCw />
-        </div>
-      </div>
-
-      {/* Filtrage des équipements */}
-      <div className="flex flex-row gap-4 items-center">
-        <p className="font-semibold">Filtrer</p>
-        <div className="bg-white dark:bg-gray-950">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tous" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous</SelectItem>
-              <SelectItem value="streetlights">Lampadaires</SelectItem>
-              <SelectItem value="metters">Compteurs</SelectItem>
-              <SelectItem value="cabinets">Armoires</SelectItem>
-              <SelectItem value="substations">Postes</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -563,11 +344,7 @@ const EquipmentMap: React.FC = () => {
               equipments.map((eq) => {
                 const { lat, lng } = parseLocation(eq.location);
                 return (
-                  <Marker
-                    key={`${category}-${eq.id}`}
-                    position={[lat, lng]}
-                    icon={equipmentIcons[category] || DefaultIcon}
-                  >
+                  <Marker key={`${category}-${eq.id}`} position={[lat, lng]}>
                     <Popup>{renderPopup(category, eq)}</Popup>
                   </Marker>
                 );
@@ -575,22 +352,6 @@ const EquipmentMap: React.FC = () => {
             )}
           </MapContainer>
         </div>
-      </div>
-
-      {/* Tableaux d'équipements */}
-      <div className="grid grid-cols-1 gap-4">
-        {Object.entries(filteredEquipments).map(([category, data]) =>
-          data.length > 0 ? (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle>
-                  {category} ({data.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>{renderTable(category, data)}</CardContent>
-            </Card>
-          ) : null
-        )}
       </div>
     </div>
   );

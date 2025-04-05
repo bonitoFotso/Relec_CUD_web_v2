@@ -22,6 +22,8 @@ import { ToastContainer } from "react-toastify";
 import Profil from "./pages/Profil";
 import Anomalies from "./pages/anomalies/Anomalies";
 import Notifications from "./pages/notifications/Notifications";
+import Tableau from "./pages/maskingBox/Tableau";
+import Cartographie from "./pages/maskingBox/Cartographie";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -60,6 +62,9 @@ const App: React.FC = () => {
               <Route path="/profile" element={<Profil />} />
               <Route path="/anomalies" element={<Anomalies />} />
               <Route path="/notifications" element={<Notifications />} />
+
+              <Route path="/panneau_de_controle" element={<Tableau />} />
+              <Route path="/carte" element={<Cartographie />} />
 
               {/* Route 404 */}
               <Route path="*" element={<div>Page non trouvée</div>} />

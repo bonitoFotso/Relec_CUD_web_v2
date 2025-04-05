@@ -23,12 +23,29 @@ export const navigationGroups: NavigationGroup[] = [
     items: [{ name: "Utilisateurs", href: "/users", iconName: "users" }],
   },
   {
-    items: [{ name: "Permissions", href: "/permissions", iconName: "permissions" }]
+    items: [
+      { name: "Permissions", href: "/permissions", iconName: "permissions" },
+    ],
   },
   {
-    items: [{ name: "Notifications", href: "/notifications", iconName: "notifications" }]
+    items: [
+      {
+        name: "Notifications",
+        href: "/notifications",
+        iconName: "notifications",
+      },
+    ],
   },
   {
-    items: [{ name: "Anomalies", href: "/anomalies", iconName: "anomalies" }]
-  }
+    items: [{ name: "Anomalies", href: "/anomalies", iconName: "anomalies" }],
+  },
+];
+
+export const maskingbox: NavigationGroup[] = [
+  {
+    items: [{ name: "Panneau de contrôle", href: "/panneau_de_controle", iconName: "box" }],
+  },
+  {
+    items: [{ name: "Cartographie", href: "/carte", iconName: "carte" }],
+  },
 ];
