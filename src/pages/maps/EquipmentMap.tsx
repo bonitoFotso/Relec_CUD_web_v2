@@ -49,14 +49,8 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Définir les icônes spécifiques
 const equipmentIcons: Record<string, L.Icon> = {
   Lampadaires: L.icon({
-    iconUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
+    iconUrl: "/clipart-blue-circle-f058.svg",
+    iconSize: [15, 15],
   }),
   Compteurs: L.icon({
     iconUrl: "/téléchargement.png",
