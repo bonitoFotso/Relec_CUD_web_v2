@@ -17,6 +17,7 @@ import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import { RefreshCw } from "lucide-react";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
+import DynamicHeader from "@/components/common/DynamicHeader";
 
 // Définir les icônes par défaut
 const DefaultIcon = L.icon({
@@ -317,19 +318,12 @@ const EquipmentMap: React.FC = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <h1 className="text-3xl font-bold">Cartographie</h1>
-        <div
-          onClick={resetMapView}
-          className="transition-all duration-200 hover:px-3 cursor-pointer bg-blue-500 text-white p-2 rounded-md flex items-center gap-2"
-        >
-          <p>Actualiser la carte</p>
-          <RefreshCw />
-        </div>
-      </div>
+      <DynamicHeader>
+        <h1 className=" ml-5 text-3xl font-bold">Cartographie</h1>
+      </DynamicHeader>
 
       {/* Carte des équipements */}
-      <div className="p-8 bg-white dark:bg-gray-950 rounded-md">
+      <div className="p-2 dark:bg-gray-950">
         <div className="h-[600px] w-full overflow-hidden rounded-lg relative z-10">
           <MapContainer
             //center={userPosition}

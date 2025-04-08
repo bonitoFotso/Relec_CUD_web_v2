@@ -11,17 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  LogOut,
-  User,
-  Settings,
-  Bell,
-  Search,
-  ChevronDown,
-  MessageSquare,
-  HelpCircle,
-  X,
-} from "lucide-react";
+import { LogOut, User, Bell, Search, ChevronDown, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import LogoCustom from "./Logo";
 import { ModeToggle } from "../mode-toggle";
@@ -59,7 +49,9 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm  py-2.5 border-b shadow-sm">
       <div className="mx-auto flex items-center justify-between">
-        {/* Left section */}
+        <div id="dynamic-header"></div>
+
+        
         <div className="flex items-center gap-2">
           {/* Mobile Menu Button */}
           <div className="lg:hidden">{mobileMenuTrigger}</div>
@@ -80,7 +72,6 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
             </div>
           </motion.div>
         </div>
-
         {/* Center section with search bar for larger screens */}
         <AnimatePresence>
           {showSearch && (
@@ -103,7 +94,6 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
             </motion.div>
           )}
         </AnimatePresence>
-
         {/* Right section */}
         <div className="flex justify-end items-center gap-1.5 md:gap-3">
           {/* Search button */}
@@ -173,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
                 ))}
               </div>
               <DropdownMenuSeparator />
-              <Link  to={"/notifications"}>
+              <Link to={"/notifications"}>
                 <div className="p-2">
                   <Button
                     variant="outline"
