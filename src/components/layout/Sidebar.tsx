@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Importer les icônes de Lucide React
 import {
+  Home,
   Map,
   Users,
   Briefcase,
@@ -47,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
 
   return (
     <div className="fixed w-60 py-0 h-full overflow-y-auto bg-gradient-to-b from-background to-background/95 backdrop-blur-sm">
-      <div className="bg-blue-950 dark:bg-gray-950  relative h-full">
+      <div className="bg-white dark:bg-gray-950  relative h-full">
         <div className="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
           <img src="/images/shape/grid-01.svg" alt="grid" />
         </div>
@@ -59,13 +60,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
             <img
               width={300}
               height={200}
-              className="w-60 h-60"
-              src="/logo-white.png"
+              className="w-60 h-56"
+              src="/2rc_logo.png"
               alt="Logo"
             />
           </div>
 
-          <div className="-mt-14">
+          <div className="">
             <AnimatePresence>
               {mounted &&
                 navigationGroups.map((group, groupIndex) => (
@@ -96,8 +97,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                               "group relative flex items-center px-4 py-2.5 text-sm rounded-lg transition-all duration-300",
                               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                               isActive
-                                ? "bg-white text-blue-600 font-medium shadow-sm"
-                                : "text-white hover:text-black"
+                                ? "bg-blue-800 text-white font-medium shadow-sm"
+                                : "text-blue-600 hover:text-white"
                             )}
                             onMouseEnter={() => setHoveredItem(item.name)}
                             onMouseLeave={() => setHoveredItem(null)}
@@ -107,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             {isActive && (
                               <motion.div
                                 layoutId="activeIndicator"
-                                className="absolute left-0 w-1.5 h-4/5 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                                className="absolute left-2 w-1.5 h-4/5 bg-white rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.3 }}
@@ -118,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             <AnimatePresence>
                               {!isActive && isHovered && (
                                 <motion.div
-                                  className="absolute inset-0 bg-white rounded-lg"
+                                  className="absolute inset-0 bg-blue-800 rounded-lg"
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}

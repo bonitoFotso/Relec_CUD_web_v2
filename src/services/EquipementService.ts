@@ -129,6 +129,22 @@ export const EquipementService = {
     const { data } = await apiClient.get("/equipments/get-all-substations");
     return data.data || [];
   },
+
+  updateStreetlightLocation: async (id: number, location: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    formData.append("location", location); // format : "latitude,longitude"
+  
+    const { data } = await apiClient.post("/interventions/streetlight/update-location", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+  
+    return data;
+  },
+  
+
 };
 
 export default EquipementService;
