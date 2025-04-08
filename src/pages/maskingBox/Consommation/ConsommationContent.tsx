@@ -21,19 +21,31 @@ const ConsommationContent = ({
         <TabsList className=" flex justify-end gap-2">
           <TabsTrigger
             value="All"
-            className="w-36 border dark:bg-gray-900 rounded-lg p-2 text-sm"
+            className={`w-36 border rounded-lg p-2 text-sm ${
+              activeTab === "All"
+                ? "bg-gray-500 text-white"
+                : "dark:bg-gray-900"
+            }`}
           >
             Tous les types
           </TabsTrigger>
           <TabsTrigger
             value="LED"
-            className="w-36 border dark:bg-gray-900 rounded-lg p-2 text-sm"
+            className={`w-36 border rounded-lg p-2 text-sm ${
+              activeTab === "LED"
+                ? "bg-gray-500 text-white"
+                : "dark:bg-gray-900"
+            }`}
           >
             LED
           </TabsTrigger>
           <TabsTrigger
             value="Decharges"
-            className="w-36 border dark:bg-gray-900 rounded-lg p-2 text-sm"
+            className={`w-36 border rounded-lg p-2 text-sm ${
+              activeTab === "Decharges"
+                ? "bg-gray-500 text-white"
+                : "dark:bg-gray-900"
+            }`}
           >
             Décharges
           </TabsTrigger>

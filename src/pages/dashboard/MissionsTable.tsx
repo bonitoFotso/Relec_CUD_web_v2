@@ -31,7 +31,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="h-full bg-white dark:bg-gray-950 rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <div className="animate-pulse h-6 bg-gray-200 rounded w-1/4"></div>
           <div className="animate-pulse h-8 bg-gray-200 rounded w-1/4"></div>
@@ -185,10 +185,9 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium ">
-                      {mission.title.length > 15 ?
-                      mission.title.substring(0, 15).concat("..."):
-                      mission.title
-                      }
+                      {mission.title.length > 15
+                        ? mission.title.substring(0, 15).concat("...")
+                        : mission.title}
                     </div>
                     {mission.description && (
                       <div className="text-xs  truncate max-w-xs">
