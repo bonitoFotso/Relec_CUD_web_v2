@@ -1,6 +1,6 @@
 // src/components/Dashboard/types.ts
-import { User } from '@/services/UsersService';
-import { Mission } from '@/services/missions.service';
+import { User } from "@/services/UsersService";
+import { Mission } from "@/services/missions.service";
 
 export interface DashboardStats {
   missionsCount: number;
@@ -14,6 +14,7 @@ export interface StatCardProps {
   value: number;
   icon: string; // Nom de l'icône pour faciliter l'importation dynamique
   color: string;
+  bgcolor: string;
 }
 
 export interface PieChartData {
@@ -44,7 +45,7 @@ export interface StatsCardsProps {
   stats: DashboardStats;
 }
 
-export type AlertType = 'warning' | 'error';
+export type AlertType = "warning" | "error";
 
 export interface Alert {
   type: AlertType;

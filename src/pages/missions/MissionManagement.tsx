@@ -40,7 +40,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Mission } from "@/services/missions.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useUsers } from "@/contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -50,7 +50,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { useDashboard } from "@/contexts/DashboardContext";
+import { SkeletonCard } from "@/components/card/SkeletonCard";
 
 // Définition du schéma de validation pour le formulaire
 const missionFormSchema = z.object({
@@ -83,10 +83,10 @@ const MissionManagement: React.FC = () => {
     updateMission,
     deleteMission,
     assignAgent,
-    fetchMissions, // Accessible si vous souhaitez forcer un rafraîchissement manuel
-    fetchFormData,
+    fetchMissions, // Fonction de rafraîchissement des missions
+    fetchFormData, // Fonction de rafraîchissement des données du formulaire (types d'interventions, rues, etc.)
+  
   } = useMissions();
-  const { refresh } = useDashboard();
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
@@ -108,17 +108,18 @@ const MissionManagement: React.FC = () => {
     },
   });
 
-  // On suppose que les données du MissionContext et UserContext ont été chargées lors du montage initial de l'application.
-  // On garde néanmoins l'appel à fetchUsers() ici pour mettre à jour la liste des utilisateurs (agents)
   useEffect(() => {
     fetchUsers();
+    fetchFormData();
+    fetchMissions();
+
   }, [fetchUsers]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error(error);
+  //   }
+  // }, [error]);
 
   // Remplir le formulaire lors de l'édition d'une mission
   useEffect(() => {
@@ -183,24 +184,18 @@ const MissionManagement: React.FC = () => {
     try {
       if (editingMission) {
         await updateMission({ ...values, id: editingMission.id });
-        toast.success("Mission mise à jour", {
-          description: "La mission a été mise à jour avec succès.",
-        });
+        toast.success("Mission mise à jour");
       } else {
         await createMission(values as Mission);
-        toast.success("Mission créée", {
-          description: "La mission a été créée avec succès.",
-        });
+        toast.success("Mission créée");
       }
-      // Vous pouvez appeler fetchMissions() ici si vous souhaitez rafraîchir manuellement
+      // Rafraîchir les missions et les données du formulaire pour afficher les nouvelles infos directement
+      await fetchMissions();
+      //await fetchFormData();
       setIsFormDialogOpen(false);
-      // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
-      refresh();
     } catch (err) {
       console.error("Opération échouée :", err);
-      toast.error("Opération échouée", {
-        description: "Une erreur est survenue lors de l'opération.",
-      });
+      toast.error("Opération échouée");
     }
   };
 
@@ -209,19 +204,13 @@ const MissionManagement: React.FC = () => {
     if (!selectedMission?.id) return;
     try {
       await assignAgent(selectedMission.id, userId);
-      toast.success("Agent assigné", {
-        description: "L'agent a été assigné à la mission avec succès.",
-      });
-      // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
-      refresh();
+      toast.success("Agent assigné");
+
       setIsAssignDialogOpen(false);
       // Optionnel: rafraîchir les missions en appelant fetchMissions()
     } catch (err) {
       console.error("Assignation échouée :", err);
-      toast.error("Assignation échouée", {
-        description:
-          "Une erreur est survenue lors de l'assignation de l'agent.",
-      });
+      toast.error("Assignation échouée");
     }
   };
 
@@ -236,18 +225,13 @@ const MissionManagement: React.FC = () => {
       setIsDeleting(true);
       try {
         await deleteMission(missionToDelete.id);
-        toast.success("Mission supprimée", {
-          description: "La mission a été supprimée avec succès.",
-        });
-        // Appeler le refresh du Dashboard pour mettre à jour les statistiques et la liste des missions
-        refresh();
+        toast.success("Mission supprimée");
+
         setIsAlertDialogOpen(false);
         // Optionnel: rafraîchir les missions
       } catch (err) {
         console.error("Suppression échouée :", err);
-        toast.error("Suppression échouée", {
-          description: "Une erreur est survenue lors de la suppression.",
-        });
+        toast.error("Suppression échouée");
       } finally {
         setIsDeleting(false);
       }
@@ -296,8 +280,9 @@ const MissionManagement: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spinner className="h-10 w-10" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 p-2 md:p-4">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
@@ -344,7 +329,9 @@ const MissionManagement: React.FC = () => {
                     onClick={() => handleDetailsClick(mission)}
                   >
                     <TableCell className="font-medium">
-                      {mission.title}
+                      {mission.title.length > 20
+                        ? mission.title.substring(0, 20).concat("...")
+                        : mission.title}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">

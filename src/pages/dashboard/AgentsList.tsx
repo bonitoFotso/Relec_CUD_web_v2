@@ -20,7 +20,7 @@ const AgentsList: React.FC<AgentsListProps> = ({ agents, isLoading }) => {
   }
   
   return (
-    <div className="bg-white dark:bg-gray-950 rounded-lg shadow">
+    <div className="h-full  bg-white dark:bg-gray-950 rounded-lg ">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold">Agents actifs</h2>
       </div>

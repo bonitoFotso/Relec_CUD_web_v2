@@ -1,47 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-duplicate-case */
+import React, { useEffect, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Polyline,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Import des composants Shadcn UI
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// Composants UI
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Contexte des équipements
+import { useEquipements } from "@/contexts/EquipementContext";
 
 // Correction du problème d'icônes dans React-Leaflet
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-
-// Types pour les équipements
-interface EquipmentPosition {
-  lat: number;
-  lng: number;
-}
-
-type EquipmentType = 'informatique' | 'medical' | 'industriel';
-type EquipmentStatus = 'fonctionnel' | 'maintenance' | 'dysfonctionnement';
-
-interface Equipment {
-  id: number;
-  name: string;
-  type: EquipmentType;
-  position: [number, number]; // [latitude, longitude]
-  status: EquipmentStatus;
-  lastMaintenance: string;
-}
-
-interface NewEquipment {
-  name: string;
-  type: EquipmentType;
-  status: EquipmentStatus;
-  lastMaintenance: string;
-}
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+import { RefreshCw } from "lucide-react";
+import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
+import { SkeletonCard } from "@/components/card/SkeletonCard";
+import { Link } from "react-router-dom";
 
 // Définir les icônes par défaut
 const DefaultIcon = L.icon({
@@ -52,369 +52,630 @@ const DefaultIcon = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
+  shadowSize: [41, 41],
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Créer différentes icônes pour les types d'équipements
-const equipmentIcons: Record<EquipmentType, L.Icon> = {
-  informatique: L.icon({
-    iconUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
-    shadowSize: [41, 41]
+// Définir les icônes spécifiques
+const equipmentIcons: Record<string, L.Icon> = {
+  Lampadaires: L.icon({
+    iconUrl: "/clipart-blue-circle-f058.svg",
+    iconSize: [15, 15],
   }),
-  medical: L.icon({
-    iconUrl: '/téléchargement.png',
-    iconSize: [41, 41],
-    iconAnchor: [12, 41],
+  Compteurs: L.icon({
+    iconUrl: "/compteur-removebg-preview.png",
+    iconSize: [50, 50],
+    iconAnchor: [15, 30],
     popupAnchor: [1, -34],
-    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
-    shadowSize: [41, 41]
+    shadowUrl:
+      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
+    shadowSize: [41, 41],
   }),
-  industriel: L.icon({
-    iconUrl: '/images1.png',
+  Amoires: L.icon({
+    iconUrl: "/images1.png",
     iconSize: [50, 50],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
-    shadowUrl: 'https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png',
-    shadowSize: [41, 41]
+    shadowUrl:
+      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
+    shadowSize: [41, 41],
+  }),
+  Posts: L.icon({
+    iconUrl: "/kkk.png",
+    iconSize: [50, 50],
+    iconAnchor: [15, 30],
+    popupAnchor: [1, -34],
+    shadowUrl:
+      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
+    shadowSize: [41, 41],
   }),
 };
 
-// Données d'exemple pour les équipements
-const initialEquipments: Equipment[] = [
-  { id: 1, name: 'Serveur principal', type: 'informatique', position: [48.856614, 2.3522219], status: 'fonctionnel', lastMaintenance: '2023-09-15' },
-  { id: 2, name: 'Scanner médical', type: 'medical', position: [48.85, 2.34], status: 'maintenance', lastMaintenance: '2023-10-20' },
-  { id: 3, name: 'Machine industrielle', type: 'industriel', position: [48.86, 2.37], status: 'dysfonctionnement', lastMaintenance: '2023-08-05' },
-  { id: 4, name: 'Router réseau', type: 'informatique', position: [48.87, 2.33], status: 'fonctionnel', lastMaintenance: '2023-11-01' }
-];
+const EquipmentMap: React.FC = () => {
+  const {
+    streetlights,
+    metters,
+    cabinets,
+    substations,
+    loading,
+    error,
+    updateStreetlightPosition,
+  } = useEquipements();
+  const [filter, setFilter] = useState<string>("all");
+  const [selectedCommune, setSelectedCommune] = useState<string>("TOUTES");
 
-// Propriétés pour le composant d'ajout de marqueur
-interface AddEquipmentMarkerProps {
-  onAddEquipment: (position: EquipmentPosition) => void;
-}
+  const [selectedPosition, setSelectedPosition] = useState<
+    [number, number] | null
+  >(null);
+  const [resetMap, setResetMap] = useState(false);
 
-// Composant pour ajouter de nouveaux équipements
-const AddEquipmentMarker: React.FC<AddEquipmentMarkerProps> = ({ onAddEquipment }) => {
-  const [position, setPosition] = useState<EquipmentPosition | null>(null);
+  // Déclaration unique de la position utilisateur
+  const [userPosition, setUserPosition] = useState<[number, number]>([
+    4.0429389, 9.7062018,
+  ]);
 
-  // const map = useMapEvents({
-  //   click: (e) => {
-  //     setPosition({ lat: e.latlng.lat, lng: e.latlng.lng });
-  //   }
-  // });
+  const initialPosition: [number, number] = userPosition;
+
+  const parseLocation = (location: string) => {
+    const [lat, lng] = location.split(",").map(parseFloat);
+    return { lat, lng };
+  };
+
+  const MapUpdater = () => {
+    const map = useMap();
+    if (resetMap) {
+      map.setView(initialPosition, 80);
+      setResetMap(false);
+    } else if (selectedPosition) {
+      map.setView(selectedPosition, 80);
+    }
+    return null;
+  };
+
+  const resetMapView = () => {
+    // setSelectedPosition(null);
+    // setResetMap(true);
+    setUserPosition([4.0429389, 9.7062018]);
+  };
 
   useEffect(() => {
-    if (position) {
-      onAddEquipment(position);
-      setPosition(null);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          console.log(position.coords);
+          setUserPosition([latitude, longitude]);
+        },
+        (err) => {
+          console.error("Erreur géolocalisation : ", err);
+        }
+      );
+    } else {
+      console.warn("La géolocalisation n'est pas supportée par ce navigateur.");
     }
-  }, [position, onAddEquipment]);
+  }, []);
 
-  return null;
-};
-
-// Composant principal
-const EquipmentMap: React.FC = () => {
-  const [equipments, setEquipments] = useState<Equipment[]>(initialEquipments);
-  const [newEquipment, setNewEquipment] = useState<NewEquipment>({
-    name: '',
-    type: 'informatique',
-    status: 'fonctionnel',
-    lastMaintenance: new Date().toISOString().split('T')[0]
-  });
-  const [isAdding, setIsAdding] = useState<boolean>(false);
-  const [tempPosition, setTempPosition] = useState<[number, number] | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-
-  // Filtrer les équipements
-  const filteredEquipments = equipments.filter(eq => {
-    const matchesSearch = eq.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || eq.type === selectedType;
-    const matchesStatus = selectedStatus === 'all' || eq.status === selectedStatus;
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
-  // Gérer le clic sur la carte pour ajouter un équipement
-  const handleAddEquipmentPosition = (latlng: EquipmentPosition) => {
-    if (!isAdding) return;
-    setTempPosition([latlng.lat, latlng.lng]);
-    setDialogOpen(true);
-  };
-
-  // Gérer les changements dans le formulaire
-  const handleInputChange = (name: string, value: string) => {
-    setNewEquipment(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Soumettre le formulaire pour ajouter un équipement
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tempPosition || !newEquipment.name) return;
-
-    const newId = equipments.length > 0 ? Math.max(...equipments.map(e => e.id)) + 1 : 1;
-
-    const equipment: Equipment = {
-      id: newId,
-      name: newEquipment.name,
-      type: newEquipment.type,
-      position: tempPosition,
-      status: newEquipment.status,
-      lastMaintenance: newEquipment.lastMaintenance
-    };
-
-    setEquipments(prev => [...prev, equipment]);
-    setNewEquipment({
-      name: '',
-      type: 'informatique',
-      status: 'fonctionnel',
-      lastMaintenance: new Date().toISOString().split('T')[0]
-    });
-    setTempPosition(null);
-    setIsAdding(false);
-    setDialogOpen(false);
-  };
-
-  // Gérer la suppression d'un équipement
-  const handleDeleteEquipment = (id: number) => {
-    setEquipments(prev => prev.filter(eq => eq.id !== id));
-  };
-
-  // Obtenir l'icône en fonction du type d'équipement
-  const getEquipmentIcon = (type: EquipmentType) => {
-    return equipmentIcons[type] || DefaultIcon;
-  };
-
-  // Obtenir la variant de statut pour le badge
-  const getStatusVariant = (status: EquipmentStatus): "default" | "destructive" | "outline" | "secondary" => {
-    switch (status) {
-      case 'fonctionnel': return "default";
-      case 'maintenance': return "secondary";
-      case 'dysfonctionnement': return "destructive";
-      default: return "outline";
-    }
-  };
-
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Carte de localisation des équipements</h1>
-
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
-          <Input
-            placeholder="Rechercher un équipement..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
-
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les types</SelectItem>
-              <SelectItem value="informatique">Informatique</SelectItem>
-              <SelectItem value="medical">Médical</SelectItem>
-              <SelectItem value="industriel">Industriel</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="fonctionnel">Fonctionnel</SelectItem>
-              <SelectItem value="maintenance">En maintenance</SelectItem>
-              <SelectItem value="dysfonctionnement">En dysfonctionnement</SelectItem>
-            </SelectContent>
-          </Select>
+  if (loading) {
+    return (
+      <div className="container mx-auto flex flex-col space-y-4 mt-5">
+        <SkeletonCardUser />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:grid-cols-2 gap-4 mx-auto">
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
         </div>
-
+        <div className="grid grid-cols-1 p-2 md:p-4">
+          <SkeletonCard />
+        </div>
       </div>
+    );
+  }
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="h-[500px] w-full overflow-hidden relative z-10">
-          <MapContainer
-              center={[48.856614, 2.3522219]}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-              className="leaflet-container rounded-lg"
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
+  const filteredEquipments = {
+    Lampadaires: (filter === "all" || filter === "streetlights"
+      ? streetlights
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality) === selectedCommune
+    ),
+    Compteurs: (filter === "all" || filter === "metters"
+      ? metters
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
+    Amoires: (filter === "all" || filter === "cabinets"
+      ? cabinets
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
+    Posts: (filter === "all" || filter === "substations"
+      ? substations
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
+  };
 
-              {filteredEquipments.map(equipment => (
-                <Marker
-                  key={equipment.id}
-                  position={equipment.position}
-                  icon={getEquipmentIcon(equipment.type)}
-                >
-                  <Popup>
-                    <div className="space-y-2">
-                      <h3 className="font-bold text-lg">{equipment.name}</h3>
-                      <p>Type: {equipment.type}</p>
-                      <p>
-                        Statut: <Badge variant={getStatusVariant(equipment.status)}>{equipment.status}</Badge>
-                      </p>
-                      <p>Dernière maintenance: {equipment.lastMaintenance}</p>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteEquipment(equipment.id)}
-                      >
-                        Supprimer
-                      </Button>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-
-              {tempPosition && (
-                <Marker position={tempPosition}>
-                  <Popup>Nouvel équipement</Popup>
-                </Marker>
-              )}
-
-              {isAdding && <AddEquipmentMarker onAddEquipment={handleAddEquipmentPosition} />}
-            </MapContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ajouter un nouvel équipement</DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nom:</Label>
-              <Input
-                id="name"
-                value={newEquipment.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="type">Type:</Label>
-              <Select
-                value={newEquipment.type}
-                onValueChange={(value) => handleInputChange('type', value as EquipmentType)}
-              >
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="Type d'équipement" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="informatique">Informatique</SelectItem>
-                  <SelectItem value="medical">Médical</SelectItem>
-                  <SelectItem value="industriel">Industriel</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="status">Statut:</Label>
-              <Select
-                value={newEquipment.status}
-                onValueChange={(value) => handleInputChange('status', value as EquipmentStatus)}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fonctionnel">Fonctionnel</SelectItem>
-                  <SelectItem value="maintenance">En maintenance</SelectItem>
-                  <SelectItem value="dysfonctionnement">En dysfonctionnement</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="lastMaintenance">Dernière maintenance:</Label>
-              <Input
-                id="lastMaintenance"
-                type="date"
-                value={newEquipment.lastMaintenance}
-                onChange={(e) => handleInputChange('lastMaintenance', e.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Position:</Label>
-              <Input
-                value={tempPosition ? `Lat: ${tempPosition[0].toFixed(6)}, Lng: ${tempPosition[1].toFixed(6)}` : ''}
-                readOnly
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="submit">Ajouter l'équipement</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des équipements ({filteredEquipments.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
+  const renderTable = (category: string, data: any[]) => {
+    switch (category) {
+      case "Lampadaires":
+        return (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Nom</TableHead>
+                <TableHead>Commune</TableHead>
+                <TableHead>Localisation</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Dernière maintenance</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Orientation</TableHead>
+                <TableHead>Etat</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEquipments.map(equipment => (
-                <TableRow key={equipment.id}>
-                  <TableCell>{equipment.id}</TableCell>
-                  <TableCell>{equipment.name}</TableCell>
-                  <TableCell>{equipment.type}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(equipment.status)}>
-                      {equipment.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{equipment.lastMaintenance}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteEquipment(equipment.id)}
-                    >
-                      Supprimer
-                    </Button>
-                  </TableCell>
+              {data.map((eq) => (
+                <TableRow
+                  key={eq.id}
+                  onClick={() => {
+                    const { lat, lng } = parseLocation(eq.location);
+                    setSelectedPosition([lat, lng]);
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  <TableCell>{eq.municipality}</TableCell>
+                  <TableCell>{eq.location}</TableCell>
+                  <TableCell>{eq.lamp_type}</TableCell>
+                  <TableCell>{eq.orientation}</TableCell>
+                  <TableCell>{eq.support_condition}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        );
+      case "Compteurs":
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Commune</TableHead>
+                <TableHead>Localisation</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Modèle</TableHead>
+                <TableHead>Marque</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((eq) => (
+                <TableRow
+                  key={eq.id}
+                  onClick={() => {
+                    const { lat, lng } = parseLocation(eq.location);
+                    setSelectedPosition([lat, lng]);
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  <TableCell>{eq.municipality.name}</TableCell>
+                  <TableCell>{eq.location}</TableCell>
+                  <TableCell>{eq.meter_type.name}</TableCell>
+                  <TableCell>{eq.model}</TableCell>
+                  <TableCell>{eq.brand}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        );
+      case "Amoires":
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Commune</TableHead>
+                <TableHead>Localisation</TableHead>
+                <TableHead>Est Fonctionnel</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((eq) => (
+                <TableRow
+                  key={eq.id}
+                  onClick={() => {
+                    const { lat, lng } = parseLocation(eq.location);
+                    setSelectedPosition([lat, lng]);
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  <TableCell>{eq.municipality.name}</TableCell>
+                  <TableCell>{eq.location}</TableCell>
+                  <TableCell>{eq.is_functional ? "Oui" : "Non"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        );
+      case "Posts":
+        return (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Commune</TableHead>
+                <TableHead>Localisation</TableHead>
+                <TableHead>Nom</TableHead>
+                <TableHead>Point de repère</TableHead>
+                <TableHead>Block_route_number</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((eq) => (
+                <TableRow
+                  key={eq.id}
+                  onClick={() => {
+                    const { lat, lng } = parseLocation(eq.location);
+                    setSelectedPosition([lat, lng]);
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  <TableCell>{eq.municipality.name}</TableCell>
+                  <TableCell>{eq.location}</TableCell>
+                  <TableCell>{eq.name}</TableCell>
+                  <TableCell>{eq.popular_landmark}</TableCell>
+                  <TableCell>{eq.block_route_number}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        );
+      default:
+        return null;
+    }
+  };
+  const renderPopup = (category: string, eq: any) => {
+    switch (category) {
+      case "Lampadaires":
+        return (
+          <div className="z-50">
+            <p>
+              <strong>Presence de le lampe : </strong>
+              {eq.has_lamp === 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Puissance : </strong>
+              {eq.power} W
+            </p>
+            <p>
+              <strong>Type de commande : </strong>
+              {eq.command_type}
+            </p>
+            <p>
+              <strong>Type de lampe : </strong>
+              {eq.lamp_type}
+            </p>
+            <p>
+              <strong>Allumer jour : </strong>
+              {eq.is_on_day == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Allumer nuit : </strong>
+              {eq.is_on_night == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Support : </strong>
+              {eq.support_type}
+            </p>
+            <p>
+              <strong>Etat du support : </strong>
+              {eq.support_condition}
+            </p>
+            <p>
+              <strong>Commune :</strong>{" "}
+              {typeof eq.municipality === "string"
+                ? eq.municipality
+                : eq.municipality?.name}
+            </p>
+            <p>
+              <strong>Reseau :</strong> {eq.network}
+            </p>
+            <p>
+              <strong>Localisation :</strong> {eq.location}
+            </p>
+          </div>
+        );
+      case "Compteurs":
+        return (
+          <div className="z-50">
+            <p>
+              <strong>Presence : </strong>
+              {eq.is_present === 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Numero : </strong>
+              {eq.number}
+            </p>
+            <p>
+              <strong>Marque : </strong>
+              {eq.brand}
+            </p>
+            <p>
+              <strong>Modele : </strong>
+              {eq.model}
+            </p>
+            <p>
+              <strong>Monte : </strong>
+              {eq.is_mounted == 1 ? "Oui" : "Non"}
+            </p>
+            {eq.substation && (
+              <p>
+                <strong>Post : </strong>
+                {eq.substation}
+              </p>
+            )}
+            <p>
+              <strong>Type : </strong>
+              {eq.meter_type.name}
+            </p>
+            <p>
+              <strong>Commune :</strong>{" "}
+              {typeof eq.municipality === "string"
+                ? eq.municipality
+                : eq.municipality?.name}
+            </p>
+            <p>
+              <strong>Localisation :</strong> {eq.location}
+            </p>
+          </div>
+        );
+      case "Lampadaires":
+        return (
+          <div className="z-50">
+            <p>
+              <strong>Presence de le lampe : </strong>
+              {eq.has_lamp === 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Puissance : </strong>
+              {eq.power} W
+            </p>
+            <p>
+              <strong>Type de commande : </strong>
+              {eq.command_type}
+            </p>
+            <p>
+              <strong>Type de lampe : </strong>
+              {eq.lamp_type}
+            </p>
+            <p>
+              <strong>Allumer jour : </strong>
+              {eq.is_on_day == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Allumer nuit : </strong>
+              {eq.is_on_night == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Support : </strong>
+              {eq.support_type}
+            </p>
+            <p>
+              <strong>Etat du support : </strong>
+              {eq.support_condition}
+            </p>
+            <p>
+              <strong>Commune :</strong>{" "}
+              {typeof eq.municipality === "string"
+                ? eq.municipality
+                : eq.municipality?.name}
+            </p>
+            <p>
+              <strong>Reseau :</strong> {eq.network}
+            </p>
+            <p>
+              <strong>Localisation :</strong> {eq.location}
+            </p>
+          </div>
+        );
+      case "Lampadaires":
+        return (
+          <div className="z-50">
+            <p>
+              <strong>Presence de le lampe : </strong>
+              {eq.has_lamp === 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Puissance : </strong>
+              {eq.power} W
+            </p>
+            <p>
+              <strong>Type de commande : </strong>
+              {eq.command_type}
+            </p>
+            <p>
+              <strong>Type de lampe : </strong>
+              {eq.lamp_type}
+            </p>
+            <p>
+              <strong>Allumer jour : </strong>
+              {eq.is_on_day == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Allumer nuit : </strong>
+              {eq.is_on_night == 1 ? "Oui" : "Non"}
+            </p>
+            <p>
+              <strong>Support : </strong>
+              {eq.support_type}
+            </p>
+            <p>
+              <strong>Etat du support : </strong>
+              {eq.support_condition}
+            </p>
+            <p>
+              <strong>Commune :</strong>{" "}
+              {typeof eq.municipality === "string"
+                ? eq.municipality
+                : eq.municipality?.name}
+            </p>
+            <p>
+              <strong>Reseau :</strong> {eq.network}
+            </p>
+            <p>
+              <strong>Localisation :</strong> {eq.location}
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const lampadairePositions: [number, number][] = streetlights
+    .map((eq) => {
+      const [lat, lng] = eq.location.split(",").map(parseFloat);
+      return [lat, lng] as [number, number];
+    })
+    .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
+
+  return (
+    <div className="container mx-auto py-1 space-y-4">
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <h1 className="text-3xl font-bold">Carte des équipements</h1>
+        <Link to="/maps">
+          <div className="transition-all duration-200 hover:px-3 cursor-pointer bg-blue-500 text-white p-2 rounded-md flex items-center gap-2">
+            <p>Actualiser la carte</p>
+            <RefreshCw />
+          </div>
+        </Link>
+      </div>
+
+      {/* Filtrage des équipements */}
+      <div className="flex flex-row gap-4 items-center">
+        <p className="font-semibold">Filtrer</p>
+        <div className="bg-white dark:bg-gray-950">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="Tous les equipements" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les equipements</SelectItem>
+              <SelectItem value="streetlights">Lampadaires</SelectItem>
+              <SelectItem value="metters">Compteurs</SelectItem>
+              <SelectItem value="cabinets">Armoires</SelectItem>
+              <SelectItem value="substations">Postes</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="bg-white dark:bg-gray-950">
+          <Select
+            value={selectedCommune}
+            //onChange={(e) => setSelectedCommune(e.target.value)}
+            onValueChange={setSelectedCommune}
+          >
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="Toutes les communes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TOUTES">Toutes les communes</SelectItem>
+              <SelectItem value="DOUALA 1">douala 1</SelectItem>
+              <SelectItem value="DOUALA 2">douala 2</SelectItem>
+              <SelectItem value="DOUALA 3">douala 3</SelectItem>
+              <SelectItem value="DOUALA 4">douala 4</SelectItem>
+              <SelectItem value="DOUALA 5">douala 5</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Carte des équipements */}
+      <div className="p-4 bg-white dark:bg-gray-950 rounded-md">
+        <div className="h-[600px] w-full overflow-hidden rounded-lg relative z-10">
+          <MapContainer
+            //center={userPosition}
+            center={[4.0911652, 9.7358404]}
+            zoom={80}
+            style={{ height: "100%", width: "100%" }}
+            className="leaflet-container rounded-lg"
+          >
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <MapUpdater />
+            {Object.entries(filteredEquipments).map(([category, equipments]) =>
+              equipments.map((eq) => {
+                const { lat, lng } = parseLocation(eq.location);
+                const handleDragEnd = (e: L.LeafletEvent) => {
+                  const marker = e.target;
+                  const position = marker.getLatLng();
+                  const newposition = `${position.lat},${position.lng}`;
+                  console.log(`Nouveau point pour ${eq.id} : `, newposition);
+                  // stocker cette nouvelle position
+                  updateStreetlightPosition(eq.id, newposition);
+                };
+                return (
+                  <Marker
+                    key={`${category}-${eq.id}`}
+                    position={[lat, lng]}
+                    icon={equipmentIcons[category] || DefaultIcon}
+                    draggable={true}
+                    eventHandlers={{
+                      dragend: handleDragEnd,
+                    }}
+                  >
+                    <Popup>{renderPopup(category, eq)}</Popup>
+                  </Marker>
+                );
+              })
+            )}
+            {lampadairePositions.length > 1 && (
+              <Polyline
+                positions={lampadairePositions}
+                pathOptions={{ color: "green", weight: 3 }}
+              />
+            )}
+          </MapContainer>
+        </div>
+      </div>
+
+      {/* Tableaux d'équipements */}
+      <div className="grid grid-cols-1 gap-4">
+        {Object.entries(filteredEquipments).map(([category, data]) =>
+          data.length > 0 ? (
+            <Card key={category}>
+              <CardHeader>
+                <CardTitle>
+                  {category} ({data.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>{renderTable(category, data)}</CardContent>
+            </Card>
+          ) : null
+        )}
+      </div>
     </div>
   );
 };

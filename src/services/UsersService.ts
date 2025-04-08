@@ -12,6 +12,21 @@ export interface User {
   status: 'active' | 'inactive';
 }
 
+  export interface RolePermissions{
+    permission_id : number;
+    role_id : number;
+  }
+  export interface ContentProps{
+    id : number;
+    name: string;
+  }
+
+export interface AssignRoles {
+  permissions: ContentProps[];
+  role_permissions: RolePermissions[];
+  roles:ContentProps[];
+}
+
 export const UserService = {
   getAll: async (): Promise<User[]> => {
     const { data } = await apiClient.get('/users/index');
@@ -88,26 +103,33 @@ export const UserService = {
 
   getRoles: async (): Promise<string[]> => {
     const { data } = await apiClient.get('/users/create');
-    console.log(data.data.roles);
     return data.data.roles || [];
   },
   
   assignPermissions: async (roleId: number, permissions: number[]): Promise<void> => {
     const formData = new FormData();
-    formData.append('role_id', roleId.toString());
-    formData.append('permissions', permissions.join(','));
-    
-    await apiClient.post('/users/assignpermissions', formData, {
+    formData.append("role_id", roleId.toString());
+  
+    // Ajouter chaque permission dans le formData
+    permissions.forEach((permission) => {
+      formData.append("permissions[]", permission.toString()); 
+    });
+  
+    await apiClient.post("/users/assignpermissions", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
   },
   
-  assignRoles: async (): Promise<any> => {
+  
+  assignRoles: async (): Promise<AssignRoles> => {
     const { data } = await apiClient.get(`/users/assignroles`);
-    console.log("assignroles",data);
-    return data;
+    return {
+      permissions: data.data.permissions || [],
+      role_permissions: data.data.role_permissions || [],
+      roles: data.data.roles || []
+    };
   },
 
   
