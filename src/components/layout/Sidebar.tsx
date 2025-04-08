@@ -6,10 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Importer les icônes de Lucide React
 import {
-<<<<<<< HEAD
-=======
   Home,
->>>>>>> ce5e8ec (sidebar avec le logo de 2rc)
   Map,
   Users,
   Briefcase,
@@ -63,11 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
             />
           </div>
 
-<<<<<<< HEAD
-          <div className="-mt-14">
-=======
           <div className="">
->>>>>>> ce5e8ec (sidebar avec le logo de 2rc)
             <AnimatePresence>
               {mounted &&
                 navigationGroups.map((group, groupIndex) => (
@@ -98,13 +91,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                               "group relative flex items-center px-4 py-2.5 text-sm rounded-lg transition-all duration-300",
                               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                               isActive
-<<<<<<< HEAD
-                                ? "bg-white text-blue-600 font-medium shadow-sm"
-                                : "text-white hover:text-black"
-=======
                                 ? "bg-blue-800 text-white font-medium shadow-sm"
                                 : "text-blue-600 hover:text-white"
->>>>>>> ce5e8ec (sidebar avec le logo de 2rc)
                             )}
                             onMouseEnter={() => setHoveredItem(item.name)}
                             onMouseLeave={() => setHoveredItem(null)}
@@ -114,11 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             {isActive && (
                               <motion.div
                                 layoutId="activeIndicator"
-<<<<<<< HEAD
-                                className="absolute left-0 w-1.5 h-4/5 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
-=======
                                 className="absolute left-2 w-1.5 h-4/5 bg-white rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
->>>>>>> ce5e8ec (sidebar avec le logo de 2rc)
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.3 }}
@@ -129,11 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             <AnimatePresence>
                               {!isActive && isHovered && (
                                 <motion.div
-<<<<<<< HEAD
-                                  className="absolute inset-0 bg-white rounded-lg"
-=======
                                   className="absolute inset-0 bg-blue-800 rounded-lg"
->>>>>>> ce5e8ec (sidebar avec le logo de 2rc)
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}

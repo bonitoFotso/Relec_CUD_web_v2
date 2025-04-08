@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Polyline,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -32,6 +39,7 @@ import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import { RefreshCw } from "lucide-react";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
+import { Link } from "react-router-dom";
 
 // Définir les icônes par défaut
 const DefaultIcon = L.icon({
@@ -53,7 +61,7 @@ const equipmentIcons: Record<string, L.Icon> = {
     iconSize: [15, 15],
   }),
   Compteurs: L.icon({
-    iconUrl: "/téléchargement.png",
+    iconUrl: "/compteur-removebg-preview.png",
     iconSize: [50, 50],
     iconAnchor: [15, 30],
     popupAnchor: [1, -34],
@@ -82,9 +90,18 @@ const equipmentIcons: Record<string, L.Icon> = {
 };
 
 const EquipmentMap: React.FC = () => {
-  const { streetlights, metters, cabinets, substations, loading, error } =
-    useEquipements();
+  const {
+    streetlights,
+    metters,
+    cabinets,
+    substations,
+    loading,
+    error,
+    updateStreetlightPosition,
+  } = useEquipements();
   const [filter, setFilter] = useState<string>("all");
+  const [selectedCommune, setSelectedCommune] = useState<string>("TOUTES");
+
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number] | null
   >(null);
@@ -155,11 +172,46 @@ const EquipmentMap: React.FC = () => {
   }
 
   const filteredEquipments = {
-    Lampadaires:
-      filter === "all" || filter === "streetlights" ? streetlights : [],
-    Compteurs: filter === "all" || filter === "metters" ? metters : [],
-    Amoires: filter === "all" || filter === "cabinets" ? cabinets : [],
-    Posts: filter === "all" || filter === "substations" ? substations : [],
+    Lampadaires: (filter === "all" || filter === "streetlights"
+      ? streetlights
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality) === selectedCommune
+    ),
+    Compteurs: (filter === "all" || filter === "metters"
+      ? metters
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
+    Amoires: (filter === "all" || filter === "cabinets"
+      ? cabinets
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
+    Posts: (filter === "all" || filter === "substations"
+      ? substations
+      : []
+    )?.filter((eq) =>
+      selectedCommune === "TOUTES"
+        ? true
+        : (typeof eq.municipality === "string"
+            ? eq.municipality
+            : eq.municipality?.name) === selectedCommune
+    ),
   };
 
   const renderTable = (category: string, data: any[]) => {
@@ -355,49 +407,44 @@ const EquipmentMap: React.FC = () => {
             </p>
           </div>
         );
-      case "Lampadaires":
+      case "Compteurs":
         return (
           <div className="z-50">
             <p>
-              <strong>Presence de le lampe : </strong>
-              {eq.has_lamp === 1 ? "Oui" : "Non"}
+              <strong>Presence : </strong>
+              {eq.is_present === 1 ? "Oui" : "Non"}
             </p>
             <p>
-              <strong>Puissance : </strong>
-              {eq.power} W
+              <strong>Numero : </strong>
+              {eq.number}
             </p>
             <p>
-              <strong>Type de commande : </strong>
-              {eq.command_type}
+              <strong>Marque : </strong>
+              {eq.brand}
             </p>
             <p>
-              <strong>Type de lampe : </strong>
-              {eq.lamp_type}
+              <strong>Modele : </strong>
+              {eq.model}
             </p>
             <p>
-              <strong>Allumer jour : </strong>
-              {eq.is_on_day == 1 ? "Oui" : "Non"}
+              <strong>Monte : </strong>
+              {eq.is_mounted == 1 ? "Oui" : "Non"}
             </p>
+            {eq.substation && (
+              <p>
+                <strong>Post : </strong>
+                {eq.substation}
+              </p>
+            )}
             <p>
-              <strong>Allumer nuit : </strong>
-              {eq.is_on_night == 1 ? "Oui" : "Non"}
-            </p>
-            <p>
-              <strong>Support : </strong>
-              {eq.support_type}
-            </p>
-            <p>
-              <strong>Etat du support : </strong>
-              {eq.support_condition}
+              <strong>Type : </strong>
+              {eq.meter_type.name}
             </p>
             <p>
               <strong>Commune :</strong>{" "}
               {typeof eq.municipality === "string"
                 ? eq.municipality
                 : eq.municipality?.name}
-            </p>
-            <p>
-              <strong>Reseau :</strong> {eq.network}
             </p>
             <p>
               <strong>Localisation :</strong> {eq.location}
@@ -507,17 +554,23 @@ const EquipmentMap: React.FC = () => {
     }
   };
 
+  const lampadairePositions: [number, number][] = streetlights
+    .map((eq) => {
+      const [lat, lng] = eq.location.split(",").map(parseFloat);
+      return [lat, lng] as [number, number];
+    })
+    .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
+
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-1 space-y-4">
       <div className="flex flex-col md:flex-row gap-4 items-center">
         <h1 className="text-3xl font-bold">Carte des équipements</h1>
-        <div
-          onClick={resetMapView}
-          className="transition-all duration-200 hover:px-3 cursor-pointer bg-blue-500 text-white p-2 rounded-md flex items-center gap-2"
-        >
-          <p>Actualiser la carte</p>
-          <RefreshCw />
-        </div>
+        <Link to="/maps">
+          <div className="transition-all duration-200 hover:px-3 cursor-pointer bg-blue-500 text-white p-2 rounded-md flex items-center gap-2">
+            <p>Actualiser la carte</p>
+            <RefreshCw />
+          </div>
+        </Link>
       </div>
 
       {/* Filtrage des équipements */}
@@ -525,11 +578,11 @@ const EquipmentMap: React.FC = () => {
         <p className="font-semibold">Filtrer</p>
         <div className="bg-white dark:bg-gray-950">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tous" />
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="Tous les equipements" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="all">Tous les equipements</SelectItem>
               <SelectItem value="streetlights">Lampadaires</SelectItem>
               <SelectItem value="metters">Compteurs</SelectItem>
               <SelectItem value="cabinets">Armoires</SelectItem>
@@ -537,10 +590,29 @@ const EquipmentMap: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="bg-white dark:bg-gray-950">
+          <Select
+            value={selectedCommune}
+            //onChange={(e) => setSelectedCommune(e.target.value)}
+            onValueChange={setSelectedCommune}
+          >
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="Toutes les communes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TOUTES">Toutes les communes</SelectItem>
+              <SelectItem value="DOUALA 1">douala 1</SelectItem>
+              <SelectItem value="DOUALA 2">douala 2</SelectItem>
+              <SelectItem value="DOUALA 3">douala 3</SelectItem>
+              <SelectItem value="DOUALA 4">douala 4</SelectItem>
+              <SelectItem value="DOUALA 5">douala 5</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Carte des équipements */}
-      <div className="p-8 bg-white dark:bg-gray-950 rounded-md">
+      <div className="p-4 bg-white dark:bg-gray-950 rounded-md">
         <div className="h-[600px] w-full overflow-hidden rounded-lg relative z-10">
           <MapContainer
             //center={userPosition}
@@ -554,16 +626,34 @@ const EquipmentMap: React.FC = () => {
             {Object.entries(filteredEquipments).map(([category, equipments]) =>
               equipments.map((eq) => {
                 const { lat, lng } = parseLocation(eq.location);
+                const handleDragEnd = (e: L.LeafletEvent) => {
+                  const marker = e.target;
+                  const position = marker.getLatLng();
+                  const newposition = `${position.lat},${position.lng}`;
+                  console.log(`Nouveau point pour ${eq.id} : `, newposition);
+                  // stocker cette nouvelle position
+                  updateStreetlightPosition(eq.id, newposition);
+                };
                 return (
                   <Marker
                     key={`${category}-${eq.id}`}
                     position={[lat, lng]}
                     icon={equipmentIcons[category] || DefaultIcon}
+                    draggable={true}
+                    eventHandlers={{
+                      dragend: handleDragEnd,
+                    }}
                   >
                     <Popup>{renderPopup(category, eq)}</Popup>
                   </Marker>
                 );
               })
+            )}
+            {lampadairePositions.length > 1 && (
+              <Polyline
+                positions={lampadairePositions}
+                pathOptions={{ color: "green", weight: 3 }}
+              />
             )}
           </MapContainer>
         </div>
