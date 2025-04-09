@@ -128,12 +128,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             </AnimatePresence>
 
                             {/* Icône dynamique */}
-                            <span className="mr-3 flex items-center justify-center w-5 h-5 relative z-10">
+                            <span className="mr-3 dark:text-white flex items-center justify-center w-5 h-5 relative z-10">
                               {item.iconName && iconMapping[item.iconName]}
                             </span>
 
                             {/* Texte de l'élément */}
-                            <span className="relative z-10">{item.name}</span>
+                            <span className="relative z-10 dark:text-white ">
+                              {item.name}
+                            </span>
                           </Link>
                         );
                       })}
@@ -157,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                   }}
                   className="px-8 my-6"
                 >
-                  <h2 className="text-sm font-semibold text-white uppercase tracking-widest">
+                  <h2 className="text-sm font-semibold text-blue-800 dark:text-white uppercase tracking-widest">
                     Massking Box
                   </h2>
                 </motion.div>
@@ -225,12 +227,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             </AnimatePresence>
 
                             {/* Icône dynamique */}
-                            <span className="mr-3 flex items-center justify-center w-5 h-5 relative z-10">
+                            <span className="mr-3 dark:text-white flex items-center justify-center w-5 h-5 relative z-10">
                               {item.iconName && maskingboxIcon[item.iconName]}
                             </span>
 
                             {/* Texte de l'élément */}
-                            <span className="relative z-10">{item.name}</span>
+                            <span className="relative z-10 dark:text-white">
+                              {item.name}
+                            </span>
                           </Link>
                         );
                       })}

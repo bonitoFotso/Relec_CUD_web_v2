@@ -4,13 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,30 +33,30 @@ export const Layout = () => {
           <main className="flex-1 overflow-y-auto bg-blue-50 dark:bg-gray-900">
             {/* Header */}
             <div className="fixed z-20 w-full lg:w-[calc(100%-15rem)]">
-            <Header
-              mobileMenuTrigger={
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="lg:hidden transition-colors hover:bg-primary/10"
-                  >
-                    {isSidebarOpen ? (
-                      <X className="h-5 w-5" />
-                    ) : (
-                      <Menu className="h-5 w-5" />
-                    )}
-                    <span className="sr-only">
-                      {isSidebarOpen ? "Close menu" : "Open menu"}
-                    </span>
-                  </Button>
-                </SheetTrigger>
-              }
-            />
+              <Header
+                mobileMenuTrigger={
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="lg:hidden transition-colors hover:bg-primary/10"
+                    >
+                      {isSidebarOpen ? (
+                        <X className="h-5 w-5" />
+                      ) : (
+                        <Menu className="h-5 w-5" />
+                      )}
+                      <span className="sr-only">
+                        {isSidebarOpen ? "Close menu" : "Open menu"}
+                      </span>
+                    </Button>
+                  </SheetTrigger>
+                }
+              />
             </div>
             <div
               className={cn(
-                "container mx-auto  mt-16 px-4 py-6 md:px-6 md:py-8",
+                "mt-12 md:px-6 md:py-8",
                 "transition-all duration-200 ease-in-out"
               )}
             >
@@ -80,8 +74,7 @@ export const Layout = () => {
       </Sheet>
 
       {/* Footer */}
-        <Footer />
-      
+      <Footer />
     </div>
   );
 };

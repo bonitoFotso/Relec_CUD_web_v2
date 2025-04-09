@@ -17,3 +17,13 @@ export interface StatistiqueCardProps {
 export interface StatistiquesCardsProps {
   stats: PanneauStats;
 }
+export interface FilterState {
+  municipalities: string[];
+  networks: string[];
+  equipmentTypes: {
+    streetlights: boolean;
+    metters: boolean;
+    cabinets: boolean;
+    substations: boolean;
+  };
+}
