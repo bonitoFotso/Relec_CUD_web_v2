@@ -2,6 +2,9 @@
 import apiClient from "./apiClient";
 
 export interface EquipementStreetlights {
+  on_time: string;
+  off_time: string;
+  brightness_level: number;
   color: string;
   color_id: number;
   command_type: string;

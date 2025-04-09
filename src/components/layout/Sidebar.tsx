@@ -158,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                   className="px-8 my-6"
                 >
                   <h2 className="text-sm font-semibold text-white uppercase tracking-widest">
-                    Masking Box
+                    Massking Box
                   </h2>
                 </motion.div>
               )}

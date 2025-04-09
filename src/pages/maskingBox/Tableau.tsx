@@ -28,12 +28,11 @@ export default function Tableau() {
         </select>
       </DynamicHeader>
       <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
-        <h2 className="text-2xl font-bold">PANNEAU DE CONTROLE MASKING BOX</h2>
+        <h2 className="text-2xl font-bold">PANNEAU DE CONTROLE MASSKING BOX</h2>
       </div>
       <StatistiquesCard stats={lampStatus} />
-   
       <ConsommationsPrimaires />
-       {/* <Consommations />  */}  {/* <Consommations2 /> */}
+      {/* <Consommations />  */} {/* <Consommations2 /> */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
         <Alertes />
         <Recommandations />

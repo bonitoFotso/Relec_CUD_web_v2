@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import CategoryDisplay from "./CategoryDisplay";
 import TableComparatif from "./TableComparatif";
