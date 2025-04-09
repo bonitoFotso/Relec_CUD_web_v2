@@ -49,7 +49,7 @@ const CategoryDisplay = ({
 
             <div className="flex flex-col sm:flex-row gap-4">
               <select
-                className="border dark:bg-gray-900 rounded-lg p-2 text-sm"
+                className="border bg-white dark:bg-gray-900 rounded-lg p-2 text-sm"
                 value={currentPeriod}
                 onChange={(e) => setCurrentPeriod(e.target.value)}
               >

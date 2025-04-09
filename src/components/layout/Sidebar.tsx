@@ -158,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                   }}
                   className="px-8 my-6"
                 >
-                  <h2 className="text-sm font-semibold text-white uppercase tracking-widest">
+                  <h2 className="text-sm font-semibold text-blue-900 dark:text-white uppercase tracking-widest">
                     Masking Box
                   </h2>
                 </motion.div>
@@ -194,8 +194,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                               "group relative flex items-center px-4 py-2.5 text-sm rounded-lg transition-all duration-300",
                               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                               isActive
-                                ? "bg-white text-blue-600 font-medium shadow-sm"
-                                : "text-white hover:text-black"
+                                ? "bg-blue-800 text-white font-medium shadow-sm"
+                                : "text-blue-800 hover:text-white"
                             )}
                             onMouseEnter={() => setHoveredItem(item.name)}
                             onMouseLeave={() => setHoveredItem(null)}
@@ -205,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             {isActive && (
                               <motion.div
                                 layoutId="activeIndicator"
-                                className="absolute left-0 w-1.5 h-4/5 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                                className="absolute left-2 w-1.5 h-4/5 bg-white rounded-r-full shadow-[0_0_10px_rgba(var(--primary),0.3)]"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.3 }}
@@ -216,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                             <AnimatePresence>
                               {!isActive && isHovered && (
                                 <motion.div
-                                  className="absolute inset-0 bg-white rounded-lg"
+                                  className="absolute inset-0 bg-blue-800 rounded-lg"
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
                                   exit={{ opacity: 0 }}

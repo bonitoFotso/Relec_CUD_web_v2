@@ -18,7 +18,7 @@ export default function Tableau() {
   return (
     <div className=" space-y-8">
       <DynamicHeader>
-        <select className="ml-5 border dark:bg-gray-900 rounded-lg px-3 py-2 text-sm ml:3">
+        <select className="ml-5 border bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-sm ml:3">
           <option value="">Toutes les communes</option>
           <option value="option1">Douala 1er</option>
           <option value="option2">Douala 2eme</option>
@@ -31,9 +31,8 @@ export default function Tableau() {
         <h2 className="text-2xl font-bold">PANNEAU DE CONTROLE MASKING BOX</h2>
       </div>
       <StatistiquesCard stats={lampStatus} />
-   
       <ConsommationsPrimaires />
-       {/* <Consommations />  */}  {/* <Consommations2 /> */}
+      {/* <Consommations />  */} {/* <Consommations2 /> */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
         <Alertes />
         <Recommandations />

@@ -232,7 +232,7 @@ export default function Consommations2() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Consommation Énergétique</h2>
             <select
-              className="border dark:bg-gray-900 rounded-lg p-2 text-sm"
+              className="border bg-white dark:bg-gray-900 rounded-lg p-2 text-sm"
               value={periode}
               onChange={(e) => setPeriode(e.target.value)}
             >
