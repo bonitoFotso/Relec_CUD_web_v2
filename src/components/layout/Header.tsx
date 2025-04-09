@@ -47,11 +47,10 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuTrigger }) => {
   const userInitials = currentUser?.name ? getInitials(currentUser.name) : "U";
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm  py-2.5 border-b shadow-sm">
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b shadow-sm">
       <div className="mx-auto flex items-center justify-between">
         <div id="dynamic-header"></div>
 
-        
         <div className="flex items-center gap-2">
           {/* Mobile Menu Button */}
           <div className="lg:hidden">{mobileMenuTrigger}</div>
