@@ -114,7 +114,6 @@ export interface EquipementSubstations {
 export const EquipementService = {
   getAllStreetlights: async (): Promise<EquipementStreetlights[]> => {
     const { data } = await apiClient.get("/equipments/get-all-streetlights");
-    console.log(data.data)
     return data.data || [];
   },
 
@@ -132,6 +131,37 @@ export const EquipementService = {
     const { data } = await apiClient.get("/equipments/get-all-substations");
     return data.data || [];
   },
+
+  updateStreetlightLocation: async (id: number, location: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    formData.append("location", location); // format : "latitude,longitude"
+  
+    const { data } = await apiClient.post("/interventions/streetlight/update-location", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+  
+    return data;
+  },
+
+  updateMeterLocation: async (id: number, location: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    formData.append("location", location); // format : "latitude,longitude"
+  
+    const { data } = await apiClient.post("/interventions/meter/update-location", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    console.log("voici les datas",data)
+  
+    return data;
+  },
+
 };
 
 export default EquipementService;

@@ -143,9 +143,9 @@ export default function Consommations() {
       <div>
         <div className="h-full bg-white dark:bg-gray-950 px-3 py-3 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Consommation Énergétique</h2>
+            <h2 className="text-xl font-bold">Consommationrr Énergétique</h2>
             <select
-              className="border dark:bg-gray-900 rounded-lg p-2 text-sm"
+              className="border bg-white dark:bg-gray-900 rounded-lg p-2 text-sm"
               value={periode}
               onChange={(e) => setPeriode(e.target.value)}
             >
