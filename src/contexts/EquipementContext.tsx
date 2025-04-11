@@ -1,6 +1,5 @@
 import {
   createContext,
-  useContext,
   useState,
   useCallback,
   ReactNode,
@@ -149,7 +148,6 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     },
     []
   );
-
   //modifier la position  d'un amoire
   const updateCabinetPosition = useCallback(
     async (id: number, location: string) => {
@@ -218,13 +216,4 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
   );
 };
 
-// Hook pour utiliser le contexte
-export const useEquipements = (): EquipementContextType => {
-  const context = useContext(EquipementContext);
-  if (!context) {
-    throw new Error(
-      "useEquipements doit être utilisé à l'intérieur d'un EquipementProvider"
-    );
-  }
-  return context;
-};
+// Import the hook from the new file
