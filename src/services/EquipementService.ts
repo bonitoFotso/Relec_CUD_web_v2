@@ -83,6 +83,7 @@ export interface EquipementMetters {
 }
 
 export interface EquipementCabinets {
+  meter_id: any;
   id: 1;
   qrcode_id: 28;
   photo: string;

@@ -28,6 +28,8 @@ interface EquipementContextType {
   fetchSubstations: () => Promise<void>;
   updateStreetlightPosition: (id: number, location: string) => Promise<void>;
   updateMeterPosition: (id: number, location: string) => Promise<void>;
+  updateCabinetPosition: (id: number, location: string) => Promise<void>;
+  updateSubstationPosition: (id: number, location: string) => Promise<void>;
 }
 
 // Création du contexte
@@ -139,7 +141,43 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
         await EquipementService.updateMeterLocation(id, location);
         await fetchMetters(); // rafraîchit les données après la mise à jour
       } catch (err) {
-        setError("Erreur lors de la mise à jour de la position du lampadaire.");
+        setError("Erreur lors de la mise à jour de la position du compteur.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  //modifier la position  d'un amoire
+  const updateCabinetPosition = useCallback(
+    async (id: number, location: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await EquipementService.updateCabinetLocation(id, location);
+        await fetchCabinets(); // rafraîchit les données après la mise à jour
+      } catch (err) {
+        setError("Erreur lors de la mise à jour de la position du cabinet.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  //modifier la position  d'un poste
+  const updateSubstationPosition = useCallback(
+    async (id: number, location: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await EquipementService.updateSubstationLocation(id, location);
+        await fetchSubstations(); // rafraîchit les données après la mise à jour
+      } catch (err) {
+        setError("Erreur lors de la mise à jour de la position du cabinet.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -169,6 +207,8 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     fetchSubstations,
     updateStreetlightPosition,
     updateMeterPosition,
+    updateCabinetPosition,
+    updateSubstationPosition,
   };
 
   return (
