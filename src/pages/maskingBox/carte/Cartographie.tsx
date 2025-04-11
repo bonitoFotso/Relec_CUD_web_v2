@@ -2,8 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
-import L from "leaflet";
+import {
+  MapContainer,
+  Marker,
+  Polyline,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,61 +18,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEquipements } from "@/contexts/EquipementContext";
 
 // Correction du problème d'icônes dans React-Leaflet
-import icon from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { Check, Filter, X } from "lucide-react";
-import { FilterState } from "./types";
+import { DefaultIcon, equipmentIcons, FilterState } from "../types";
 
-// Définir les icônes par défaut
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-// definir les icones specifiques
-
-const equipmentIcons: Record<string, L.Icon> = {
-  Lampadaires: L.icon({
-    iconUrl: "/clipart-blue-circle-f058.svg",
-    iconSize: [15, 15],
-  }),
-  Compteurs: L.icon({
-    iconUrl: "/compteur-removebg-preview.png",
-    iconSize: [50, 50],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Amoires: L.icon({
-    iconUrl: "/images1.png",
-    iconSize: [50, 50],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Substations: L.icon({
-    iconUrl: "/substation-removebg-preview.png",
-    iconSize: [50, 50],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-};
+import DonneesComplete from "./DonneesComplete";
+import Filtres from "./Filtres";
 
 const EquipmentMap: React.FC = () => {
   const { streetlights, metters, cabinets, substations, loading } =
@@ -91,6 +50,13 @@ const EquipmentMap: React.FC = () => {
       substations: true,
     },
   });
+
+  console.log("Streetlights:", streetlights.length);
+  console.log("Metters:", metters.length);
+  console.log("Cabinets:", cabinets.length);
+  console.log("Substations:", substations.length);
+
+  
 
   // Déclaration unique de la position utilisateur
   const [userPosition, setUserPosition] = useState<[number, number]>([
@@ -452,199 +418,21 @@ const EquipmentMap: React.FC = () => {
   return (
     <div className=" dark:bg-gray-950">
       <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
-        <div className="absolute bottom-6 right-6 z-20">
-          <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className="bg-blue-600 flex gap-2 items-center text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300"
-          >
-            <p>Filtrer</p>
-            {filterOpen ? <X size={24} /> : <Filter size={24} />}
-          </button>
+        <Filtres
+          filterOpen={filterOpen}
+          setFilterOpen={setFilterOpen}
+          availableNetworks={availableNetworks}
+          toggleMunicipality={toggleMunicipality}
+          activeFilters={activeFilters}
+          toggleAllMunicipalities={toggleAllMunicipalities}
+          toggleAllNetworks={toggleAllNetworks}
+          toggleAllEquipmentTypes={toggleAllEquipmentTypes}
+          availableMunicipalities={availableMunicipalities}
+          toggleNetwork={toggleNetwork}
+          toggleEquipmentType={toggleEquipmentType}
+        />
 
-          {filterOpen && (
-            <div className="absolute bottom-16 right-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-72 max-h-96 overflow-y-auto">
-              <h3 className="font-bold text-lg mb-2 text-gray-800 dark:text-white flex justify-between items-center">
-                Filtres
-                <button
-                  onClick={() => {
-                    toggleAllMunicipalities();
-                    toggleAllNetworks();
-                    toggleAllEquipmentTypes();
-                  }}
-                  className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                  {Object.values(activeFilters.equipmentTypes).every(
-                    (v) => v
-                  ) &&
-                  activeFilters.municipalities.length ===
-                    availableMunicipalities.length &&
-                  activeFilters.networks.length === availableNetworks.length
-                    ? "Désélectionner tout"
-                    : "Sélectionner tout"}
-                </button>
-              </h3>
-
-              {/* Municipalités */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
-                  Municipalités
-                  <button
-                    onClick={toggleAllMunicipalities}
-                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    {activeFilters.municipalities.length ===
-                    availableMunicipalities.length
-                      ? "Désélectionner"
-                      : "Sélectionner"}
-                  </button>
-                </h4>
-                <div className="space-y-2 max-h-24 overflow-y-auto pr-2">
-                  {availableMunicipalities.map((municipality) => (
-                    <label
-                      key={municipality}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={
-                          activeFilters.municipalities.length === 0 ||
-                          activeFilters.municipalities.includes(municipality)
-                        }
-                        onChange={() => toggleMunicipality(municipality)}
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {municipality}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Réseaux */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
-                  Réseaux
-                  <button
-                    onClick={toggleAllNetworks}
-                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    {activeFilters.networks.length === availableNetworks.length
-                      ? "Désélectionner"
-                      : "Sélectionner"}
-                  </button>
-                </h4>
-                <div className="space-y-2 max-h-24 overflow-y-auto pr-2">
-                  {availableNetworks.map((network) => (
-                    <label
-                      key={network}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={
-                          activeFilters.networks.length === 0 ||
-                          activeFilters.networks.includes(network)
-                        }
-                        onChange={() => toggleNetwork(network)}
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {network}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Types d'équipements */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
-                  Équipements
-                  <button
-                    onClick={toggleAllEquipmentTypes}
-                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    {Object.values(activeFilters.equipmentTypes).every((v) => v)
-                      ? "Désélectionner"
-                      : "Sélectionner"}
-                  </button>
-                </h4>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeFilters.equipmentTypes.streetlights}
-                      onChange={() => toggleEquipmentType("streetlights")}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Lampadaires
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeFilters.equipmentTypes.metters}
-                      onChange={() => toggleEquipmentType("metters")}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Compteurs
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeFilters.equipmentTypes.cabinets}
-                      onChange={() => toggleEquipmentType("cabinets")}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Amoires
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={activeFilters.equipmentTypes.substations}
-                      onChange={() => toggleEquipmentType("substations")}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Postes
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setFilterOpen(false)}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
-              >
-                <Check size={16} />
-                <span>Appliquer et fermer</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-2 absolute bottom-4 left-4 z-20">
-          <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
-            <p className="flex gap-1">
-              Lampadaires: {filteredEquipments.Lampadaires.length}
-            </p>
-            <p className="flex gap-1">
-              Compteurs: {filteredEquipments.Compteurs.length}
-            </p>
-            <p className="flex gap-1">
-              Amoires: {filteredEquipments.Amoires.length}
-            </p>
-            <p className="flex gap-1">
-              Postes: {filteredEquipments.Substations.length}
-            </p>
-          </div>
-        </div>
+        <DonneesComplete filteredEquipments={filteredEquipments} />
 
         <MapContainer
           center={[4.0911652, 9.7358404]}
@@ -655,7 +443,7 @@ const EquipmentMap: React.FC = () => {
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapUpdater />
           {Object.entries(filteredEquipments).map(([category, equipments]) =>
-            equipments.map((eq: any) => {
+            (equipments as any[]).map((eq: any) => {
               const { lat, lng } = parseLocation(eq.location);
               return (
                 <Marker

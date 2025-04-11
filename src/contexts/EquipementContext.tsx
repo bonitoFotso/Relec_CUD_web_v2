@@ -6,6 +6,7 @@ import {
   ReactNode,
   useEffect,
 } from "react";
+
 import EquipementService, {
   EquipementStreetlights,
   EquipementMetters,
@@ -126,7 +127,7 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
         setLoading(false);
       }
     },
-    []
+    [fetchStreetlights]
   );
 
   //modifier la position  d'un compteur
@@ -144,7 +145,7 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
         setLoading(false);
       }
     },
-    []
+    [fetchMetters]
   );
 
   useEffect(() => {

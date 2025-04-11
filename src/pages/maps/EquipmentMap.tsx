@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type React from "react";
@@ -51,6 +53,7 @@ import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { Filter, X } from "lucide-react";
 
 // Définir les icônes par défaut
 const DefaultIcon = L.icon({
@@ -108,11 +111,11 @@ const EquipmentMap: React.FC = () => {
     cabinets,
     substations,
     loading,
-    error,
     updateStreetlightPosition,
     updateMeterPosition,
   } = useEquipements();
   const [filter, setFilter] = useState<string>("all");
+  const [openFilter, setOpenFilter] = useState<boolean>(false);
   const [selectedCommune, setSelectedCommune] = useState<string>("TOUTES");
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number] | null
@@ -575,40 +578,6 @@ const EquipmentMap: React.FC = () => {
 
   return (
     <div className="container mx-auto py-1 space-y-4">
-      {/* Filtrage des équipements */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <p className="font-semibold">Filtrer</p>
-        <div className="bg-white dark:bg-gray-950">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="Tous les equipements" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les equipements</SelectItem>
-              <SelectItem value="streetlights">Lampadaires</SelectItem>
-              <SelectItem value="metters">Compteurs</SelectItem>
-              <SelectItem value="cabinets">Armoires</SelectItem>
-              <SelectItem value="substations">Postes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="bg-white dark:bg-gray-950">
-          <Select value={selectedCommune} onValueChange={setSelectedCommune}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="Toutes les communes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TOUTES">Toutes les communes</SelectItem>
-              <SelectItem value="DOUALA 1">douala 1</SelectItem>
-              <SelectItem value="DOUALA 2">douala 2</SelectItem>
-              <SelectItem value="DOUALA 3">douala 3</SelectItem>
-              <SelectItem value="DOUALA 4">douala 4</SelectItem>
-              <SelectItem value="DOUALA 5">douala 5</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       {/* Carte des équipements */}
       <div className="p-4 bg-white dark:bg-gray-950 rounded-md">
         {lampadairePositions.length > 1 && (
@@ -619,12 +588,64 @@ const EquipmentMap: React.FC = () => {
             </p>
           </div>
         )}
-        <div className="h-[600px] w-full overflow-hidden rounded-lg relative z-10">
+        <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
+          <div className="absolute bottom-6 right-6 z-20">
+            <button
+              onClick={() => setOpenFilter(!openFilter)}
+              className="bg-blue-600 flex gap-2 items-center text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300"
+            >
+              <p>Filtrer</p>
+              {openFilter ? <X size={24} /> : <Filter size={24} />}
+            </button>
+
+            {openFilter && (
+              <div className="absolute bottom-16 right-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-96 max-h-96 overflow-y-auto">
+                <h3 className="font-bold text-lg mb-2 text-gray-800 dark:text-white flex justify-between items-center">
+                  Filtres par
+                </h3>
+
+                <div className=" flex items-center gap-2 mb-4">
+                  <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger className="w-auto">
+                      <SelectValue placeholder="Tous les equipements" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les equipements</SelectItem>
+                      <SelectItem value="streetlights">Lampadaires</SelectItem>
+                      <SelectItem value="metters">Compteurs</SelectItem>
+                      <SelectItem value="cabinets">Armoires</SelectItem>
+                      <SelectItem value="substations">Postes</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={selectedCommune}
+                    onValueChange={setSelectedCommune}
+                  >
+                    <SelectTrigger className="w-auto">
+                      <SelectValue placeholder="Toutes les communes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TOUTES">
+                        Toutes les communes
+                      </SelectItem>
+                      <SelectItem value="DOUALA 1">douala 1</SelectItem>
+                      <SelectItem value="DOUALA 2">douala 2</SelectItem>
+                      <SelectItem value="DOUALA 3">douala 3</SelectItem>
+                      <SelectItem value="DOUALA 4">douala 4</SelectItem>
+                      <SelectItem value="DOUALA 5">douala 5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+
           <MapContainer
             center={[4.0911652, 9.7358404]}
             zoom={80}
             style={{ height: "100%", width: "100%" }}
-            className="leaflet-container rounded-lg"
+            className="leaflet-container rounded-lg z-10"
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <MapUpdater />
@@ -734,4 +755,5 @@ const EquipmentMap: React.FC = () => {
     </div>
   );
 };
+
 export default EquipmentMap;

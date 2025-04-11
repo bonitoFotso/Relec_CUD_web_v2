@@ -23,7 +23,7 @@ import Profil from "./pages/Profil";
 import Anomalies from "./pages/anomalies/Anomalies";
 import Notifications from "./pages/notifications/Notifications";
 import Tableau from "./pages/maskingBox/Tableau";
-import Cartographie from "./pages/maskingBox/Cartographie";
+import Cartographie from "./pages/maskingBox/carte/Cartographie";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {

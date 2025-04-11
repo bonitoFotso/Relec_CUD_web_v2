@@ -1,43 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // api/equipement.service.ts
 import apiClient from "./apiClient";
 
 export interface EquipementStreetlights {
-  on_time: string;
-  off_time: string;
-  brightness_level: number;
-  color: string;
-  color_id: number;
-  command_type: string;
-  command_type_id: number;
-  created_at: string;
-  has_lamp: number;
   id: number;
+  power: number;
   is_on_day: number;
   is_on_night: number;
-  lamp_type: string;
-  lamp_type_id: number;
-  location: string;
-  municipality: string;
-  municipality_id: number;
-  network: string;
-  network_id: number;
-  orientation: string;
-  orientation_id: number;
+  on_time: string;
+  off_time: string;
   photo: string;
-  power: number;
-  qrcode_id: number;
+  location: string;
+  lamp_count: number;
   streetlight_type: string;
-  streetlight_type_id: number;
-  support_condition: string;
-  support_condition_id: number;
-  support_type: string;
-  support_type_id: number;
-  track: string;
+  qrcode_id: number;
+  network_id: number;
+  orientation_id: string;
   track_id: number;
+  command_type_id: number;
+  support_type_id: number;
+  support_condition_id: number;
+  created_at: string;
   updated_at: string;
-  with_balast: string;
+  meter_id?: number;
+  municipality_id: number;
+  cabinet_id?: number;
+  streelight_type: string;
+  network: string;
+  orientation: string;
+  track: string;
+  command_type: string;
+  support_type: string;
+  support_condition: string;
+  municipality: string;
+  lamps: lamp[];
 }
-
+export interface lamp {
+  id: number;
+  streelight_id: number;
+  lamp_type_id: number;
+  color_id: number;
+  has_lamp: number;
+  power: number;
+  is_on_day: number;
+  is_on_night: number;
+  with_balast: boolean;
+  created_at: string;
+  updated_at: string;
+  lamp_type: string;
+  lamp_color: string;
+}
 export interface EquipementMetters {
   id: number;
   substation_id?: number;
@@ -110,7 +122,6 @@ export interface EquipementSubstations {
   };
 }
 
-
 export const EquipementService = {
   getAllStreetlights: async (): Promise<EquipementStreetlights[]> => {
     const { data } = await apiClient.get("/equipments/get-all-streetlights");
@@ -132,17 +143,24 @@ export const EquipementService = {
     return data.data || [];
   },
 
-  updateStreetlightLocation: async (id: number, location: string): Promise<any> => {
+  updateStreetlightLocation: async (
+    id: number,
+    location: string
+  ): Promise<any> => {
     const formData = new FormData();
     formData.append("id", id.toString());
     formData.append("location", location); // format : "latitude,longitude"
-  
-    const { data } = await apiClient.post("/interventions/streetlight/update-location", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
+
+    const { data } = await apiClient.post(
+      "/interventions/streetlight/update-location",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
-    });
-  
+    );
+
     return data;
   },
 
@@ -150,18 +168,21 @@ export const EquipementService = {
     const formData = new FormData();
     formData.append("id", id.toString());
     formData.append("location", location); // format : "latitude,longitude"
-  
-    const { data } = await apiClient.post("/interventions/meter/update-location", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
 
-    console.log("voici les datas",data)
-  
+    const { data } = await apiClient.post(
+      "/interventions/meter/update-location",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    console.log("voici les datas", data);
+
     return data;
   },
-
 };
 
 export default EquipementService;

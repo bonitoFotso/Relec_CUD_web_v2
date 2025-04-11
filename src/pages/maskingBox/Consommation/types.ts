@@ -24,4 +24,6 @@ export interface ConsommationContextType {
   filterTotalsByCategory: (
     category: "LED" | "Decharges" | "All"
   ) => Record<string, number>;
+  loading: boolean;
+  error: string | null;
 }

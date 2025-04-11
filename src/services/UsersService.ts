@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // api/users.service.ts
 import apiClient from './apiClient';
 

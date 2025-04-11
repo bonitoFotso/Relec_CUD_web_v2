@@ -4,58 +4,118 @@ import { StreetlightType } from "@/pages/maskingBox/Consommation/types";
 import { useEffect, useState } from "react";
 import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { ConsommationContext } from "./ConsommationContext";
+import { useEquipements } from "../EquipementContext";
 
 // Provider pour gérer les données globales
 const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
-  // Données fictives des types de lampadaires
-  const streetlightTypes: StreetlightType[] = [
-    {
-      id: 1,
-      name: "Type LED 1",
-      category: "LED",
-      puissanceLumineuse: 130,
-      puissanceConsommee: 45,
-      dureeUtilisation: 6,
-      quantite: 2,
-      couleur: "#10B722",
-    },
-    {
-      id: 2,
-      name: "Type LED 2",
-      category: "LED",
-      puissanceLumineuse: 180,
-      puissanceConsommee: 60,
-      dureeUtilisation: 12,
-      quantite: 1,
-      couleur: "#059FFF",
-    },
-    {
-      id: 3,
-      name: "Décharges avec ballast",
-      category: "Decharges",
-      puissanceLumineuse: 120,
-      puissanceConsommee: 120,
-      dureeUtilisation: 12,
-      quantite: 3,
-      couleur: "#F59E00",
-    },
-    {
-      id: 4,
-      name: "Décharges sans ballast",
-      category: "Decharges",
-      puissanceLumineuse: 110,
-      puissanceConsommee: 150,
-      dureeUtilisation: 12,
-      quantite: 2,
-      couleur: "#EF4444",
-    },
-  ];
-
+  const { streetlights, error } = useEquipements();
+  const [streetlightTypes, setStreetlightTypes] = useState<StreetlightType[]>(
+    []
+  );
   const [currentPeriod, setCurrentPeriod] = useState<string>("Hebdomadaire");
   const [data, setData] = useState<any[]>([]);
 
+  // Convertir les données des lampadaires de l'API en StreetlightType
+  useEffect(() => {
+    if (streetlights && streetlights.length > 0) {
+      // Regrouper les lampadaires par type et catégorie
+      const streetlightsByType = streetlights.reduce((acc, streetlight) => {
+        const typeKey = `${streetlight.lamps[0].lamp_type}_${streetlight.lamps[0].with_balast}`;
+        if (!acc[typeKey]) {
+          acc[typeKey] = {
+            id: streetlight.lamps[0].streelight_id,
+            name: streetlight.lamps[0].lamp_type,
+            category: streetlight.lamps[0].lamp_type.includes("LED")
+              ? "LED"
+              : "Decharges",
+            puissanceLumineuse: 0,
+            puissanceConsommee: streetlight.power || 0,
+            dureeUtilisation: calculateUsageDuration(
+              streetlight.on_time,
+              streetlight.off_time
+            ),
+            quantite: 1,
+            couleur: getColorForType(typeKey),
+            with_balast: Boolean(streetlight.lamps[0]?.with_balast),
+          };
+        } else {
+          // Incrémenter la quantité pour ce type
+          acc[typeKey].quantite += 1;
+          // Mettre à jour la puissance moyenne si nécessaire
+          if (streetlight.power) {
+            acc[typeKey].puissanceConsommee =
+              (acc[typeKey].puissanceConsommee * (acc[typeKey].quantite - 1) +
+                streetlight.power) /
+              acc[typeKey].quantite;
+          }
+        }
+
+        return acc;
+      }, {} as Record<string, StreetlightType & { with_balast: boolean }>);
+
+      // Transformer l'objet en tableau
+      const typesArray = Object.values(streetlightsByType).map(
+        (type, index) => ({
+          ...type,
+          id: index + 1, // Assurer un ID unique
+          // Estimation de la puissance lumineuse basée sur le type
+          puissanceLumineuse:
+            type.category === "LED"
+              ? type.puissanceConsommee * 2.5 // Les LEDs ont généralement un meilleur rendement
+              : type.puissanceConsommee * 1.1,
+        })
+      );
+
+      setStreetlightTypes(typesArray);
+    }
+  }, [streetlights]);
+
+  // Fonction pour calculer la durée d'utilisation à partir des heures de démarrage et d'arrêt
+  const calculateUsageDuration = (onTime: string, offTime: string): number => {
+    if (!onTime || !offTime) return 12; // Valeur par défaut
+
+    try {
+      const [onHour, onMinute] = onTime.split(":").map(Number);
+      const [offHour, offMinute] = offTime.split(":").map(Number);
+
+      let duration;
+      if (offHour < onHour) {
+        // Si l'heure d'arrêt est inférieure à l'heure de démarrage, alors on suppose que c'est le jour suivant
+        duration = 24 - onHour + offHour + (offMinute - onMinute) / 60;
+      } else {
+        duration = offHour - onHour + (offMinute - onMinute) / 60;
+      }
+
+      return Math.round(duration);
+    } catch (e) {
+      console.error("Erreur de calcul de la durée d'utilisation:", e);
+      return 12; // Valeur par défaut en cas d'erreur
+    }
+  };
+
+  // Attribuer une couleur à chaque type de lampadaire
+  const getColorForType = (typeKey: string): string => {
+    const colorMap: Record<string, string> = {
+      LED_true: "#10B722",
+      LED_false: "#059FFF",
+      HPS_true: "#F59E00", // High Pressure Sodium
+      HPS_false: "#EF4444",
+      MH_true: "#9333EA", // Metal Halide
+      MH_false: "#8B5CF6",
+      Mercury_true: "#FBBF24",
+      Mercury_false: "#F87171",
+    };
+
+    return (
+      colorMap[typeKey] ||
+      `#${Math.floor(Math.random() * 16777215).toString(16)}`
+    );
+  };
+
   // Fonction pour générer les données
   const generateData = (period: string) => {
+    if (streetlightTypes.length === 0) return [];
+
     // Définir la longueur et les étiquettes de temps en fonction de la période
     let timeLabels: string[] = [];
     let fluctuationFactor = 0.2; // Facteur de fluctuation pour rendre les données plus réalistes
@@ -88,7 +148,7 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     // Calculer le tarif par kWh
-    const tarifKWh = 65.85;
+    const tarifKWh = 50;
 
     // Générer les données pour chaque point temporel
     return timeLabels.map((label) => {
@@ -173,14 +233,18 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  // Mettre à jour les données lorsque la période change
+  // Mettre à jour les données lorsque la période ou les types de lampadaires changent
   useEffect(() => {
-    setData(generateData(currentPeriod));
-  }, [currentPeriod]);
+    if (streetlightTypes.length > 0) {
+      setData(generateData(currentPeriod));
+    }
+  }, [currentPeriod, streetlightTypes]);
 
   // Calculer les totaux pour chaque type de lampadaire
   const calculateTotals = () => {
     const totals: Record<string, number> = {};
+
+    if (data.length === 0 || streetlightTypes.length === 0) return totals;
 
     // Calculer les totaux par type de lampadaire
     streetlightTypes.forEach((type) => {
@@ -286,10 +350,14 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
         calculerRendement,
         filterByCategory,
         filterTotalsByCategory,
+
+        error,
+        loading: streetlights === undefined,
       }}
     >
       {children}
     </ConsommationContext.Provider>
   );
 };
+
 export default ConsommationProvider;
