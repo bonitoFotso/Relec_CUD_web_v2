@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Polyline,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,7 +55,7 @@ const equipmentIcons: Record<string, L.Icon> = {
     shadowSize: [41, 41],
   }),
   Amoires: L.icon({
-    iconUrl: "/images1.png",
+    iconUrl: "/istockphoto-1708045772-612x612-removebg-preview.png",
     iconSize: [50, 50],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -57,7 +64,7 @@ const equipmentIcons: Record<string, L.Icon> = {
     shadowSize: [41, 41],
   }),
   Substations: L.icon({
-    iconUrl: "/substation-removebg-preview.png",
+    iconUrl: "/8012518-removebg-preview.png",
     iconSize: [50, 50],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],

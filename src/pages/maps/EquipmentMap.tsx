@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -12,23 +12,6 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-// Composants UI
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -44,61 +27,18 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
 // Contexte des équipements
 import { useEquipements } from "@/contexts/EquipementContext";
-// Correction du problème d'icônes dans React-Leaflet
-import icon from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Définir les icônes par défaut
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Définir les icônes spécifiques
-const equipmentIcons: Record<string, L.Icon> = {
-  Lampadaires: L.icon({
-    iconUrl: "/clipart-blue-circle-f058.svg",
-    iconSize: [15, 15],
-  }),
-  Compteurs: L.icon({
-    iconUrl: "/compteur-removebg-preview.png",
-    iconSize: [50, 50],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Amoires: L.icon({
-    iconUrl: "/images1.png",
-    iconSize: [50, 50],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-  Posts: L.icon({
-    iconUrl: "/kkk.png",
-    iconSize: [50, 50],
-    iconAnchor: [15, 30],
-    popupAnchor: [1, -34],
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-shadow.png",
-    shadowSize: [41, 41],
-  }),
-};
+import { EquipementStreetlights } from "@/services/EquipementService";
+import { Check, Filter, X } from "lucide-react";
+import { FilterState } from "../maskingBox/types";
+import {
+  calculateTotalDistance,
+  DefaultIcon,
+  equipmentIcons,
+  parseLocation,
+} from "./functions";
 
 const EquipmentMap: React.FC = () => {
   const { currentUser } = useAuth();
@@ -111,9 +51,24 @@ const EquipmentMap: React.FC = () => {
     error,
     updateStreetlightPosition,
     updateMeterPosition,
+    updateCabinetPosition,
+    updateSubstationPosition,
   } = useEquipements();
-  const [filter, setFilter] = useState<string>("all");
-  const [selectedCommune, setSelectedCommune] = useState<string>("TOUTES");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [availableMunicipalities, setAvailableMunicipalities] = useState<
+    string[]
+  >([]);
+  const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({
+    municipalities: [],
+    networks: [],
+    equipmentTypes: {
+      streetlights: true,
+      metters: true,
+      cabinets: true,
+      substations: true,
+    },
+  });
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number] | null
   >(null);
@@ -132,11 +87,11 @@ const EquipmentMap: React.FC = () => {
     position: string;
     type: string;
   } | null>(null);
-
-  const parseLocation = (location: string) => {
-    const [lat, lng] = location.split(",").map(Number.parseFloat);
-    return { lat, lng };
-  };
+  const [popupInfo, setPopupInfo] = useState<{
+    position: [number, number];
+    distance: number;
+    cabinetId: string;
+  } | null>(null);
 
   const MapUpdater = () => {
     const map = useMap();
@@ -149,25 +104,142 @@ const EquipmentMap: React.FC = () => {
     return null;
   };
 
-  //un type pour les positions
-  type LatLngPosition = [number, number]; // Un tuple [latitude, longitude]
+  // Pour sélectionner/désélectionner tous les réseaux
+  const toggleAllNetworks = () => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      networks:
+        prev.networks.length === availableNetworks.length
+          ? []
+          : [...availableNetworks],
+    }));
+  };
 
-  // Puis typer correctement la fonction
-  const calculateTotalDistance = (positions: LatLngPosition[]): string => {
-    let totalDistance = 0;
+  // Pour sélectionner/désélectionner tous les types d'équipements
+  const toggleAllEquipmentTypes = () => {
+    const allSelected = Object.values(activeFilters.equipmentTypes).every(
+      (v) => v
+    );
 
-    // Parcourir les positions et calculer la distance entre chaque paire de points consécutifs
-    for (let i = 0; i < positions.length - 1; i++) {
-      const point1 = L.latLng(positions[i][0], positions[i][1]);
-      const point2 = L.latLng(positions[i + 1][0], positions[i + 1][1]);
+    setActiveFilters((prev) => ({
+      ...prev,
+      equipmentTypes: {
+        streetlights: !allSelected,
+        metters: !allSelected,
+        cabinets: !allSelected,
+        substations: !allSelected,
+      },
+    }));
+  };
 
-      // Calculer la distance en mètres et l'ajouter au total
-      const segmentDistance = point1.distanceTo(point2);
-      totalDistance += segmentDistance;
+  // Fonction pour vérifier si un équipement doit être affiché selon les filtres
+  const shouldShowEquipment = (equipment: any, type: string) => {
+    // Si aucun filtre de municipalité n'est actif, montrer tous les équipements
+    // Sinon, vérifier si la municipalité de l'équipement est dans les filtres actifs
+    const municipalityCheck =
+      activeFilters.municipalities.length === 0 ||
+      activeFilters.municipalities.includes(
+        typeof equipment.municipality === "string"
+          ? equipment.municipality
+          : equipment.municipality?.name || "Non défini"
+      );
+
+    // Même logique pour les réseaux
+    const networkCheck =
+      activeFilters.networks.length === 0 ||
+      (equipment.network && activeFilters.networks.includes(equipment.network));
+
+    // Vérifier le type d'équipement
+    let equipmentTypeCheck = false;
+    switch (type) {
+      case "Lampadaires":
+        equipmentTypeCheck = activeFilters.equipmentTypes.streetlights;
+        break;
+      case "Compteurs":
+        equipmentTypeCheck = activeFilters.equipmentTypes.metters;
+        break;
+      case "Amoires":
+        equipmentTypeCheck = activeFilters.equipmentTypes.cabinets;
+        break;
+      case "Substations":
+        equipmentTypeCheck = activeFilters.equipmentTypes.substations;
+        break;
+      default:
+        equipmentTypeCheck = true;
     }
 
-    // Convertir la distance totale en kilomètres
-    return (totalDistance / 1000).toFixed(4);
+    return municipalityCheck && networkCheck && equipmentTypeCheck;
+  };
+  // Filtrer les équipements
+  const filteredEquipments = {
+    Lampadaires: streetlights.filter((eq) =>
+      shouldShowEquipment(eq, "Lampadaires")
+    ),
+    Compteurs: metters.filter((eq) => shouldShowEquipment(eq, "Compteurs")),
+    Amoires: cabinets.filter((eq) => shouldShowEquipment(eq, "Amoires")),
+    Substations: substations.filter((eq) =>
+      shouldShowEquipment(eq, "Substations")
+    ),
+  };
+
+  // Fonctions de gestion des filtres
+  const toggleMunicipality = (municipality: string) => {
+    setActiveFilters((prev) => {
+      const newMunicipalities = [...prev.municipalities];
+      const index = newMunicipalities.indexOf(municipality);
+
+      if (index === -1) {
+        newMunicipalities.push(municipality);
+      } else {
+        newMunicipalities.splice(index, 1);
+      }
+
+      return {
+        ...prev,
+        municipalities: newMunicipalities,
+      };
+    });
+  };
+
+  const toggleNetwork = (network: string) => {
+    setActiveFilters((prev) => {
+      const newNetworks = [...prev.networks];
+      const index = newNetworks.indexOf(network);
+
+      if (index === -1) {
+        newNetworks.push(network);
+      } else {
+        newNetworks.splice(index, 1);
+      }
+
+      return {
+        ...prev,
+        networks: newNetworks,
+      };
+    });
+  };
+
+  const toggleEquipmentType = (
+    type: keyof typeof activeFilters.equipmentTypes
+  ) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      equipmentTypes: {
+        ...prev.equipmentTypes,
+        [type]: !prev.equipmentTypes[type],
+      },
+    }));
+  };
+
+  // Pour sélectionner/désélectionner toutes les municipalités
+  const toggleAllMunicipalities = () => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      municipalities:
+        prev.municipalities.length === availableMunicipalities.length
+          ? []
+          : [...availableMunicipalities],
+    }));
   };
 
   // Fonction pour vérifier l'authentification avant de mettre à jour la position
@@ -208,6 +280,20 @@ const EquipmentMap: React.FC = () => {
           pendingMarkerUpdate.position
         );
         toast.success("La position du compteur a été mise à jour avec succès.");
+      } else if (pendingMarkerUpdate.type === "Amoires") {
+        updateCabinetPosition(
+          pendingMarkerUpdate.id,
+          pendingMarkerUpdate.position
+        );
+        toast.success(
+          "La position de l'armoire a été mise à jour avec succès."
+        );
+      } else if (pendingMarkerUpdate.type === "Substations") {
+        updateSubstationPosition(
+          pendingMarkerUpdate.id,
+          pendingMarkerUpdate.position
+        );
+        toast.success("La position du poste a été mise à jour avec succès.");
       }
 
       // Fermer le modal et réinitialiser les états
@@ -220,213 +306,17 @@ const EquipmentMap: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto flex flex-col space-y-4 mt-5">
-        <SkeletonCardUser />
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:grid-cols-2 gap-4 mx-auto">
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-        </div>
-        <div className="grid grid-cols-1 p-2 md:p-4">
-          <SkeletonCard />
-        </div>
-      </div>
-    );
-  }
-
-  const filteredEquipments = {
-    Lampadaires: (filter === "all" || filter === "streetlights"
-      ? streetlights
-      : []
-    )?.filter((eq) =>
-      selectedCommune === "TOUTES"
-        ? true
-        : (typeof eq.municipality === "string"
-            ? eq.municipality
-            : eq.municipality) === selectedCommune
-    ),
-    Compteurs: (filter === "all" || filter === "metters"
-      ? metters
-      : []
-    )?.filter((eq) =>
-      selectedCommune === "TOUTES"
-        ? true
-        : (typeof eq.municipality === "string"
-            ? eq.municipality
-            : eq.municipality?.name) === selectedCommune
-    ),
-    Amoires: (filter === "all" || filter === "cabinets"
-      ? cabinets
-      : []
-    )?.filter((eq) =>
-      selectedCommune === "TOUTES"
-        ? true
-        : (typeof eq.municipality === "string"
-            ? eq.municipality
-            : eq.municipality?.name) === selectedCommune
-    ),
-    Posts: (filter === "all" || filter === "substations"
-      ? substations
-      : []
-    )?.filter((eq) =>
-      selectedCommune === "TOUTES"
-        ? true
-        : (typeof eq.municipality === "string"
-            ? eq.municipality
-            : eq.municipality?.name) === selectedCommune
-    ),
-  };
-
-  const renderTable = (category: string, data: any[]) => {
-    switch (category) {
-      case "Lampadaires":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Orientation</TableHead>
-                <TableHead>Etat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.lamp_type}</TableCell>
-                  <TableCell>{eq.orientation}</TableCell>
-                  <TableCell>{eq.support_condition}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Compteurs":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Modèle</TableHead>
-                <TableHead>Marque</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.meter_type.name}</TableCell>
-                  <TableCell>{eq.model}</TableCell>
-                  <TableCell>{eq.brand}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Amoires":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Est Fonctionnel</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.is_functional ? "Oui" : "Non"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      case "Posts":
-        return (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commune</TableHead>
-                <TableHead>Localisation</TableHead>
-                <TableHead>Nom</TableHead>
-                <TableHead>Point de repère</TableHead>
-                <TableHead>Block_route_number</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((eq) => (
-                <TableRow
-                  key={eq.id}
-                  onClick={() => {
-                    const { lat, lng } = parseLocation(eq.location);
-                    setSelectedPosition([lat, lng]);
-                    window.scrollTo({
-                      top: 0,
-                      behavior: "smooth",
-                    });
-                  }}
-                >
-                  <TableCell>{eq.municipality.name}</TableCell>
-                  <TableCell>{eq.location}</TableCell>
-                  <TableCell>{eq.name}</TableCell>
-                  <TableCell>{eq.popular_landmark}</TableCell>
-                  <TableCell>{eq.block_route_number}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        );
-      default:
-        return null;
-    }
-  };
   const renderPopup = (category: string, eq: any) => {
     switch (category) {
       case "Lampadaires":
         return (
           <div className="z-50">
+            <div className="w-full flex justify-center items-center">
+              <img
+                src="https://static.thenounproject.com/png/3237447-200.png"
+                alt="lampadaire"
+              />
+            </div>
             <p>
               <strong>Presence de le lampe : </strong>
               {eq.has_lamp === 1 ? "Oui" : "Non"}
@@ -435,13 +325,17 @@ const EquipmentMap: React.FC = () => {
               <strong>Puissance : </strong>
               {eq.power} W
             </p>
+
+            <p>
+              <strong>Type de lampadaire:</strong> {eq.streetlight_type}
+            </p>
             <p>
               <strong>Type de commande : </strong>
               {eq.command_type}
             </p>
             <p>
               <strong>Type de lampe : </strong>
-              {eq.lamp_type}
+              {eq.lamps.map((l: { lamp_type: any }) => l.lamp_type)}
             </p>
             <p>
               <strong>Allumer jour : </strong>
@@ -468,14 +362,17 @@ const EquipmentMap: React.FC = () => {
             <p>
               <strong>Reseau :</strong> {eq.network}
             </p>
-            <p>
-              <strong>Localisation :</strong> {eq.location}
-            </p>
           </div>
         );
       case "Compteurs":
         return (
           <div className="z-50">
+            <div className="w-full flex justify-center items-center">
+              <img
+                src="https://static.thenounproject.com/png/3237447-200.png"
+                alt="compteur"
+              />
+            </div>
             <p>
               <strong>Presence : </strong>
               {eq.is_present === 1 ? "Oui" : "Non"}
@@ -512,14 +409,17 @@ const EquipmentMap: React.FC = () => {
                 ? eq.municipality
                 : eq.municipality?.name}
             </p>
-            <p>
-              <strong>Localisation :</strong> {eq.location}
-            </p>
           </div>
         );
       case "Amoires":
         return (
           <div className="z-50">
+            <div className="w-full flex justify-center items-center">
+              <img
+                src="https://static.thenounproject.com/png/3237447-200.png"
+                alt="armoire"
+              />
+            </div>
             <p>
               <strong>Est Fonctionnel : </strong>
               {eq.is_functional ? "Oui" : "Non"}
@@ -530,14 +430,17 @@ const EquipmentMap: React.FC = () => {
                 ? eq.municipality
                 : eq.municipality?.name}
             </p>
-            <p>
-              <strong>Localisation :</strong> {eq.location}
-            </p>
           </div>
         );
-      case "Posts":
+      case "Substations":
         return (
           <div className="z-50">
+            <div className="w-full flex justify-center items-center">
+              <img
+                src="https://static.thenounproject.com/png/3237447-200.png"
+                alt="poste"
+              />
+            </div>
             <p>
               <strong>Nom : </strong>
               {eq.name}
@@ -556,115 +459,491 @@ const EquipmentMap: React.FC = () => {
                 ? eq.municipality
                 : eq.municipality?.name}
             </p>
-            <p>
-              <strong>Localisation :</strong> {eq.location}
-            </p>
           </div>
         );
       default:
         return null;
     }
   };
+  const municipalities = [
+    "DOUALA 1",
+    "DOUALA 2",
+    "DOUALA 3",
+    "DOUALA 4",
+    "DOUALA 5",
+  ];
+  const types = ["1 Bras", "2 Bras", "3 Bras", "Mât d'éclairage"];
 
-  const lampadairePositions: [number, number][] = streetlights
-    .map((eq) => {
-      const [lat, lng] = eq.location.split(",").map(Number.parseFloat);
-      return [lat, lng] as [number, number];
-    })
-    .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
+  const groupedByMunicipality = useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+
+    // Initialiser chaque commune avec tous les types à 0
+    municipalities.forEach((commune) => {
+      result[commune] = {};
+      types.forEach((type) => {
+        result[commune][type] = 0;
+      });
+    });
+
+    streetlights.forEach((lamp) => {
+      const municipality = lamp.municipality;
+      const type = lamp.streetlight_type;
+
+      if (!result[municipality]) {
+        result[municipality] = {};
+        types.forEach((t) => (result[municipality][t] = 0));
+      }
+
+      if (result[municipality][type] !== undefined) {
+        result[municipality][type]++;
+      } else {
+        result[municipality][type] = 1;
+      }
+    });
+
+    return result;
+  }, [streetlights]);
+
+  const totalByType = useMemo(() => {
+    const result: Record<string, number> = {};
+    types.forEach((type) => {
+      result[type] = 0;
+    });
+
+    municipalities.forEach((commune) => {
+      types.forEach((type) => {
+        result[type] += groupedByMunicipality[commune][type];
+      });
+    });
+
+    return result;
+  }, [groupedByMunicipality]);
+
+  // Fonction pour extraire et dédupliquer les municipalités et réseaux
+  useEffect(() => {
+    if (!loading) {
+      // Extraire toutes les municipalités
+      const allMunicipalities = new Set<string>();
+      const allNetworks = new Set<string>();
+
+      // Fonction d'aide pour extraire le nom de la municipalité
+      const extractMunicipalityName = (item: any) => {
+        if (!item.municipality) return "Non défini";
+        return typeof item.municipality === "string"
+          ? item.municipality
+          : item.municipality?.name || "Non défini";
+      };
+
+      // Extraire les municipalités et réseaux des lampadaires
+      streetlights.forEach((item: any) => {
+        allMunicipalities.add(extractMunicipalityName(item));
+        if (item.network) allNetworks.add(item.network);
+      });
+
+      // Faire de même pour les autres équipements
+      metters.forEach((item: any) => {
+        allMunicipalities.add(extractMunicipalityName(item));
+        if (item.network) allNetworks.add(item.network);
+      });
+
+      cabinets.forEach((item: any) => {
+        allMunicipalities.add(extractMunicipalityName(item));
+        if (item.network) allNetworks.add(item.network);
+      });
+
+      substations.forEach((item: any) => {
+        allMunicipalities.add(extractMunicipalityName(item));
+        if (item.network) allNetworks.add(item.network);
+      });
+
+      // Convertir les Sets en arrays et mettre à jour l'état
+      setAvailableMunicipalities(Array.from(allMunicipalities).sort());
+      setAvailableNetworks(Array.from(allNetworks).sort());
+    }
+  }, [streetlights, metters, cabinets, substations, loading]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto flex flex-col space-y-4 mt-5">
+        <SkeletonCardUser />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:grid-cols-2 gap-4 mx-auto">
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 p-2 md:p-4">
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  const groupedByCabinet = streetlights.reduce((acc, streetlight) => {
+    if (!streetlight.cabinet_id) return acc;
+
+    if (!acc[streetlight.cabinet_id]) {
+      acc[streetlight.cabinet_id] = [];
+    }
+
+    acc[streetlight.cabinet_id].push(streetlight);
+    return acc;
+  }, {} as Record<number, EquipementStreetlights[]>);
+
+  // Résultat du calcul par groupe :
+  const distanceParCabinet = Object.entries(groupedByCabinet).map(
+    ([cabinetId, group]) => {
+      const positions: [number, number][] = group
+        .map((l) => {
+          const parts = l.location.split(",").map(Number);
+          return parts.length === 2
+            ? ([parts[0], parts[1]] as [number, number])
+            : null;
+        })
+        .filter((pos): pos is [number, number] => pos !== null);
+
+      return {
+        cabinetId,
+        distance: calculateTotalDistance(positions),
+      };
+    }
+  );
 
   return (
     <div className="container mx-auto py-1 space-y-4">
-      {/* Filtrage des équipements */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <p className="font-semibold">Filtrer</p>
-        <div className="bg-white dark:bg-gray-950">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="Tous les equipements" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les equipements</SelectItem>
-              <SelectItem value="streetlights">Lampadaires</SelectItem>
-              <SelectItem value="metters">Compteurs</SelectItem>
-              <SelectItem value="cabinets">Armoires</SelectItem>
-              <SelectItem value="substations">Postes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="bg-white dark:bg-gray-950">
-          <Select value={selectedCommune} onValueChange={setSelectedCommune}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="Toutes les communes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TOUTES">Toutes les communes</SelectItem>
-              <SelectItem value="DOUALA 1">douala 1</SelectItem>
-              <SelectItem value="DOUALA 2">douala 2</SelectItem>
-              <SelectItem value="DOUALA 3">douala 3</SelectItem>
-              <SelectItem value="DOUALA 4">douala 4</SelectItem>
-              <SelectItem value="DOUALA 5">douala 5</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       {/* Carte des équipements */}
-      <div className="p-4 bg-white dark:bg-gray-950 rounded-md">
-        {lampadairePositions.length > 1 && (
-          <div className="bg-white dark:bg-gray-950 p-3 rounded-md mb-2">
-            <p className="font-semibold">
-              Distance totale du réseau de lampadaires:{" "}
-              {calculateTotalDistance(lampadairePositions)} km
-            </p>
-          </div>
-        )}
-        <div className="h-[600px] w-full overflow-hidden rounded-lg relative z-10">
-          <MapContainer
-            center={[4.0911652, 9.7358404]}
-            zoom={80}
-            style={{ height: "100%", width: "100%" }}
-            className="leaflet-container rounded-lg"
+      <div className="h-[85vh] w-full overflow-hidden rounded-lg relative z-10">
+        {/* Filtrage des équipements */}
+        <div className="absolute bottom-4 right-4 z-20">
+          <button
+            onClick={() => setFilterOpen(!filterOpen)}
+            className="bg-blue-600 flex gap-2 items-center text-white p-3 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300"
           >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MapUpdater />
-            {Object.entries(filteredEquipments).map(([category, equipments]) =>
-              equipments.map((eq) => {
-                const { lat, lng } = parseLocation(eq.location);
-                const handleDragEnd = (e: L.LeafletEvent) => {
-                  const marker = e.target;
-                  const position = marker.getLatLng();
-                  const newposition = `${position.lat},${position.lng}`;
+            <p>Filtrer</p>
+            {filterOpen ? <X size={24} /> : <Filter size={24} />}
+          </button>
 
-                  // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
-                  verifyAndUpdatePosition(eq.id, newposition, category);
-                };
-                return (
-                  <Marker
-                    key={`${category}-${eq.id}`}
-                    position={[lat, lng]}
-                    icon={equipmentIcons[category] || DefaultIcon}
-                    draggable={true}
-                    eventHandlers={{
-                      dragend: handleDragEnd,
-                    }}
+          {filterOpen && (
+            <div className="absolute bottom-16 right-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl w-72 max-h-96 overflow-y-auto">
+              <h3 className="font-bold text-lg mb-2 text-gray-800 dark:text-white flex justify-between items-center">
+                Filtres
+                <button
+                  onClick={() => {
+                    toggleAllMunicipalities();
+                    toggleAllNetworks();
+                    toggleAllEquipmentTypes();
+                  }}
+                  className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  {Object.values(activeFilters.equipmentTypes).every(
+                    (v) => v
+                  ) &&
+                  activeFilters.municipalities.length ===
+                    availableMunicipalities.length &&
+                  activeFilters.networks.length === availableNetworks.length
+                    ? "Désélectionner tout"
+                    : "Sélectionner tout"}
+                </button>
+              </h3>
+
+              {/* Municipalités */}
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
+                  Municipalités
+                  <button
+                    onClick={toggleAllMunicipalities}
+                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                   >
-                    <Popup>{renderPopup(category, eq)}</Popup>
-                  </Marker>
-                );
-              })
-            )}
-            {lampadairePositions.length > 1 && (
-              <>
-                <Polyline
-                  positions={lampadairePositions}
-                  pathOptions={{ color: "blue", weight: 3 }}
-                />
-              </>
-            )}
-          </MapContainer>
+                    {activeFilters.municipalities.length ===
+                    availableMunicipalities.length
+                      ? "Désélectionner"
+                      : "Sélectionner"}
+                  </button>
+                </h4>
+                <div className="space-y-2 max-h-24 overflow-y-auto pr-2">
+                  {availableMunicipalities.map((municipality) => (
+                    <label
+                      key={municipality}
+                      className="flex items-center space-x-2 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          activeFilters.municipalities.length === 0 ||
+                          activeFilters.municipalities.includes(municipality)
+                        }
+                        onChange={() => toggleMunicipality(municipality)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {municipality}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Réseaux */}
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
+                  Réseaux
+                  <button
+                    onClick={toggleAllNetworks}
+                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    {activeFilters.networks.length === availableNetworks.length
+                      ? "Désélectionner"
+                      : "Sélectionner"}
+                  </button>
+                </h4>
+                <div className="space-y-2 max-h-24 overflow-y-auto pr-2">
+                  {availableNetworks.map((network) => (
+                    <label
+                      key={network}
+                      className="flex items-center space-x-2 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          activeFilters.networks.length === 0 ||
+                          activeFilters.networks.includes(network)
+                        }
+                        onChange={() => toggleNetwork(network)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {network}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Types d'équipements */}
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-200 flex justify-between items-center">
+                  Équipements
+                  <button
+                    onClick={toggleAllEquipmentTypes}
+                    className="text-xs bg-gray-200 dark:bg-gray-700 p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    {Object.values(activeFilters.equipmentTypes).every((v) => v)
+                      ? "Désélectionner"
+                      : "Sélectionner"}
+                  </button>
+                </h4>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.equipmentTypes.streetlights}
+                      onChange={() => toggleEquipmentType("streetlights")}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Lampadaires
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.equipmentTypes.metters}
+                      onChange={() => toggleEquipmentType("metters")}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Compteurs
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.equipmentTypes.cabinets}
+                      onChange={() => toggleEquipmentType("cabinets")}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Amoires
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.equipmentTypes.substations}
+                      onChange={() => toggleEquipmentType("substations")}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Postes
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setFilterOpen(false)}
+                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
+              >
+                <Check size={16} />
+                <span>Appliquer et fermer</span>
+              </button>
+            </div>
+          )}
         </div>
+
+        <MapContainer
+          center={[4.0911652, 9.7358404]}
+          zoom={80}
+          style={{ height: "100%", width: "100%" }}
+          className="leaflet-container rounded-lg z-10"
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapUpdater />
+          {Object.entries(filteredEquipments).map(([category, equipments]) =>
+            equipments.map((eq) => {
+              const { lat, lng } = parseLocation(eq.location);
+              const handleDragEnd = (e: L.LeafletEvent) => {
+                const marker = e.target;
+                const position = marker.getLatLng();
+                const newposition = `${position.lat},${position.lng}`;
+
+                // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
+                verifyAndUpdatePosition(eq.id, newposition, category);
+              };
+              return (
+                <Marker
+                  key={`${category}-${eq.id}`}
+                  position={[lat, lng]}
+                  icon={equipmentIcons[category] || DefaultIcon}
+                  draggable={true}
+                  eventHandlers={{
+                    dragend: handleDragEnd,
+                  }}
+                >
+                  <Popup>{renderPopup(category, eq)}</Popup>
+                </Marker>
+              );
+            })
+          )}
+          {Object.entries(groupedByCabinet).map(([cabinetId, lampGroup]) => {
+            const positions: [number, number][] = lampGroup
+              .map((l) => {
+                const parts = l.location.split(",").map(Number);
+                if (parts.length === 2)
+                  return [parts[0], parts[1]] as [number, number];
+                return null;
+              })
+              .filter((pos): pos is [number, number] => pos !== null);
+
+            const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
+            const [cabLat, cabLng] =
+              cabinet?.location.split(",").map(Number) || [];
+
+            const totalDistance = calculateTotalDistance(positions);
+
+            return (
+              <Fragment key={cabinetId}>
+                {/* Polyline entre lampadaires */}
+                <Polyline
+                  positions={positions}
+                  color="blue"
+                  eventHandlers={{
+                    click: () => {
+                      const midIndex = Math.floor(positions.length / 2);
+                      const centerPos = positions[midIndex];
+                      setPopupInfo({
+                        position: centerPos,
+                        distance: totalDistance,
+                        cabinetId,
+                      });
+                    },
+                  }}
+                />
+
+                {/* Lignes entre chaque lampadaire et l’armoire */}
+                {positions.map((lampPos, idx) => (
+                  <Polyline
+                    key={idx}
+                    positions={[lampPos, [cabLat, cabLng]]}
+                    color="gray"
+                    dashArray="4"
+                  />
+                ))}
+              </Fragment>
+            );
+          })}
+          {cabinets.map((cabinet) => {
+            if (!cabinet.location || !cabinet.meter_id) return null;
+
+            const cabinetPos = parseLocation(cabinet.location);
+            const meter = metters.find((m) => m.id === cabinet.meter_id);
+            if (!meter || !meter.location) return null;
+
+            const meterPos = parseLocation(meter.location);
+
+            return (
+              <Polyline
+                key={`cabinet-meter-${cabinet.id}`}
+                positions={[cabinetPos, meterPos]}
+                color="gray"
+                weight={2}
+                dashArray="6"
+              />
+            );
+          })}
+        </MapContainer>
       </div>
+      <div className="my-8">
+        <h1 className="text-xl md:text-3xl font-bold text-center">
+          Tableau recapitulatif du nombre de supports par commune
+        </h1>
+      </div>
+      <table className="min-w-full bg-white dark:bg-gray-900 rounded shadow">
+        <thead>
+          <tr className="bg-gray-100 dark:bg-gray-800">
+            <th className="px-4 py-2 text-left">Commune</th>
+            {types.map((type) => (
+              <th key={type} className="px-4 py-2 text-left">
+                {type}
+              </th>
+            ))}
+            <th className="px-4 py-2 text-left">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {municipalities.map((municipality) => {
+            const counts = groupedByMunicipality[municipality];
+            const total = Object.values(counts).reduce(
+              (sum, val) => sum + val,
+              0
+            );
+            return (
+              <tr key={municipality} className="border-t">
+                <td className="px-4 py-2">{municipality}</td>
+                {types.map((type) => (
+                  <td key={type} className="px-4 py-2">
+                    {counts[type]}
+                  </td>
+                ))}
+                <td className="px-4 py-2 font-bold">{total}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="bg-gray-100 dark:bg-gray-800 font-semibold">
+            <td className="px-4 py-2">Total</td>
+            {types.map((type) => (
+              <td key={type} className="px-4 py-2">
+                {totalByType[type]}
+              </td>
+            ))}
+            <td className="px-4 py-2">
+              {Object.values(totalByType).reduce((sum, val) => sum + val, 0)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
 
       {/* Modal d'authentification */}
       <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
@@ -715,22 +994,27 @@ const EquipmentMap: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Tableaux d'équipements */}
-      <div className="grid grid-cols-1 gap-4">
-        {Object.entries(filteredEquipments).map(([category, data]) =>
-          data.length > 0 ? (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle>
-                  {category} ({data.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>{renderTable(category, data)}</CardContent>
-            </Card>
-          ) : null
-        )}
-      </div>
+      {popupInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setPopupInfo(null)}
+            >
+              ✕
+            </button>
+            <h2 className="text-lg font-bold mb-4">Détails du Réseau</h2>
+            <p className="text-sm">
+              <span className="font-semibold">Cabinet ID :</span>{" "}
+              {popupInfo.cabinetId}
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Distance du réseau :</span>{" "}
+              {popupInfo.distance.toFixed(2)} km
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

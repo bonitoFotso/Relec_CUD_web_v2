@@ -6,10 +6,10 @@ import { Sticker } from "./stickers.service";
 // Interfaces de base
 export interface Mission {
   id: number;
-  user_id: number;
+  user_id?: number;
   title: string;
   description?: string;
-  street_id: number;
+  streets: number[];  // Maintenant plusieurs identifiants de rues
   intervention_type_id: number;
   status?: string;
   created_at?: string;
@@ -19,10 +19,7 @@ export interface Mission {
     id: number;
     name: string;
   };
-  street?: {
-    id: number;
-    name: string;
-  };
+  street?: Street[];  // Plusieurs rues possibles
   intervention_type?: {
     id: number;
     name: string;
@@ -73,11 +70,11 @@ export const MissionsService = {
   /**
    * Récupère toutes les missions
    * @returns Promise<Mission[]> - Liste des missions
-*/
+   */
   getAll: async (): Promise<Mission[]> => {
     try {
       const response: AxiosResponse<ApiResponse<Mission[]>> =
-      await apiClient.get("/missions/index");
+        await apiClient.get("/missions/index");
       if (!response.data.status) {
         throw new Error(
           response.data.message || "Erreur lors de la récupération des missions"
@@ -136,9 +133,7 @@ export const MissionsService = {
    */
   getCreateFormData: async (): Promise<MissionFormData> => {
     try {
-      const response: AxiosResponse<any> = await apiClient.get(
-        "/missions/create"
-      );
+      const response: AxiosResponse<any> = await apiClient.get("/missions/create");
       if (!response.data.status) {
         throw new Error(
           response.data.message ||
@@ -171,6 +166,7 @@ export const MissionsService = {
   create: async (mission: Mission): Promise<Mission> => {
     try {
       const formData = prepareFormData(mission);
+      console.log("enregistrement",mission)
 
       const response: AxiosResponse<ApiResponse<Mission>> =
         await apiClient.post("/missions/store", formData, {
@@ -354,12 +350,12 @@ export const MissionsService = {
       );
     }
   },
+
   /**
    * Récupère les missions assignées à un agent
    * @param userId - ID de l'agent
    * @returns Promise<Mission[]> - Liste des missions assignées à l'agent
    */
-
   getMissionsByAgent: async (userId: number): Promise<Mission[]> => {
     try {
       const formData = new FormData();
@@ -370,7 +366,7 @@ export const MissionsService = {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-      console.log("donnees des missions", response.data);
+      console.log("données des missions", response.data);
       if (!response.data.status) {
         throw new Error(
           response.data.message ||
@@ -404,11 +400,17 @@ export const MissionsService = {
 function prepareFormData(mission: Mission): FormData {
   const formData = new FormData();
 
-  // Conversion des objets et tableaux en JSON si nécessaire
   Object.entries(mission).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
+    // Cas spécial pour le tableau streets
+    if (key === 'streets' && Array.isArray(value)) {
+      // Ajouter chaque ID de rue individuellement avec le même nom de clé
+      value.forEach((streetId) => {
+        formData.append('streets[]', streetId.toString());
+      });
+    }
+    // Pour les autres propriétés
+    else if (value !== undefined && value !== null) {
       if (typeof value === "object") {
-        // Pour les tableaux ou objets, on les convertit en JSON
         formData.append(key, JSON.stringify(value));
       } else {
         formData.append(key, value.toString());
@@ -418,5 +420,4 @@ function prepareFormData(mission: Mission): FormData {
 
   return formData;
 }
-
 export default MissionsService;

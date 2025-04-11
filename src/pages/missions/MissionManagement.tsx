@@ -52,18 +52,16 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 
-// Définition du schéma de validation pour le formulaire
+// Mise à jour du schéma de validation pour le formulaire
 const missionFormSchema = z.object({
   title: z
     .string()
     .min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
   description: z.string().optional(),
-  user_id: z.number({
-    required_error: "Veuillez sélectionner un responsable.",
-  }),
-  street_id: z.number({
-    required_error: "Veuillez sélectionner une rue.",
-  }),
+  // Modification ici pour gérer un tableau d'identifiants de rues
+  streets: z
+    .array(z.number())
+    .min(1, { message: "Veuillez sélectionner au moins une rue." }),
   intervention_type_id: z.number({
     required_error: "Veuillez sélectionner un type d'intervention.",
   }),
@@ -73,7 +71,7 @@ export type MissionFormValues = z.infer<typeof missionFormSchema>;
 
 const MissionManagement: React.FC = () => {
   const navigate = useNavigate();
-  // Utilisation du contexte global MissionContext (chargement unique)
+  // Utilisation du contexte global MissionContext
   const {
     missions,
     formData,
@@ -83,9 +81,8 @@ const MissionManagement: React.FC = () => {
     updateMission,
     deleteMission,
     assignAgent,
-    fetchMissions, // Fonction de rafraîchissement des missions
-    fetchFormData, // Fonction de rafraîchissement des données du formulaire (types d'interventions, rues, etc.)
-  
+    fetchMissions,
+    fetchFormData,
   } = useMissions();
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
@@ -97,13 +94,13 @@ const MissionManagement: React.FC = () => {
 
   const { users, fetchUsers } = useUsers();
 
+  // Mise à jour des valeurs par défaut pour le formulaire
   const form = useForm<MissionFormValues>({
     resolver: zodResolver(missionFormSchema),
     defaultValues: {
       title: "",
       description: "",
-      user_id: undefined,
-      street_id: undefined,
+      streets: [], // Par défaut, tableau vide
       intervention_type_id: undefined,
     },
   });
@@ -112,14 +109,7 @@ const MissionManagement: React.FC = () => {
     fetchUsers();
     fetchFormData();
     fetchMissions();
-
   }, [fetchUsers]);
-
-  // useEffect(() => {
-  //   if (error) {
-  //     toast.error(error);
-  //   }
-  // }, [error]);
 
   // Remplir le formulaire lors de l'édition d'une mission
   useEffect(() => {
@@ -127,8 +117,8 @@ const MissionManagement: React.FC = () => {
       form.reset({
         title: editingMission.title,
         description: editingMission.description || "",
-        user_id: editingMission.user_id,
-        street_id: editingMission.street_id,
+        // Adaptation ici pour prendre en compte plusieurs rues
+        streets: editingMission.streets || [],
         intervention_type_id: editingMission.intervention_type_id,
       });
     }
@@ -151,8 +141,7 @@ const MissionManagement: React.FC = () => {
     form.reset({
       title: "",
       description: "",
-      user_id: undefined,
-      street_id: undefined,
+      streets: [], // Réinitialisation du tableau de rues
       intervention_type_id: undefined,
     });
     setIsFormDialogOpen(true);
@@ -160,7 +149,7 @@ const MissionManagement: React.FC = () => {
 
   // Gérer le clic sur Edit
   const handleEditClick = (mission: Mission, e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêche l'événement de clic sur la ligne
+    e.stopPropagation();
     setEditingMission(mission);
     setIsFormDialogOpen(true);
   };
@@ -186,12 +175,11 @@ const MissionManagement: React.FC = () => {
         await updateMission({ ...values, id: editingMission.id });
         toast.success("Mission mise à jour");
       } else {
+        // Notez que createMission attend désormais un objet de type Mission
         await createMission(values as Mission);
         toast.success("Mission créée");
       }
-      // Rafraîchir les missions et les données du formulaire pour afficher les nouvelles infos directement
       await fetchMissions();
-      //await fetchFormData();
       setIsFormDialogOpen(false);
     } catch (err) {
       console.error("Opération échouée :", err);
@@ -205,9 +193,7 @@ const MissionManagement: React.FC = () => {
     try {
       await assignAgent(selectedMission.id, userId);
       toast.success("Agent assigné");
-
       setIsAssignDialogOpen(false);
-      // Optionnel: rafraîchir les missions en appelant fetchMissions()
     } catch (err) {
       console.error("Assignation échouée :", err);
       toast.error("Assignation échouée");
@@ -226,9 +212,7 @@ const MissionManagement: React.FC = () => {
       try {
         await deleteMission(missionToDelete.id);
         toast.success("Mission supprimée");
-
         setIsAlertDialogOpen(false);
-        // Optionnel: rafraîchir les missions
       } catch (err) {
         console.error("Suppression échouée :", err);
         toast.error("Suppression échouée");
@@ -250,10 +234,14 @@ const MissionManagement: React.FC = () => {
     return interventionType?.name || "Type inconnu";
   };
 
-  // Obtenir le nom de la rue
-  const getStreetName = (id: number) => {
-    const street = formData?.streets?.find((s) => s.id === id);
-    return street?.name || "Rue inconnue";
+  // Nouvelle fonction pour obtenir les noms des rues associées à partir d'un tableau d'identifiants
+  const getStreetNames = (ids: number[]) => {
+    if (!ids || ids.length === 0) return "Boulevard De La Paix";
+    const names = ids.map((id) => {
+      const street = formData?.streets?.find((s) => s.id === id);
+      return street ? street.name : "Inconnue";
+    });
+    return names.join(", ");
   };
 
   // Obtenir le nom de l'utilisateur
@@ -297,7 +285,7 @@ const MissionManagement: React.FC = () => {
                   Type d'intervention
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Rue
+                  Rue(s)
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Responsable
@@ -338,8 +326,16 @@ const MissionManagement: React.FC = () => {
                         {getInterventionTypeName(mission.intervention_type_id)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{getStreetName(mission.street_id)}</TableCell>
-                    <TableCell>{getUserName(mission.user_id)}</TableCell>
+                    <TableCell>
+                      {/* Utilisation de la nouvelle fonction pour les rues multiples */}
+                      {mission.streets
+                        ?.map((s) => s.name)
+                        .join(", ")
+                        .substring(0, 35)}
+                    </TableCell>
+                    <TableCell>
+                      {mission.user_id && getUserName(mission.user_id)}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <CalendarIcon className="h-3 w-3 text-gray-500" />
