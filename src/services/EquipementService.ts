@@ -3,6 +3,7 @@
 import apiClient from "./apiClient";
 
 export interface EquipementStreetlights {
+  [x: string]: number;
   id: number;
   power: number;
   is_on_day: number;
