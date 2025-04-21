@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
 import {
   AlertTriangle,
@@ -6,8 +7,7 @@ import {
   PowerOff,
   Siren,
 } from "lucide-react";
-import { StatistiqueCardProps, StatistiquesCardsProps } from "./types";
-import { useEquipements } from "@/contexts/EquipementContext";
+import { StatistiqueCardProps } from "./types";
 
 // Helper function to format time in hours and minutes
 const formatTime = (hours: number): string => {
@@ -48,7 +48,7 @@ const Statistique: React.FC<StatistiqueCardProps> = ({
     <div
       className={`
         rounded-lg ${cardBackground} dark:bg-gray-800 transition-all duration-200
-        hover:shadow-lg hover:scale-[1.01] }
+        hover:shadow-lg hover:scale-[1.01]
       `}
     >
       <div className="p-6">
@@ -66,7 +66,7 @@ const Statistique: React.FC<StatistiqueCardProps> = ({
       </div>
 
       <div className={`${color} p-2 rounded-bl-lg rounded-br-lg`}>
-        <div className=" flex justify-between gap-2 items-center text-white">
+        <div className="flex justify-between gap-2 items-center text-white">
           <p className="text-xs font-normal">{subtitle}</p>
           <p className="text-xs font-extrabold">{formattedStats}</p>
         </div>
@@ -75,14 +75,18 @@ const Statistique: React.FC<StatistiqueCardProps> = ({
   );
 };
 
-const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
-  // Use the useEquipements hook to access context data
-  const { streetlights, loading, error } = useEquipements();
+// Updated interface to accept filtered streetlights
+interface StatistiquesCardsPropsUpdated {
+  filteredStreetlights: any[]; // Replace with your actual streetlight type
+}
 
-  // useMemo to calculate statistics only when streetlights change
+const StatistiquesCard: React.FC<StatistiquesCardsPropsUpdated> = ({
+  filteredStreetlights,
+}) => {
+  // useMemo to calculate statistics based on filtered streetlights
   const statistics = useMemo(() => {
-    // Calculer le nombre total de lampadaires
-    const totalStreetlights = streetlights.length;
+    // Calculate total number of streetlights
+    const totalStreetlights = filteredStreetlights.length;
 
     if (totalStreetlights === 0) {
       return {
@@ -97,41 +101,38 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
       };
     }
 
-    // Classement des lampadaires par état
-    const onLights = streetlights.filter(
+    // Classify streetlights by state
+    const onLights = filteredStreetlights.filter(
       (light) => light.is_on_day === 1 || light.is_on_night === 1
     );
-    const offLights = streetlights.filter(
+    const offLights = filteredStreetlights.filter(
       (light) => light.is_on_day === 0 && light.is_on_night === 0
     );
-    const faultyLights = streetlights.filter(
+    const faultyLights = filteredStreetlights.filter(
       (light) =>
         (light.is_on_day === 1 && light.is_on_night === 0) ||
         (light.is_on_day === 0 && light.is_on_night === 1)
     );
 
-    // Nombre de lampadaires par état
+    // Number of streetlights by state
     const onStreetlights = onLights.length;
     const offStreetlights = offLights.length;
     const faultyStreetlights = faultyLights.length;
 
-    // Calcul de l'intensité lumineuse moyenne
-    const totalBrightness = streetlights.reduce(
+    // Calculate average brightness
+    const totalBrightness = filteredStreetlights.reduce(
       (sum, light) => sum + (light.brightness_level || 0),
       0
     );
-    const avgBrightness = totalBrightness / (totalStreetlights || 1);
+    const avgBrightness = Math.round(
+      totalBrightness / (totalStreetlights || 1)
+    );
 
-    // Calcul des temps moyens (en supposant que on_time et off_time sont en heures)
-    // Note: Ces calculs dépendent de la structure réelle de vos données
-
-    // Durée moyenne d'activité (pour les lampadaires allumés)
-    // Ici, nous utilisons une valeur par défaut, car nous n'avons pas d'information claire sur la structure des données
+    // Calculate average times (assuming on_time and off_time are in hours)
+    // Average active time (for lit streetlights)
     const avgActiveTime =
       onLights.length > 0
         ? onLights.reduce((sum, light) => {
-            // Si on_time est une chaîne représentant des heures, convertir en nombre
-            // Sinon, utiliser une valeur par défaut
             const onTime =
               typeof light.on_time === "string"
                 ? parseFloat(light.on_time) || 6.5
@@ -140,12 +141,10 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
           }, 0) / onLights.length
         : 6.5;
 
-    // Durée moyenne d'inactivité (pour les lampadaires éteints)
+    // Average inactive time (for turned off streetlights)
     const avgInactiveTime =
       offLights.length > 0
         ? offLights.reduce((sum, light) => {
-            // Si off_time est une chaîne représentant des heures, convertir en nombre
-            // Sinon, utiliser une valeur par défaut
             const offTime =
               typeof light.off_time === "string"
                 ? parseFloat(light.off_time) || 12.25
@@ -154,9 +153,8 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
           }, 0) / offLights.length
         : 12.25;
 
-    // Temps moyen de dysfonctionnement (pour les lampadaires défectueux)
-    // C'est une valeur arbitraire car nous n'avons pas cette information
-    const avgMalfunctionTime = 5.75; // Valeur par défaut
+    // Average malfunction time (for faulty streetlights)
+    const avgMalfunctionTime = 5.75; // Default value
 
     return {
       totalStreetlights,
@@ -168,12 +166,12 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
       avgInactiveTime,
       avgMalfunctionTime,
     };
-  }, [streetlights]);
+  }, [filteredStreetlights]);
 
-  // Statistiques pour l'affichage
+  // Statistics for display
   const statisticsData = [
     {
-      title: "Total Lampadaires",
+      title: "Total des réseaux supervisés",
       value: statistics.totalStreetlights || 0,
       icon: "Lamp",
       color: "bg-blue-500",
@@ -214,14 +212,11 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = () => {
     },
   ];
 
-  if (loading) {
+  // Check if data is loading
+  if (!filteredStreetlights) {
     return (
       <div className="text-center py-4">Chargement des statistiques...</div>
     );
-  }
-
-  if (error) {
-    return <div className="text-center py-4 text-red-500">{error}</div>;
   }
 
   return (

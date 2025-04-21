@@ -26,6 +26,7 @@ const UserDetail: React.FC = () => {
         try {
           const agentMissions = await getAgentMissions(agent.id);
           setMissions(agentMissions);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           toast.error("Erreur lors de la récupération des missions");
         } finally {

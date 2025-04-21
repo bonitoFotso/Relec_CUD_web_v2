@@ -205,7 +205,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
                     <div className="text-sm ">
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                        {`Rue ${mission.street_id || "N/A"}`}
+                        {`Rue ${mission.street || "N/A"}`}
                       </div>
                     </div>
                   </td>

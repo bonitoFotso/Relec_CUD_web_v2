@@ -5,17 +5,10 @@ import { User } from "@/services/UsersService";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  PlusIcon,
-  Pencil1Icon,
-  TrashIcon,
-  EyeOpenIcon,
-} from "@radix-ui/react-icons";
-import { useNavigate } from "react-router-dom";
+import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 
 // Importer nos composants
 import UserFormDialog from "@/components/UserFormDialog";
-import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -38,7 +31,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "react-toastify";
-import { useAuth } from "@/contexts/AuthContext";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCardDetail } from "@/components/card/SkeletonCardDetail";
 
@@ -56,7 +48,6 @@ const userFormSchema = z.object({
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
 const UserManagement: React.FC = () => {
-  const { currentUser } = useAuth();
   const {
     users,
     loading,
@@ -86,8 +77,6 @@ const UserManagement: React.FC = () => {
       password: "",
     },
   });
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -170,14 +159,6 @@ const UserManagement: React.FC = () => {
     setIsAlertDialogOpen(true);
   };
 
-  // Gestion de la visualisation des détails d'un utilisateur
-  const handleViewDetails = (user: User) => {
-    if (user.role !== "agent") {
-      setIsNotAgentDialogOpen(true);
-    } else {
-      navigate(`/users/${user.id}`);
-    }
-  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -239,14 +220,6 @@ const UserManagement: React.FC = () => {
                     <TableCell>{user!.role}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {/*
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetails(user!)}
-                        >
-                          <EyeOpenIcon className="h-4 w-4" />
-                        </Button>*/}
                         <Button
                           variant="outline"
                           size="sm"

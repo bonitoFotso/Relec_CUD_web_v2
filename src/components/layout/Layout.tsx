@@ -56,9 +56,20 @@ export const Layout = () => {
             </div>
             <div
               className={cn(
-                "mt-12 md:px-6 md:py-8",
-                "transition-all duration-200 ease-in-out"
+                "h-full mt-12 md:px-6 md:py-8 overflow-auto",
+                "transition-all duration-200 ease-in-out bg-gray-400 dark:bg-gray-600"
               )}
+              style={{
+                backgroundImage:
+                  "url('../../../public/logo_cud_tranparent.png')",
+                backgroundSize: "contain",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundAttachment: "fixed",
+                minHeight: "100%",
+                // backgroundColor: "#123456",
+                backgroundBlendMode: "multiply",
+              }}
             >
               <Outlet />
             </div>

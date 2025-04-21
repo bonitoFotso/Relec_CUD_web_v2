@@ -2,7 +2,7 @@ import { Settings } from "lucide-react";
 
 export default function Recommandations() {
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+    <div className="p-3">
       <div className="flex items-center mb-4">
         <Settings className="text-blue-600 dark:text-blue-400 mr-2" size={20} />
         <h2 className="text-xl font-bold ">Recommandations</h2>

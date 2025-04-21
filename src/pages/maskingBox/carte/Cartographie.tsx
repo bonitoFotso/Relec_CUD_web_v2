@@ -1,15 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
 import {
   MapContainer,
-  TileLayer,
   Marker,
-  Popup,
-  useMap,
   Polyline,
+  Popup,
+  TileLayer,
+  useMap,
 } from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,10 +23,13 @@ import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 import { DefaultIcon, equipmentIcons, FilterState } from "../types";
 
+import DonneesComplete from "./DonneesComplete";
+import Filtres from "./Filtres";
+
 const EquipmentMap: React.FC = () => {
   const { streetlights, metters, cabinets, substations, loading } =
     useEquipements();
-  const [selectedPosition, setSelectedPosition] = useState<
+  const [selectedPosition] = useState<
     [number, number] | null
   >(null);
   const [resetMap, setResetMap] = useState(false);
@@ -47,10 +51,6 @@ const EquipmentMap: React.FC = () => {
     },
   });
 
-  console.log("Streetlights:", streetlights.length);
-  console.log("Metters:", metters.length);
-  console.log("Cabinets:", cabinets.length);
-  console.log("Substations:", substations.length);
 
   // Déclaration unique de la position utilisateur
   const [userPosition, setUserPosition] = useState<[number, number]>([
@@ -290,14 +290,12 @@ const EquipmentMap: React.FC = () => {
 
   // Filtrer les équipements
   const filteredEquipments = {
-    Lampadaires: streetlights.filter((eq: any) =>
+    Lampadaires: streetlights.filter((eq) =>
       shouldShowEquipment(eq, "Lampadaires")
     ),
-    Compteurs: metters.filter((eq: any) =>
-      shouldShowEquipment(eq, "Compteurs")
-    ),
-    Amoires: cabinets.filter((eq: any) => shouldShowEquipment(eq, "Amoires")),
-    Substations: substations.filter((eq: any) =>
+    Compteurs: metters.filter((eq) => shouldShowEquipment(eq, "Compteurs")),
+    Amoires: cabinets.filter((eq) => shouldShowEquipment(eq, "Amoires")),
+    Substations: substations.filter((eq) =>
       shouldShowEquipment(eq, "Substations")
     ),
   };
@@ -406,24 +404,11 @@ const EquipmentMap: React.FC = () => {
   };
 
   const lampadairePositions: [number, number][] = streetlights
-    .map(
-      (eq: {
-        location: {
-          split: (arg0: string) => {
-            (): any;
-            new (): any;
-            map: {
-              (arg0: (string: string) => number): [any, any];
-              new (): any;
-            };
-          };
-        };
-      }) => {
-        const [lat, lng] = eq.location.split(",").map(Number.parseFloat);
-        return [lat, lng] as [number, number];
-      }
-    )
-    .filter((pos: number[]) => !isNaN(pos[0]) && !isNaN(pos[1]));
+    .map((eq) => {
+      const [lat, lng] = eq.location.split(",").map(Number.parseFloat);
+      return [lat, lng] as [number, number];
+    })
+    .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
   return (
     <div className=" dark:bg-gray-950">
       <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
@@ -474,6 +459,7 @@ const EquipmentMap: React.FC = () => {
               />
             </>
           )}
+          
         </MapContainer>
       </div>
     </div>

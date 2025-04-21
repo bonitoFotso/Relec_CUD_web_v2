@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // services/MissionsService.ts
 import { AxiosResponse, AxiosError } from "axios";
 import apiClient from "./apiClient";
@@ -9,7 +10,7 @@ export interface Mission {
   user_id?: number;
   title: string;
   description?: string;
-  streets: number[];  // Maintenant plusieurs identifiants de rues
+  streets: number[]; // Maintenant plusieurs identifiants de rues
   intervention_type_id: number;
   status?: string;
   created_at?: string;
@@ -19,14 +20,18 @@ export interface Mission {
     id: number;
     name: string;
   };
-  street?: Street[];  // Plusieurs rues possibles
+  street?: Street[];
+  municipality: Municipalities; // Plusieurs rues possibles
   intervention_type?: {
     id: number;
     name: string;
   };
   agents?: Agent[];
 }
-
+export interface Municipalities {
+  id: number;
+  name: string;
+}
 export interface Agent {
   id: number;
   name: string;
@@ -62,6 +67,7 @@ export interface MissionsDetailsResponse {
 export interface MissionFormData {
   agents?: Agent[];
   streets?: Street[];
+  municipalities?: Municipalities[];
   interventions?: InterventionType[];
 }
 
@@ -133,7 +139,9 @@ export const MissionsService = {
    */
   getCreateFormData: async (): Promise<MissionFormData> => {
     try {
-      const response: AxiosResponse<any> = await apiClient.get("/missions/create");
+      const response: AxiosResponse<any> = await apiClient.get(
+        "/missions/create"
+      );
       if (!response.data.status) {
         throw new Error(
           response.data.message ||
@@ -166,7 +174,7 @@ export const MissionsService = {
   create: async (mission: Mission): Promise<Mission> => {
     try {
       const formData = prepareFormData(mission);
-      console.log("enregistrement",mission)
+      console.log("enregistrement", mission);
 
       const response: AxiosResponse<ApiResponse<Mission>> =
         await apiClient.post("/missions/store", formData, {
@@ -402,10 +410,10 @@ function prepareFormData(mission: Mission): FormData {
 
   Object.entries(mission).forEach(([key, value]) => {
     // Cas spécial pour le tableau streets
-    if (key === 'streets' && Array.isArray(value)) {
+    if (key === "streets" && Array.isArray(value)) {
       // Ajouter chaque ID de rue individuellement avec le même nom de clé
       value.forEach((streetId) => {
-        formData.append('streets[]', streetId.toString());
+        formData.append("streets[]", streetId.toString());
       });
     }
     // Pour les autres propriétés

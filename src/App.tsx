@@ -21,9 +21,10 @@ import PermissionsManagement from "./pages/permissions/permissions";
 import { ToastContainer } from "react-toastify";
 import Profil from "./pages/Profil";
 import Anomalies from "./pages/anomalies/Anomalies";
-import Notifications from "./pages/notifications/Notifications";
 import Tableau from "./pages/maskingBox/Tableau";
 import Cartographie from "./pages/maskingBox/carte/Cartographie";
+import PageCompte from "./pages/comptes/PageComptes";
+import PageAcceuil from "./pages/historiques/PageAcceuil";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -58,10 +59,12 @@ const App: React.FC = () => {
               <Route path="/missions" element={<MissionManagement />} />
               <Route path="/missions/:id" element={<MissionDetails />} />
 
-              <Route path="/settings" element={<div>Paramètres</div>} />
+              <Route path="/comptes" element={<PageCompte />} />
+              <Route path="/historiques" element={<PageAcceuil />} />
+              <Route path="/historiques/:tab" element={<PageAcceuil />} />
               <Route path="/profile" element={<Profil />} />
               <Route path="/anomalies" element={<Anomalies />} />
-              <Route path="/notifications" element={<Notifications />} />
+              {/* <Route path="/notifications" element={<Notifications />} /> */}
 
               <Route path="/panneau_de_controle" element={<Tableau />} />
               <Route path="/carte" element={<Cartographie />} />

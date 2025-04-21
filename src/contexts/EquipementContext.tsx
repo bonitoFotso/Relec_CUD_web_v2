@@ -4,6 +4,7 @@ import {
   useCallback,
   ReactNode,
   useEffect,
+  useContext,
 } from "react";
 
 import EquipementService, {
@@ -217,3 +218,10 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
 };
 
 // Import the hook from the new file
+export const useEquipements = () => {
+  const context = useContext(EquipementContext);
+  if (context === undefined) {
+    throw new Error("useEquipements must be used within a EquipementProvider");
+  }
+  return context;
+};

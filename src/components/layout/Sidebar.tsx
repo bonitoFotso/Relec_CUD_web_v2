@@ -15,6 +15,8 @@ import {
   ServerCrash,
   MapPin,
   SlidersHorizontal,
+  UserCircle,
+  CogIcon,
 } from "lucide-react";
 
 // Mapping des icônes Lucide
@@ -26,10 +28,12 @@ const iconMapping: Record<string, JSX.Element> = {
   permissions: <ScrollText className="w-5 h-5" />,
   notifications: <Bell className="w-5 h-5" />,
   anomalies: <ServerCrash className="w-5 h-5" />,
+  account: <UserCircle className="w-5 h-5" />,
 };
 const maskingboxIcon: Record<string, JSX.Element> = {
   box: <SlidersHorizontal className="w-5 h-5" />,
   carte: <MapPin className="w-5 h-5" />,
+  settings: <CogIcon className="w-5 h-5" />,
 };
 
 interface SidebarProps {
@@ -65,8 +69,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
             />
           </div>
 
-          <div className="">
+          <div className="-mt-14">
             <AnimatePresence>
+              {mounted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: navigationGroups.length * 0.1,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                  className="px-8 my-6"
+                >
+                  <h2 className="text-sm font-semibold text-blue-800 dark:text-white uppercase tracking-widest">
+                    Gestion de la maintenance
+                  </h2>
+                </motion.div>
+              )}
               {mounted &&
                 navigationGroups.map((group, groupIndex) => (
                   <motion.div

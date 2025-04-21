@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/Dashboard/index.tsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -12,12 +13,12 @@ import MissionsTable from "./MissionsTable";
 import AgentsList from "./AgentsList";
 import MissionTypeChart from "./MissionTypeChart";
 import StickerUsageChart from "./StickerUsageChart";
-import AlertsSection from "./AlertsSection";
 import { Alert, BarChartData, DashboardStats, PieChartData } from "./types";
 import { getInterventionTypeName } from "./utils";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
+import TableauCommunes from "./TableauCommunes";
 //import { DashboardStats, PieChartData, BarChartData, Alert } from './types';
 //import { getInterventionTypeName } from './utils';
 
@@ -236,19 +237,19 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-2 py-3">
       {/* En-tête */}
       <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
         <div>
           <h1 className="text-2xl font-bold ">Tableau de bord</h1>
-          <p className=" mt-1">
+          <p className=" mt-1 font-medium">
             Bienvenue, {currentUser?.name || "Utilisateur"}. Voici vos
             statistiques d'aujourd'hui.
           </p>
         </div>
         <button
           onClick={handleDownloadReport}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center self-start md:self-auto"
+          className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors duration-200 flex items-center self-start md:self-auto"
         >
           <FileText className="w-4 h-4 mr-2" />
           Télécharger le rapport
@@ -264,6 +265,9 @@ const Dashboard: React.FC = () => {
         <StickerUsageChart data={stickerMonthlyData} />
       </div>
 
+      {/* tableaux */}
+      <TableauCommunes />
+
       {/* Tableau des missions récentes et liste des agents */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
         <div>
@@ -275,7 +279,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Section des alertes */}
-      <AlertsSection alerts={alerts} />
+      {/* <AlertsSection alerts={alerts} /> */}
     </div>
   );
 };

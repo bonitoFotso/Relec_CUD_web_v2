@@ -27,7 +27,27 @@ export interface FilterState {
     substations: boolean;
   };
 }
+export interface Streetlight {
+  id?: string | number;
+  municipality?: string;
+  is_on_day?: number;
+  is_on_night?: number;
+  brightness_level?: number;
+  on_time?: string | number;
+  off_time?: string | number;
+  latitude?: number;
+  longitude?: number;
+  status?: string;
+  // Add other properties as needed
+}
 
+
+
+
+
+export interface municipalities {
+  municipalities: string[];
+}
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -62,7 +82,7 @@ export const equipmentIcons: Record<string, L.Icon> = {
     shadowSize: [41, 41],
   }),
   Amoires: L.icon({
-    iconUrl: "/images1.png",
+    iconUrl: "/istockphoto-1708045772-612x612-removebg-preview.png",
     iconSize: [50, 50],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -71,7 +91,7 @@ export const equipmentIcons: Record<string, L.Icon> = {
     shadowSize: [41, 41],
   }),
   Substations: L.icon({
-    iconUrl: "/substation-removebg-preview.png",
+    iconUrl: "/8012518-removebg-preview.png",
     iconSize: [50, 50],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],

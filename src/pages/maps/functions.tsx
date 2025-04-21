@@ -1,9 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 // Correction du problème d'icônes dans React-Leaflet
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const parseLocation = (location: string) => {
   const [lat, lng] = location.split(",").map(Number.parseFloat);
@@ -75,5 +84,275 @@ export function calculateTotalDistance(positions: [number, number][]): number {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     total += R * c;
   }
-  return parseFloat(total.toFixed(2)); // arrondi à 2 décimales
+  return parseFloat(total.toFixed(4)); // arrondi à 4 décimales
+}
+
+type Lampadaire = {
+  id: number;
+  location: string;
+  meter_id?: number | null;
+  municipality: string;
+};
+
+type Cabinet = {
+  id: number;
+  location: string;
+  meter_id?: number | null;
+  municipality: {
+    name: string;
+  };
+};
+
+type StatDetail = {
+  count: number;
+  distance: number;
+};
+
+type Stats = {
+  connectedToCabinetAndMeter: StatDetail;
+  connectedToCabinetOnly: StatDetail;
+  connectedToMeterOnly: StatDetail;
+  notConnected: StatDetail;
+};
+
+type PerMunicipalityStats = Record<string, Stats>;
+
+export function computeStatsByMunicipality(
+  groupedByCabinet: Record<string, Lampadaire[]>,
+  cabinets: Cabinet[],
+  allLamps: Lampadaire[]
+): { perMunicipality: PerMunicipalityStats; total: Stats } {
+  const initialStats = (): Stats => ({
+    connectedToCabinetAndMeter: { count: 0, distance: 0 },
+    connectedToCabinetOnly: { count: 0, distance: 0 },
+    connectedToMeterOnly: { count: 0, distance: 0 },
+    notConnected: { count: 0, distance: 0 },
+  });
+
+  const result: PerMunicipalityStats = {};
+  const total: Stats = initialStats();
+
+  const cabinetMap = new Map<number, Cabinet>();
+  cabinets.forEach((cab) => cabinetMap.set(cab.id, cab));
+
+  const lampIdsInGroup = new Set<number>();
+
+  const addStats = (target: Stats, key: keyof Stats, distance: number) => {
+    target[key].count += 1;
+    target[key].distance += distance;
+  };
+
+  // Réseaux avec armoires
+  Object.entries(groupedByCabinet).forEach(([cabinetId, lamps]) => {
+    const cabinet = cabinetMap.get(Number(cabinetId));
+    const municipality = cabinet?.municipality?.name ?? "AUTRE";
+
+    if (!result[municipality]) {
+      result[municipality] = initialStats();
+    }
+
+    lamps.forEach((lamp) => lampIdsInGroup.add(lamp.id));
+    const distance = calculateTotalDistance(
+      lamps.map((lamp) => {
+        const [lat, lng] = lamp.location.split(",").map(Number);
+        return [lat, lng] as [number, number];
+      })
+    );
+
+    if (cabinet?.meter_id) {
+      addStats(result[municipality], "connectedToCabinetAndMeter", distance);
+      addStats(total, "connectedToCabinetAndMeter", distance);
+    } else {
+      addStats(result[municipality], "connectedToCabinetOnly", distance);
+      addStats(total, "connectedToCabinetOnly", distance);
+    }
+  });
+
+  // Lampadaires isolés (pas liés à une armoire)
+  const unlinkedLamps = allLamps.filter((lamp) => !lampIdsInGroup.has(lamp.id));
+  unlinkedLamps.forEach((lamp) => {
+    const municipality = lamp.municipality ?? "AUTRE";
+    if (!result[municipality]) {
+      result[municipality] = initialStats();
+    }
+
+    const distance = 0; // Pas de réseau => distance nulle
+
+    if (lamp.meter_id) {
+      addStats(result[municipality], "connectedToMeterOnly", distance);
+      addStats(total, "connectedToMeterOnly", distance);
+    } else {
+      addStats(result[municipality], "notConnected", distance);
+      addStats(total, "notConnected", distance);
+    }
+  });
+
+  return { perMunicipality: result, total };
+}
+export const LampStatsTableByMunicipality = ({
+  perMunicipality,
+  total,
+  municipalities,
+}: {
+  perMunicipality: Record<string, Stats>;
+  total: Stats;
+  municipalities: string[];
+}) => {
+  const categories = [
+    {
+      key: "connectedToCabinetAndMeter",
+      label: "Avec Armoire et Compteur",
+    },
+    {
+      key: "connectedToCabinetOnly",
+      label: "Avec Armoire sans Compteur",
+    },
+    {
+      key: "connectedToMeterOnly",
+      label: "Sans Armoire avec Compteur",
+    },
+    {
+      key: "notConnected",
+      label: "Sans Armoire ni Compteur",
+    },
+  ] as const;
+
+  return (
+    <Table>
+      <TableCaption>
+        Tableau recapitulatif du lineaire de chaque type de reseau par commune
+      </TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableCell className=" px-4 py-2">Commune</TableCell>
+          {categories.map((cat) => (
+            <TableCell key={cat.key} className=" px-4 py-2">
+              {cat.label}
+              <br />
+              <span className="text-xs font-normal text-gray-500">
+                [Nbr - Dist km]
+              </span>
+            </TableCell>
+          ))}
+          <TableCell className="px-4 py-2 font-bold">Total</TableCell>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {municipalities.map((mun) => {
+          const stats = perMunicipality[mun] ?? {
+            connectedToCabinetAndMeter: { count: 0, distance: 0 },
+            connectedToCabinetOnly: { count: 0, distance: 0 },
+            connectedToMeterOnly: { count: 0, distance: 0 },
+            notConnected: { count: 0, distance: 0 },
+          };
+
+          const totalCount = Object.values(stats).reduce(
+            (sum, s) => sum + s.count,
+            0
+          );
+          const totalDist = Object.values(stats).reduce(
+            (sum, s) => sum + s.distance,
+            0
+          );
+
+          return (
+            <TableRow key={mun}>
+              <TableCell className="px-4 py-2 font-semibold">
+                {mun}
+              </TableCell>
+              {categories.map((cat) => (
+                <TableCell key={cat.key} className="px-4 py-2">
+                  {stats[cat.key].count} - {stats[cat.key].distance.toFixed(2)}{" "}
+                  km
+                </TableCell>
+              ))}
+              <TableCell className="px-4 py-2 font-bold">
+                {totalCount} - {totalDist.toFixed(2)} km
+              </TableCell>
+            </TableRow>
+          );
+        })}
+        {/* Ligne Total */}
+        <TableRow className="border-t font-bold">
+          <TableCell className=" px-4 py-2">Total</TableCell>
+          {categories.map((cat) => (
+            <TableCell key={cat.key} className=" px-4 py-2">
+              {total[cat.key].count} - {total[cat.key].distance.toFixed(2)} km
+            </TableCell>
+          ))}
+          <TableCell className=" px-4 py-2">
+            {Object.values(total).reduce((s, v) => s + v.count, 0)} -{" "}
+            {Object.values(total)
+              .reduce((s, v) => s + v.distance, 0)
+              .toFixed(2)}{" "}
+            km
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
+};
+
+type LampNetwork = {
+  networkId: string; // identifiant ou nom du réseau
+  lampCount: number; // nombre de lampadaires dans ce réseau
+};
+
+export const LampCountByNetworkTable = ({
+  groupedByCabinet,
+}: {
+  groupedByCabinet: Record<string, Lampadaire[]>; // <- On passe directement groupedByCabinet
+}) => {
+  // On transforme groupedByCabinet en un tableau de LampNetwork
+  const networks: LampNetwork[] = Object.entries(groupedByCabinet).map(
+    ([cabinetId, lampGroup]) => ({
+      networkId: `Réseau ${cabinetId}`, // ou juste cabinetId si tu veux
+      lampCount: lampGroup.length,
+    })
+  );
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableCell className="px-4 py-2 font-semibold">Réseau</TableCell>
+          <TableCell className="px-4 py-2 font-semibold">Nombre de Lampadaires</TableCell>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {networks.map((network) => (
+          <TableRow key={network.networkId}>
+            <TableCell className="px-4 py-2">{network.networkId}</TableCell>
+            <TableCell className="px-4 py-2">{network.lampCount}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
+
+const API_KEY ="pk.89a51ef9eae107835c3b991b3269edc0"
+
+export const getAddressFromCoords = async (lat: number, lng: number) => {
+  const response = await fetch(
+    `https://us1.locationiq.com/v1/reverse.php?key=${API_KEY}&lat=${lat}&lon=${lng}&format=json`
+  );
+  const data = await response.json();
+  const fullAddress = data.display_name || 'Adresse inconnue';
+
+  // On prend juste les 2 premiers éléments de l'adresse
+  const addressParts = fullAddress.split(',');
+  const shortAddress = addressParts.slice(0, 2).join(',').trim();
+
+  return shortAddress;
+};
+
+
+export function customLabelIcon(label: string) {
+  return L.divIcon({
+    className: "lamp-label",
+    html: `<div style="background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid gray; font-size: 12px;">${label}</div>`,
+    iconSize: [30, 15],
+    iconAnchor: [25, 45],
+  });
 }

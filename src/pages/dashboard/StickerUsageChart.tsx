@@ -41,7 +41,7 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
   return (
     <div className="h-full bg-white dark:bg-gray-950 p-4 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">
-        Utilisation des stickers par mois
+        Utilisation des plaquettes d'identification par mois
       </h2>
 
       {/* Légende personnalisée */}

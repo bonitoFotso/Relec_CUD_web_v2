@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
 import type React from "react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -14,7 +12,6 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -24,26 +21,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
 // Contexte des équipements
 import { useEquipements } from "@/contexts/EquipementContext";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { useAuth } from "@/contexts/AuthContext";
 import { EquipementStreetlights } from "@/services/EquipementService";
 import { Check, Filter, X } from "lucide-react";
 import { FilterState } from "../maskingBox/types";
 import {
   calculateTotalDistance,
+  customLabelIcon,
   DefaultIcon,
   equipmentIcons,
+  getAddressFromCoords,
   parseLocation,
 } from "./functions";
 
 const EquipmentMap: React.FC = () => {
-  const { currentUser } = useAuth();
   const {
     streetlights,
     metters,
@@ -70,19 +65,14 @@ const EquipmentMap: React.FC = () => {
       substations: true,
     },
   });
-  const [selectedPosition, setSelectedPosition] = useState<
-    [number, number] | null
-  >(null);
+  const [selectedPosition] = useState<[number, number] | null>(null);
   const [resetMap, setResetMap] = useState(false);
   // Déclaration unique de la position utilisateur
-  const [userPosition, setUserPosition] = useState<[number, number]>([
-    4.0429389, 9.7062018,
-  ]);
+  const [userPosition] = useState<[number, number]>([4.0429389, 9.7062018]);
   const initialPosition: [number, number] = userPosition;
 
   // États pour le modal d'authentification
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
   const [pendingMarkerUpdate, setPendingMarkerUpdate] = useState<{
     id: number;
     position: string;
@@ -93,6 +83,7 @@ const EquipmentMap: React.FC = () => {
     distance: number;
     cabinetId: string;
   } | null>(null);
+  const [popupAddress, setPopupAddress] = useState<string | null>(null);
 
   const MapUpdater = () => {
     const map = useMap();
@@ -263,51 +254,42 @@ const EquipmentMap: React.FC = () => {
   // Fonction pour confirmer l'authentification et mettre à jour la position
   const confirmAuthentication = () => {
     if (!pendingMarkerUpdate) return;
-
-    // Vérifier si l'email saisi correspond à l'email de l'utilisateur connecté
-    if (emailInput === currentUser?.email) {
-      // Effectuer la mise à jour de la position
-      if (pendingMarkerUpdate.type === "Lampadaires") {
-        updateStreetlightPosition(
-          pendingMarkerUpdate.id,
-          pendingMarkerUpdate.position
-        );
-        toast.success(
-          "La position du lampadaire a été mise à jour avec succès."
-        );
-      } else if (pendingMarkerUpdate.type === "Compteurs") {
-        updateMeterPosition(
-          pendingMarkerUpdate.id,
-          pendingMarkerUpdate.position
-        );
-        toast.success("La position du compteur a été mise à jour avec succès.");
-      } else if (pendingMarkerUpdate.type === "Amoires") {
-        updateCabinetPosition(
-          pendingMarkerUpdate.id,
-          pendingMarkerUpdate.position
-        );
-        toast.success(
-          "La position de l'armoire a été mise à jour avec succès."
-        );
-      } else if (pendingMarkerUpdate.type === "Substations") {
-        updateSubstationPosition(
-          pendingMarkerUpdate.id,
-          pendingMarkerUpdate.position
-        );
-        toast.success("La position du poste a été mise à jour avec succès.");
-      }
-
-      // Fermer le modal et réinitialiser les états
-      setIsAuthModalOpen(false);
-      setEmailInput("");
-      setPendingMarkerUpdate(null);
-    } else {
-      // Afficher un message d'erreur si l'email ne correspond pas
-      toast.error("L'email saisi ne correspond pas à l'utilisateur connecté.");
+    // Effectuer la mise à jour de la position
+    if (pendingMarkerUpdate.type === "Lampadaires") {
+      updateStreetlightPosition(
+        pendingMarkerUpdate.id,
+        pendingMarkerUpdate.position
+      );
+      toast.success("La position du lampadaire a été mise à jour avec succès.");
+    } else if (pendingMarkerUpdate.type === "Compteurs") {
+      updateMeterPosition(pendingMarkerUpdate.id, pendingMarkerUpdate.position);
+      toast.success("La position du compteur a été mise à jour avec succès.");
+    } else if (pendingMarkerUpdate.type === "Amoires") {
+      updateCabinetPosition(
+        pendingMarkerUpdate.id,
+        pendingMarkerUpdate.position
+      );
+      toast.success("La position de l'armoire a été mise à jour avec succès.");
+    } else if (pendingMarkerUpdate.type === "Substations") {
+      updateSubstationPosition(
+        pendingMarkerUpdate.id,
+        pendingMarkerUpdate.position
+      );
+      toast.success("La position du poste a été mise à jour avec succès.");
     }
+    // Fermer le modal et réinitialiser les états
+    setIsAuthModalOpen(false);
+    setPendingMarkerUpdate(null);
   };
 
   const renderPopup = (category: string, eq: any) => {
+    if (eq && eq.location) {
+      const [lat, lng] = eq.location.split(",");
+      getAddressFromCoords(Number(lat), Number(lng)).then((addr) => {
+        setPopupAddress(addr);
+      });
+    }
+
     switch (category) {
       case "Lampadaires":
         return (
@@ -460,65 +442,16 @@ const EquipmentMap: React.FC = () => {
                 ? eq.municipality
                 : eq.municipality?.name}
             </p>
+            <p>
+              <strong>Localisation : </strong>
+              {popupAddress || "Chargement..."}
+            </p>
           </div>
         );
       default:
         return null;
     }
   };
-  const municipalities = [
-    "DOUALA 1",
-    "DOUALA 2",
-    "DOUALA 3",
-    "DOUALA 4",
-    "DOUALA 5",
-  ];
-  const types = ["1 Bras", "2 Bras", "3 Bras", "Mât d'éclairage"];
-
-  const groupedByMunicipality = useMemo(() => {
-    const result: Record<string, Record<string, number>> = {};
-
-    // Initialiser chaque commune avec tous les types à 0
-    municipalities.forEach((commune) => {
-      result[commune] = {};
-      types.forEach((type) => {
-        result[commune][type] = 0;
-      });
-    });
-
-    streetlights.forEach((lamp) => {
-      const municipality = lamp.municipality;
-      const type = lamp.streetlight_type;
-
-      if (!result[municipality]) {
-        result[municipality] = {};
-        types.forEach((t) => (result[municipality][t] = 0));
-      }
-
-      if (result[municipality][type] !== undefined) {
-        result[municipality][type]++;
-      } else {
-        result[municipality][type] = 1;
-      }
-    });
-
-    return result;
-  }, [streetlights]);
-
-  const totalByType = useMemo(() => {
-    const result: Record<string, number> = {};
-    types.forEach((type) => {
-      result[type] = 0;
-    });
-
-    municipalities.forEach((commune) => {
-      types.forEach((type) => {
-        result[type] += groupedByMunicipality[commune][type];
-      });
-    });
-
-    return result;
-  }, [groupedByMunicipality]);
 
   // Fonction pour extraire et dédupliquer les municipalités et réseaux
   useEffect(() => {
@@ -565,14 +498,8 @@ const EquipmentMap: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto flex flex-col space-y-4 mt-5">
+      <div className="container mx-auto flex flex-col md:space-y-4 mt-20">
         <SkeletonCardUser />
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:grid-cols-2 gap-4 mx-auto">
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-        </div>
         <div className="grid grid-cols-1 p-2 md:p-4">
           <SkeletonCard />
         </div>
@@ -591,29 +518,12 @@ const EquipmentMap: React.FC = () => {
     return acc;
   }, {} as Record<number, EquipementStreetlights[]>);
 
-  // Résultat du calcul par groupe :
-  const distanceParCabinet = Object.entries(groupedByCabinet).map(
-    ([cabinetId, group]) => {
-      const positions: [number, number][] = group
-        .map((l) => {
-          const parts = l.location.split(",").map(Number);
-          return parts.length === 2
-            ? ([parts[0], parts[1]] as [number, number])
-            : null;
-        })
-        .filter((pos): pos is [number, number] => pos !== null);
-
-      return {
-        cabinetId,
-        distance: calculateTotalDistance(positions),
-      };
-    }
-  );
+  // Calcul des stats du reseau de lampadaires par commune
 
   return (
-    <div className="container mx-auto py-1 space-y-4">
+    <div className="container mx-auto">
       {/* Carte des équipements */}
-      <div className="h-[85vh] w-full overflow-hidden rounded-lg relative z-10">
+      <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
         {/* Filtrage des équipements */}
         <div className="absolute bottom-4 right-4 z-20">
           <button
@@ -791,10 +701,10 @@ const EquipmentMap: React.FC = () => {
             </div>
           )}
         </div>
-
+        {/*carte */}
         <MapContainer
           center={[4.0911652, 9.7358404]}
-          zoom={80}
+          zoom={100}
           style={{ height: "100%", width: "100%" }}
           className="leaflet-container rounded-lg z-10"
         >
@@ -803,11 +713,11 @@ const EquipmentMap: React.FC = () => {
           {Object.entries(filteredEquipments).map(([category, equipments]) =>
             equipments.map((eq) => {
               const { lat, lng } = parseLocation(eq.location);
+
               const handleDragEnd = (e: L.LeafletEvent) => {
                 const marker = e.target;
                 const position = marker.getLatLng();
                 const newposition = `${position.lat},${position.lng}`;
-
                 // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
                 verifyAndUpdatePosition(eq.id, newposition, category);
               };
@@ -826,53 +736,63 @@ const EquipmentMap: React.FC = () => {
               );
             })
           )}
-          {Object.entries(groupedByCabinet).map(([cabinetId, lampGroup]) => {
-            const positions: [number, number][] = lampGroup
-              .map((l) => {
-                const parts = l.location.split(",").map(Number);
-                if (parts.length === 2)
-                  return [parts[0], parts[1]] as [number, number];
-                return null;
-              })
-              .filter((pos): pos is [number, number] => pos !== null);
+          {Object.entries(groupedByCabinet).map(
+            ([cabinetId, lampGroup], index) => {
+              const positions: [number, number][] = lampGroup
+                .map((l) => {
+                  const parts = l.location.split(",").map(Number);
+                  if (parts.length === 2)
+                    return [parts[0], parts[1]] as [number, number];
+                  return null;
+                })
+                .filter((pos): pos is [number, number] => pos !== null);
 
-            const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
-            const [cabLat, cabLng] =
-              cabinet?.location.split(",").map(Number) || [];
+              const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
+              const [cabLat, cabLng] =
+                cabinet?.location.split(",").map(Number) || [];
 
-            const totalDistance = calculateTotalDistance(positions);
+              const totalDistance = calculateTotalDistance(positions);
 
-            return (
-              <Fragment key={cabinetId}>
-                {/* Polyline entre lampadaires */}
-                <Polyline
-                  positions={positions}
-                  color="blue"
-                  eventHandlers={{
-                    click: () => {
-                      const midIndex = Math.floor(positions.length / 2);
-                      const centerPos = positions[midIndex];
-                      setPopupInfo({
-                        position: centerPos,
-                        distance: totalDistance,
-                        cabinetId,
-                      });
-                    },
-                  }}
-                />
+              //const midIndex = Math.floor(positions.length / 2);
+              const centerPos = positions[0];
 
-                {/* Lignes entre chaque lampadaire et l’armoire */}
-                {positions.map((lampPos, idx) => (
+              return (
+                <Fragment key={cabinetId}>
+                  {/* Polyline entre lampadaires */}
                   <Polyline
-                    key={idx}
-                    positions={[lampPos, [cabLat, cabLng]]}
-                    color="gray"
-                    dashArray="4"
+                    positions={positions}
+                    color="blue"
+                    eventHandlers={{
+                      click: () => {
+                        const midIndex = Math.floor(positions.length / 2);
+                        const centerPos = positions[midIndex];
+                        setPopupInfo({
+                          position: centerPos,
+                          distance: totalDistance,
+                          cabinetId,
+                        });
+                      },
+                    }}
                   />
-                ))}
-              </Fragment>
-            );
-          })}
+
+                  {/* Lignes entre chaque groupe lampadaire et l’armoire */}
+                  {positions.length > 0 && (
+                    <Polyline
+                      positions={[positions[0], [cabLat, cabLng]]}
+                      color="gray"
+                      dashArray="4"
+                    />
+                  )}
+                  {centerPos && (
+                    <Marker
+                      position={centerPos}
+                      icon={customLabelIcon(`R${index + 1}`)}
+                    />
+                  )}
+                </Fragment>
+              );
+            }
+          )}
           {cabinets.map((cabinet) => {
             if (!cabinet.location || !cabinet.meter_id) return null;
 
@@ -894,103 +814,28 @@ const EquipmentMap: React.FC = () => {
           })}
         </MapContainer>
       </div>
-      <div className="my-8">
-        <h1 className="text-xl md:text-3xl font-bold text-center">
-          Tableau recapitulatif du nombre de supports par commune
-        </h1>
-      </div>
-      <table className="min-w-full bg-white dark:bg-gray-900 rounded shadow">
-        <thead>
-          <tr className="bg-gray-100 dark:bg-gray-800">
-            <th className="px-4 py-2 text-left">Commune</th>
-            {types.map((type) => (
-              <th key={type} className="px-4 py-2 text-left">
-                {type}
-              </th>
-            ))}
-            <th className="px-4 py-2 text-left">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {municipalities.map((municipality) => {
-            const counts = groupedByMunicipality[municipality];
-            const total = Object.values(counts).reduce(
-              (sum, val) => sum + val,
-              0
-            );
-            return (
-              <tr key={municipality} className="border-t">
-                <td className="px-4 py-2">{municipality}</td>
-                {types.map((type) => (
-                  <td key={type} className="px-4 py-2">
-                    {counts[type]}
-                  </td>
-                ))}
-                <td className="px-4 py-2 font-bold">{total}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-        <tfoot>
-          <tr className="bg-gray-100 dark:bg-gray-800 font-semibold">
-            <td className="px-4 py-2">Total</td>
-            {types.map((type) => (
-              <td key={type} className="px-4 py-2">
-                {totalByType[type]}
-              </td>
-            ))}
-            <td className="px-4 py-2">
-              {Object.values(totalByType).reduce((sum, val) => sum + val, 0)}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
 
       {/* Modal d'authentification */}
       <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Vérification d'identité</DialogTitle>
+            <DialogTitle>Confirmation</DialogTitle>
             <DialogDescription>
-              Pour des raisons de sécurité, veuillez confirmer votre identité
-              avant de modifier la position de l'équipement.
+              Pour des raisons de sécurité, veuillez confirmer votre choix.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="Entrez votre email"
-                className="col-span-3"
-              />
-            </div>
-            {currentUser && (
-              <p className="text-sm text-muted-foreground">
-                Veuillez entrer l'email associé à votre compte:{" "}
-                {currentUser.email?.substring(0, 3)}...
-                {currentUser.email?.substring(currentUser.email.indexOf("@"))}
-              </p>
-            )}
-          </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setIsAuthModalOpen(false);
-                setEmailInput("");
                 setPendingMarkerUpdate(null);
               }}
             >
               Annuler
             </Button>
             <Button type="submit" onClick={confirmAuthentication}>
-              Vérifier et modifier
+              Modifier la position
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1011,7 +856,7 @@ const EquipmentMap: React.FC = () => {
             </p>
             <p className="text-sm">
               <span className="font-semibold">Distance du réseau :</span>{" "}
-              {popupInfo.distance.toFixed(2)} km
+              {popupInfo.distance.toFixed(4)} km
             </p>
           </div>
         </div>

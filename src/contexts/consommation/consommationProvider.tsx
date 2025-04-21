@@ -7,15 +7,24 @@ import { ConsommationContext } from "./ConsommationContext";
 import { useEquipements } from "../EquipementContext";
 
 // Provider pour gérer les données globales
-const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
-  const { streetlights, error } = useEquipements();
+const ConsommationProvider = ({
+  children,
+  filteredStreetlights,
+}: {
+  children: React.ReactNode;
+  filteredStreetlights: any[];
+}) => {
+  const { streetlights: allStreetlights, error } = useEquipements();
   const [streetlightTypes, setStreetlightTypes] = useState<StreetlightType[]>(
     []
   );
+  const streetlights = filteredStreetlights || allStreetlights;
+
   const [currentPeriod, setCurrentPeriod] = useState<string>("Hebdomadaire");
   const [data, setData] = useState<any[]>([]);
 
   // Convertir les données des lampadaires de l'API en StreetlightType
+
   useEffect(() => {
     if (streetlights && streetlights.length > 0) {
       // Regrouper les lampadaires par type et catégorie
@@ -23,7 +32,7 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
         const typeKey = `${streetlight.lamps[0].lamp_type}_${streetlight.lamps[0].with_balast}`;
         if (!acc[typeKey]) {
           acc[typeKey] = {
-            id: streetlight.lamps[0].streelight_id,
+            id: streetlight.lamps[0].streetlight_id,
             name: streetlight.lamps[0].lamp_type,
             category: streetlight.lamps[0].lamp_type.includes("LED")
               ? "LED"
@@ -35,7 +44,10 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
               streetlight.off_time
             ),
             quantite: 1,
-            couleur: getColorForType(typeKey),
+            // couleur: getColorForType(typeKey),
+            couleur: getColorForType(
+              streetlight.lamps[0].lamp_type.includes("LED")
+            ),
             with_balast: Boolean(streetlight.lamps[0]?.with_balast),
           };
         } else {
@@ -55,15 +67,18 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Transformer l'objet en tableau
       const typesArray = Object.values(streetlightsByType).map(
-        (type, index) => ({
-          ...type,
-          id: index + 1, // Assurer un ID unique
-          // Estimation de la puissance lumineuse basée sur le type
-          puissanceLumineuse:
-            type.category === "LED"
-              ? type.puissanceConsommee * 2.5 // Les LEDs ont généralement un meilleur rendement
-              : type.puissanceConsommee * 1.1,
-        })
+        (type, index) => {
+          const streetlightType = type as StreetlightType; // Explicitly cast to StreetlightType
+          return {
+            ...streetlightType,
+            id: index + 1, // Assurer un ID unique
+            // Estimation de la puissance lumineuse basée sur le type
+            puissanceLumineuse:
+              streetlightType.category === "LED"
+                ? streetlightType.puissanceConsommee * 2.5 // Les LEDs ont généralement un meilleur rendement
+                : streetlightType.puissanceConsommee * 1.1,
+          };
+        }
       );
 
       setStreetlightTypes(typesArray);
@@ -94,41 +109,70 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Attribuer une couleur à chaque type de lampadaire
-  const getColorForType = (typeKey: string): string => {
-    const colorMap: Record<string, string> = {
-      LED_true: "#10B722",
-      LED_false: "#059FFF",
-      HPS_true: "#F59E00", // High Pressure Sodium
-      HPS_false: "#EF4444",
-      MH_true: "#9333EA", // Metal Halide
-      MH_false: "#8B5CF6",
-      Mercury_true: "#FBBF24",
-      Mercury_false: "#F87171",
-    };
+  // const getColorForType = (typeKey: string): string => {
+  //   const colorMap: Record<string, string> = {
+  //     LED_true: "#10B722",
+  //     LED_false: "#059FFF",
+  //     HPS_true: "#F59E00", // High Pressure Sodium
+  //     HPS_false: "#EF4444",
+  //     MH_true: "#9333EA", // Metal Halide
+  //     MH_false: "#8B5CF6",
+  //     Mercury_true: "#FBBF24",
+  //     Mercury_false: "#F87171",
+  //   };
 
-    return (
-      colorMap[typeKey] ||
-      `#${Math.floor(Math.random() * 16777215).toString(16)}`
-    );
+  //   return (
+  //     colorMap[typeKey] ||
+  //     `#${Math.floor(Math.random() * 16777215).toString(16)}`
+  //   );
+  // };
+  const getColorForType = (isLED: boolean): string => {
+    return isLED ? "#4CAF50" : "#FF9800"; // Vert pour LED, Orange pour autres
   };
-
   // Fonction pour générer les données
   const generateData = (period: string) => {
     if (streetlightTypes.length === 0) return [];
 
     // Définir la longueur et les étiquettes de temps en fonction de la période
     let timeLabels: string[] = [];
-    let fluctuationFactor = 0.2; // Facteur de fluctuation pour rendre les données plus réalistes
+    // let fluctuationFactor = 0.2; // Facteur de fluctuation pour rendre les données plus réalistes
+
+    // if (period === "Journaliere") {
+    //   timeLabels = Array.from({ length: 24 }, (_, i) => `${i}h`);
+    //   fluctuationFactor = 0.4; // Plus de variation pour les données horaires
+    // } else if (period === "Hebdomadaire") {
+    //   timeLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+    //   fluctuationFactor = 0.3;
+    // } else if (period === "Mensuelle") {
+    //   timeLabels = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
+    //   fluctuationFactor = 0.25;
+    // } else if (period === "Annuelle") {
+    //   timeLabels = [
+    //     "Jan",
+    //     "Fév",
+    //     "Mar",
+    //     "Avr",
+    //     "Mai",
+    //     "Juin",
+    //     "Juil",
+    //     "Août",
+    //     "Sep",
+    //     "Oct",
+    //     "Nov",
+    //     "Déc",
+    //   ];
+    //   fluctuationFactor = 0.15;
+    // }
+
+    // // Calculer le tarif par kWh
+    // const tarifKWh = 50;
 
     if (period === "Journaliere") {
       timeLabels = Array.from({ length: 24 }, (_, i) => `${i}h`);
-      fluctuationFactor = 0.4; // Plus de variation pour les données horaires
     } else if (period === "Hebdomadaire") {
       timeLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-      fluctuationFactor = 0.3;
     } else if (period === "Mensuelle") {
       timeLabels = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
-      fluctuationFactor = 0.25;
     } else if (period === "Annuelle") {
       timeLabels = [
         "Jan",
@@ -144,11 +188,10 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
         "Nov",
         "Déc",
       ];
-      fluctuationFactor = 0.15;
     }
 
-    // Calculer le tarif par kWh
-    const tarifKWh = 50;
+    // Calculer le tarif par kWh (tarif actuel au Cameroun - 94 FCFA/kWh)
+    const tarifKWh = 94;
 
     // Générer les données pour chaque point temporel
     return timeLabels.map((label) => {
@@ -210,8 +253,8 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         // Ajouter une fluctuation aléatoire pour rendre les données plus réalistes
-        const randomFactor = 1 + (Math.random() * 2 - 1) * fluctuationFactor;
-        const consommation = Math.round((baseConsommation || 0) * randomFactor);
+
+        const consommation = Math.round(baseConsommation || 0);
 
         // Calculer le coût correspondant
         const cout = Math.round(consommation * tarifKWh);
@@ -228,6 +271,25 @@ const ConsommationProvider = ({ children }: { children: React.ReactNode }) => {
         dataPoint[`consommation_${type.category}`] += consommation;
         dataPoint[`cout_${type.category}`] += cout;
       });
+
+      //   const randomFactor = 1 + (Math.random() * 2 - 1) * fluctuationFactor;
+      //   const consommation = Math.round((baseConsommation || 0) * randomFactor);
+
+      //   // Calculer le coût correspondant
+      //   const cout = Math.round(consommation * tarifKWh);
+
+      //   // Ajouter au point de données avec un identifiant unique pour chaque type
+      //   dataPoint[`consommation_${type.id}`] = consommation;
+      //   dataPoint[`cout_${type.id}`] = cout;
+
+      //   // Ajouter des totaux par catégorie
+      //   if (!dataPoint[`consommation_${type.category}`]) {
+      //     dataPoint[`consommation_${type.category}`] = 0;
+      //     dataPoint[`cout_${type.category}`] = 0;
+      //   }
+      //   dataPoint[`consommation_${type.category}`] += consommation;
+      //   dataPoint[`cout_${type.category}`] += cout;
+      // });
 
       return dataPoint;
     });
