@@ -56,8 +56,8 @@ export const Layout = () => {
             </div>
             <div
               className={cn(
-                "h-full mt-12 md:px-6 md:py-8 overflow-auto",
-                "transition-all duration-200 ease-in-out bg-gray-400 dark:bg-gray-600"
+                "h-full mt-12 md:px-4 md:py-6 overflow-auto",
+                "transition-all duration-200 ease-in-out bg-gray-400 dark:bg-gray-500"
               )}
               style={{
                 backgroundImage:

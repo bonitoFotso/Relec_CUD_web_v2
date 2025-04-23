@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -78,10 +77,7 @@ const PermissionsManagement: React.FC = () => {
     }
     try {
       setAssigning(true);
-      await UserService.assignPermissions(
-          selectedRoleId,
-          selectedPermissions
-        );
+      await UserService.assignPermissions(selectedRoleId, selectedPermissions);
       toast.success("Permissions assignées avec succès.");
       fetchAssignRoles();
       setModalOpen(false);
@@ -94,9 +90,11 @@ const PermissionsManagement: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center">
-      <Skeleton className="h-[30vh] w-[95%]" />
-    </div>;
+    return (
+      <div className="flex justify-center items-center">
+        <Skeleton className="h-[30vh] w-[95%]" />
+      </div>
+    );
   }
   if (error) {
     return (
@@ -116,50 +114,47 @@ const PermissionsManagement: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold mb-4">Gestion des Permissions</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Rôles et permissions assignées</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableCaption>
-              Chaque ligne affiche un rôle et le nombre de permissions assignées
-            </TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Permissions assignées</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {assignRolesData.roles.map((role) => {
-                const assignedCount = assignRolesData.role_permissions.filter(
-                  (rp) => rp.role_id === role.id
-                ).length;
-                return (
-                  <TableRow key={role.id}>
-                    <TableCell>{role.name}</TableCell>
-                    <TableCell>
-                      {assignedCount} / {assignRolesData.permissions.length}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleRoleClick(role.id)}
-                      >
-                        Assigner permissions
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <div className="container mx-auto px-5 space-y-2">
+      <h1 className="text-3xl font-bold ">Gestion des Permissions</h1>
+      <h4>Rôles et permissions assignées</h4>
+
+      <div className="p-3 mt-5">
+        <Table>
+          <TableCaption>
+            Chaque ligne affiche un rôle et le nombre de permissions assignées
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Permissions assignées</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignRolesData.roles.map((role) => {
+              const assignedCount = assignRolesData.role_permissions.filter(
+                (rp) => rp.role_id === role.id
+              ).length;
+              return (
+                <TableRow key={role.id}>
+                  <TableCell>{role.name}</TableCell>
+                  <TableCell>
+                    {assignedCount} / {assignRolesData.permissions.length}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleRoleClick(role.id)}
+                    >
+                      Assigner permissions
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
@@ -190,9 +185,13 @@ const PermissionsManagement: React.FC = () => {
               Annuler
             </Button>
             <Button onClick={handleAssignPermissions} disabled={assigning}>
-              {assigning ?<>
-                <Spinner className="h-4 w-4"/> Enregistrement... 
-              </>: "Enregistrer"}
+              {assigning ? (
+                <>
+                  <Spinner className="h-4 w-4" /> Enregistrement...
+                </>
+              ) : (
+                "Enregistrer"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

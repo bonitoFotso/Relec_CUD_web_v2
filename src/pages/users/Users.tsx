@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PlusIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 
+import { useCompanies } from "@/contexts/CompagnieContext";
 // Importer nos composants
 import UserFormDialog from "@/components/UserFormDialog";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ const userFormSchema = z.object({
     .string()
     .min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
   email: z.string().email({ message: "Adresse email invalide." }),
+  company_id: z.number().min(1, { message: "Veuillez sélectionner une compagnie." }),
   phone: z.string().min(8, { message: "Numéro de téléphone invalide." }),
   sex: z.enum(["M", "F"], { required_error: "Veuillez sélectionner un sexe." }),
   role: z.string().min(2, { message: "Veuillez sélectionner un rôle." }),
@@ -58,6 +60,7 @@ const UserManagement: React.FC = () => {
     deleteUser,
     getAllStreetlights,
   } = useUsers();
+    const { companies} =  useCompanies();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -71,6 +74,7 @@ const UserManagement: React.FC = () => {
     defaultValues: {
       name: "",
       email: "",
+      company_id:undefined,
       phone: "",
       sex: undefined,
       role: undefined,
@@ -95,6 +99,7 @@ const UserManagement: React.FC = () => {
     form.reset({
       name: "",
       email: "",
+      company_id:undefined,
       phone: "",
       sex: undefined,
       role: undefined,
@@ -120,7 +125,14 @@ const UserManagement: React.FC = () => {
   const onSubmit = async (values: UserFormValues) => {
     try {
       if (editingUser) {
-        await updateUser({ ...values, id: editingUser.id, status: "active" });
+        await updateUser({
+          ...values,
+          id: editingUser.id,
+          status: "active",
+          company_id: editingUser.company_id,
+          is_active: editingUser.is_active,
+          company: undefined
+        });
         toast.success("Utilisateur mis à jour");
       } else {
         await createUser(values as User);
@@ -157,6 +169,11 @@ const UserManagement: React.FC = () => {
   const handleDeleteClick = (user: User) => {
     setUserToDelete(user);
     setIsAlertDialogOpen(true);
+  };
+
+  const getCompanieName = (id: number) => {
+    const companie = companies.find((c) => c.id === id);
+    return companie?.name || "Compagnie inconnue";
   };
 
 
@@ -200,6 +217,7 @@ const UserManagement: React.FC = () => {
               <TableRow>
                 <TableHead>Nom</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Compagnie</TableHead>
                 <TableHead>Téléphone</TableHead>
                 <TableHead>Sexe</TableHead>
                 <TableHead>Rôle</TableHead>
@@ -213,6 +231,7 @@ const UserManagement: React.FC = () => {
                   <TableRow key={user!.id}>
                     <TableCell className="font-medium">{user!.name}</TableCell>
                     <TableCell>{user!.email}</TableCell>
+                    <TableCell>{getCompanieName(user!.company_id)}</TableCell>
                     <TableCell>{user!.phone}</TableCell>
                     <TableCell>
                       {user!.sex === "M" ? "Masculin" : "Féminin"}

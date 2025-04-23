@@ -25,6 +25,8 @@ import Tableau from "./pages/maskingBox/Tableau";
 import Cartographie from "./pages/maskingBox/carte/Cartographie";
 import PageCompte from "./pages/comptes/PageComptes";
 import PageAcceuil from "./pages/historiques/PageAcceuil";
+import Companies from "./pages/companies/Companies";
+import CompanieUsers from "./pages/companies/CompanieUsers";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -60,6 +62,10 @@ const App: React.FC = () => {
               <Route path="/missions/:id" element={<MissionDetails />} />
 
               <Route path="/comptes" element={<PageCompte />} />
+
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/companies/:id" element={<CompanieUsers />} />
+
               <Route path="/historiques" element={<PageAcceuil />} />
               <Route path="/historiques/:tab" element={<PageAcceuil />} />
               <Route path="/profile" element={<Profil />} />

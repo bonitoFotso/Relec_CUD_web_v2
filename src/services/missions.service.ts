@@ -3,6 +3,7 @@
 import { AxiosResponse, AxiosError } from "axios";
 import apiClient from "./apiClient";
 import { Sticker } from "./stickers.service";
+import { Companie } from "./companieService";
 
 // Interfaces de base
 export interface Mission {
@@ -21,12 +22,11 @@ export interface Mission {
     name: string;
   };
   street?: Street[];
-  municipality: Municipalities; // Plusieurs rues possibles
   intervention_type?: {
     id: number;
     name: string;
   };
-  agents?: Agent[];
+  agents?: number[];
 }
 export interface Municipalities {
   id: number;
@@ -37,11 +37,13 @@ export interface Agent {
   name: string;
   email?: string;
   role?: string;
+  company: Companie;
 }
 
 export interface Street {
   id: number;
   name: string;
+  municipality_id: number;
 }
 
 export interface InterventionType {
@@ -66,9 +68,10 @@ export interface MissionsDetailsResponse {
 
 export interface MissionFormData {
   agents?: Agent[];
-  streets?: Street[];
-  municipalities?: Municipalities[];
-  interventions?: InterventionType[];
+  streets: Street[];
+  municipalities: Municipalities[];
+  interventions: InterventionType[];
+  companies: Companie[];
 }
 
 // Classe de service pour les missions
@@ -149,8 +152,8 @@ export const MissionsService = {
         );
       }
       // Extraction des données directement depuis response.data
-      const { agents, streets, interventions } = response.data;
-      return { agents, streets, interventions };
+      const { agents, streets, interventions,companies,municipalities } = response.data;
+      return { agents, streets, interventions,companies,municipalities };
     } catch (error) {
       const errorMessage =
         error instanceof AxiosError

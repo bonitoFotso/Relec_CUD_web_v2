@@ -256,14 +256,14 @@ const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Cartes statistiques */}
+      {/* Cartes statistiques*/}
       <StatsCards stats={stats} />
 
-      {/* Graphiques */}
+      {/*Graphiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MissionTypeChart data={missionTypeData} />
         <StickerUsageChart data={stickerMonthlyData} />
-      </div>
+      </div> 
 
       {/* tableaux */}
       <TableauCommunes />

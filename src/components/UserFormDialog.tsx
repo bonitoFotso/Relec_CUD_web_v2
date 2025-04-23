@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React, { useEffect, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -25,16 +25,18 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useUsers } from '@/contexts/UserContext';
-import { UserFormValues } from '@/pages/users/Users';
-import { Spinner } from './ui/spinner';
+import { useUsers } from "@/contexts/UserContext";
+import { UserFormValues } from "@/pages/users/Users";
+import { Spinner } from "./ui/spinner";
+import { useCompanies } from "@/contexts/CompagnieContext";
 
 interface User {
   id?: number;
   name: string;
   email: string;
+  company_id: number;
   phone: string;
-  sex: 'M' | 'F';
+  sex: "M" | "F";
   role: string;
   password?: string;
 }
@@ -58,6 +60,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
 }) => {
   const { roles, getRoles } = useUsers();
   const [loading, setLoading] = useState(false);
+  const { companies } = useCompanies();
 
   useEffect(() => {
     getRoles();
@@ -88,7 +91,10 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmitWrapper)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmitWrapper)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -115,6 +121,37 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                 </FormItem>
               )}
             />
+            {/* Compagnie (convertir value en number) */}
+            <FormField
+              control={form.control}
+              name="company_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Entreprise</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value?.toString() ?? ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner sa compagnie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((company) => (
+                          <SelectItem
+                            key={company.id}
+                            value={company.id.toString()}
+                          >
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="phone"
@@ -134,8 +171,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sexe</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     value={field.value}
                   >
@@ -159,8 +196,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rôle</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     value={field.value}
                   >
@@ -170,11 +207,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                        {(roles)?.map((role: string) => (
-                            <SelectItem key={role} value={role}>
-                                {role}
-                            </SelectItem>
-                        ))}
+                      {roles?.map((role: string) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -189,10 +226,10 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                   <FormItem>
                     <FormLabel>Mot de passe</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Mot de passe" 
-                        {...field} 
+                      <Input
+                        type="password"
+                        placeholder="Mot de passe"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -201,22 +238,23 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
               />
             )}
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onCancel}
                 disabled={loading}
               >
                 Annuler
               </Button>
               <Button type="submit" disabled={loading}>
-                {
-                  loading && <Spinner className="h-5 w-5" />
-                }
-                {loading ?
-                  (editingUser ? "Mettre à jour en cours" : "Création de l'utilisateur en cours")
-                  :(editingUser ? "Mettre à jour" : "Créer")
-                }
+                {loading && <Spinner className="h-5 w-5" />}
+                {loading
+                  ? editingUser
+                    ? "Mettre à jour en cours"
+                    : "Création de l'utilisateur en cours"
+                  : editingUser
+                  ? "Mettre à jour"
+                  : "Créer"}
               </Button>
             </DialogFooter>
           </form>

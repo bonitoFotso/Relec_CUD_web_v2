@@ -182,7 +182,7 @@ const StatistiquesCard: React.FC<StatistiquesCardsPropsUpdated> = ({
     },
     {
       title: "Lampadaires allumés",
-      value: statistics.onStreetlights || 0,
+      value: statistics.onStreetlights,
       icon: "Check",
       color: "bg-amber-500",
       cardBackground: "bg-amber-100",

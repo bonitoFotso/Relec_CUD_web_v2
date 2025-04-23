@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   Dialog,
@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner"; // Ajout du Spinner
+import { Spinner } from "@/components/ui/spinner";
 import { Mission, MissionFormData } from "@/services/missions.service";
 import { MissionFormValues } from "@/pages/missions/MissionManagement";
 import { useUsers } from "@/contexts/UserContext";
@@ -32,7 +32,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
+import AgentsSelectionDialog from "./AgentsSelectionDialog";
 
 interface MissionFormDialogProps {
   open: boolean;
@@ -57,25 +58,40 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isStreetDialogOpen, setIsStreetDialogOpen] = useState(false);
+  const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
 
-  // Obtenir le nom de l'utilisateur
-  const getUserName = (id: number) => {
-    const user = users?.find((u) => u.id === id);
-    return user?.name || "Utilisateur inconnu";
-  };
+  const { handleSubmit, control } = form;
+
+  useEffect(() => {
+    // init default municipality and company if needed
+    if (!form.getValues("municipality_id")) {
+      form.setValue("municipality_id", 1);
+    }
+    if (!form.getValues("company_id")) {
+      form.setValue("company_id", formData.companies?.[0]?.id || 0);
+    }
+  }, [form, formData.companies]);
 
   if (!currentUser || !currentUser.id) {
     return <Alert variant="destructive">Aucun utilisateur connecté.</Alert>;
   }
 
-  // Fonction pour afficher la liste des rues sélectionnées sous forme de texte
+  // Helper to display street names
   const getStreetNamesText = () => {
     const ids: number[] = form.getValues("streets") || [];
-    if (ids.length === 0) return "Sélectionner des rues";
-    const names = ids
-      .map((id) => formData.streets?.find((s) => s.id === id)?.name)
-      .filter(Boolean);
-    return names.join(", ") || "Sélectionner des rues";
+    if (!ids.length) return "Sélectionner des rues";
+    const names =
+      formData.streets?.filter((s) => ids.includes(s.id)).map((s) => s.name) ||
+      [];
+    return names.join(", ");
+  };
+
+  // Helper to display agent names
+  const getAgentNamesText = () => {
+    const ids: number[] = form.getValues("agents") || [];
+    if (!ids.length) return "Sélectionner des agents";
+    const names = users.filter((u) => ids.includes(u.id!)).map((u) => u.name);
+    return names.join(", ");
   };
 
   return (
@@ -92,15 +108,22 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
           </DialogHeader>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(async (data) => {
+              onSubmit={handleSubmit(async (data) => {
                 setLoading(true);
-                await onSubmit({ ...data, id: editingMission?.id || 0 });
+                await onSubmit({
+                  ...data,
+                  id: editingMission?.id || 0,
+                  // Filtrez mais ne gardez que les IDs
+                  agents: data.agents,
+                });
+
                 setLoading(false);
               })}
               className="space-y-4"
             >
+              {/* Titre */}
               <FormField
-                control={form.control}
+                control={control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
@@ -113,8 +136,9 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 )}
               />
 
+              {/* Description */}
               <FormField
-                control={form.control}
+                control={control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
@@ -124,7 +148,6 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                         placeholder="Description de la mission"
                         className="resize-none"
                         {...field}
-                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -132,53 +155,164 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 )}
               />
 
-              <div className="grid grid-cols-1">
-                {/* Bouton pour ouvrir le modal de sélection des rues */}
-                <FormField
-                  control={form.control}
-                  name="streets"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col mt-3">
-                      <FormLabel>Rue(s)</FormLabel>
-                      <FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsStreetDialogOpen(true)}
-                        >
-                          {getStreetNamesText()}
-                        </Button>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+              {/* Commune */}
               <FormField
-                control={form.control}
+                control={control}
+                name="municipality_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Commune</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une commune" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formData.municipalities?.map((m) => (
+                            <SelectItem key={m.id} value={String(m.id)}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Rues */}
+              <FormField
+                control={control}
+                name="streets"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Rue(s)</FormLabel>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsStreetDialogOpen(true)}
+                      >
+                        {getStreetNamesText()}
+                      </Button>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Type d'intervention */}
+              <FormField
+                control={control}
                 name="intervention_type_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type d'intervention</FormLabel>
-                    {/* Ici vous pouvez conserver votre Select pour le type d'intervention */}
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString()}
-                    >
-                      <FormControl>
+                    <FormControl>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un type d'intervention" />
+                          <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {formData.interventions?.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
-                            {type.name}
+                        <SelectContent>
+                          {formData.interventions?.map((type) => (
+                            <SelectItem key={type.id} value={String(type.id)}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="network_type" // tu peux changer ce nom selon ce que tu veux stocker
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type de réseau</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un type de réseau" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Avec Armoire et sans compteur">
+                            Avec Armoire et sans compteur
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          <SelectItem value="Avec Armoire et avec compteur">
+                            Avec Armoire et avec compteur
+                          </SelectItem>
+                          <SelectItem value="Sans Armoire et avec compteur">
+                            Sans Armoire et avec compteur
+                          </SelectItem>
+                          <SelectItem value="Sans Armoire et sans compteur">
+                            Sans Armoire et sans compteur
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Compagnie */}
+              <FormField
+                control={control}
+                name="company_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compagnie</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une compagnie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formData.companies?.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Agents */}
+              <FormField
+                control={control}
+                name="agents"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Agents</FormLabel>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsAgentDialogOpen(true)}
+                      >
+                        {getAgentNamesText()}
+                      </Button>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -196,7 +330,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 <Button type="submit" disabled={loading}>
                   {loading ? (
                     <>
-                      <Spinner className="mr-2 h-4 w-4" />{" "}
+                      <Spinner className="mr-2 h-4 w-4" />
                       {editingMission
                         ? "Mise à jour en cours"
                         : "Création en cours"}
@@ -217,11 +351,27 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
       <StreetSelectionDialog
         open={isStreetDialogOpen}
         onOpenChange={setIsStreetDialogOpen}
-        streets={formData.streets || []}
+        streets={
+          formData.streets?.filter(
+            (s) => s.municipality_id === form.getValues("municipality_id")
+          ) || []
+        }
         selectedStreetIds={form.getValues("streets") || []}
-        onConfirm={(selectedIds) => {
-          form.setValue("streets", selectedIds);
-        }}
+        onConfirm={(ids) => form.setValue("streets", ids)}
+      />
+
+      {/* Modal de sélection des agents */}
+      <AgentsSelectionDialog
+        open={isAgentDialogOpen}
+        onOpenChange={setIsAgentDialogOpen}
+        users={users.filter(
+          (u): u is typeof u & { id: number } =>
+            u.role === "agent" &&
+            u.company_id === form.getValues("company_id") &&
+            u.id !== undefined
+        )}
+        selectedUserIds={form.getValues("agents") || []}
+        onConfirm={(ids) => form.setValue("agents", ids)}
       />
     </>
   );

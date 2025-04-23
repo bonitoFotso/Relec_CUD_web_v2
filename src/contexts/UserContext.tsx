@@ -1,5 +1,5 @@
 import EquipementService from "@/services/EquipementService";
-import { AssignRoles, User, UserService } from "@/services/UsersService";
+import { User, UserService } from "@/services/UsersService";
 import { Mission, MissionsService } from "@/services/missions.service";
 import React, {
   createContext,
@@ -7,7 +7,6 @@ import React, {
   useState,
   useCallback,
   ReactNode,
-  useEffect,
 } from "react";
 
 interface UserContextType {

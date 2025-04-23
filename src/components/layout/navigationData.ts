@@ -20,16 +20,16 @@ export const navigationGroups: NavigationGroup[] = [
     items: [{ name: "Maps", href: "/maps", iconName: "map" }],
   },
   {
-    items: [{ name: "Comptes", href: "/comptes", iconName: "account" }],
+    items: [{ name: "Entreprises", href: "/companies", iconName: "account" }],
   },
   // {
   //   items: [{ name: "Utilisateurs", href: "/users", iconName: "users" }],
   // },
-  {
-    items: [
-      { name: "Permissions", href: "/permissions", iconName: "permissions" },
-    ],
-  },
+  // {
+  //   items: [
+  //     { name: "Permissions", href: "/permissions", iconName: "permissions" },
+  //   ],
+  // },
   // {
   //   items: [
   //     {

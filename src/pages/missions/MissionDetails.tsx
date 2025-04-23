@@ -184,14 +184,14 @@ const MissionDetails: React.FC = () => {
   };
 
   // Nouvelle fonction pour obtenir les noms des rues à partir d'un tableau d'identifiants
-  const getStreetNames = (ids?: number[]) => {
+  {/*const getStreetNames = (ids?: number[]) => {
     if (!ids || ids.length === 0) return "Boulevard De La Paix";
     const names = ids.map((id) => {
       const street = missionFormData.streets?.find((s) => s.id === id);
       return street ? street.name : "Inconnue";
     });
     return names.join(", ");
-  };
+  };*/}
 
   // Obtenir le nom de l'utilisateur
   const getUserName = (id?: number) => {

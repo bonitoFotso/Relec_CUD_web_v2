@@ -87,7 +87,6 @@ export default function TableauCommunes() {
     groupedByCabinet,
     cabinets,
     streetlights
-    //municipalities
   );
 
   return (
@@ -95,7 +94,7 @@ export default function TableauCommunes() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
           <h4 className="font-bold text-lg mb-2">
-            Nombre de lampe par commune et par type
+            Nombre de lampadaires par commune et par type
           </h4>
           <Table>
             <TableHeader>

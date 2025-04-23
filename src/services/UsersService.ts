@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // api/users.service.ts
 import apiClient from './apiClient';
+import { Companie } from './companieService';
 
 export interface User {
   id?: number;
+  company_id: number;
+  is_active: number;
+  company: Companie;
   name: string;
   email: string;
   phone: string;

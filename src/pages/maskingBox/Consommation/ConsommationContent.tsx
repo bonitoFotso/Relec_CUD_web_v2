@@ -16,8 +16,9 @@ const ConsommationContent = ({
         defaultValue="All"
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as any)}
+        className="bg-white p-3 rounded-lg shadow-md dark:bg-gray-950"
       >
-        <TabsList className=" flex justify-end gap-2">
+        <TabsList className="mb-3 flex items-center justify-center gap-2">
           <TabsTrigger
             value="All"
             className={`w-36 border rounded-lg p-2 text-sm ${

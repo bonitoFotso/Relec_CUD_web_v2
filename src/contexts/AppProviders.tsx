@@ -1,11 +1,11 @@
-import React, { ReactNode, useState, useEffect } from "react";
-import { UserProvider, useUsers } from "./UserContext";
-import { MissionProvider, useMissions } from "./MissionContext";
-import { StickerProvider, useStickers } from "./StickerContext";
-import AuthProvider, { useAuth } from "./AuthContext";
-import LoadingScreen from "@/components/LoadingScreen";
+import React, { ReactNode } from "react";
+import { UserProvider } from "./UserContext";
+import { MissionProvider } from "./MissionContext";
+import { StickerProvider } from "./StickerContext";
+import AuthProvider from "./AuthContext";
 import { PermissionProvider } from "./PermissionContext";
 import { EquipementProvider } from "./EquipementContext";
+import { CompanieProvider } from "./CompagnieContext";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -19,7 +19,10 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
           <StickerProvider>
             <PermissionProvider>
               <EquipementProvider>
+                <CompanieProvider>
+                  
                 {children}
+                </CompanieProvider>
               </EquipementProvider>
             </PermissionProvider>
           </StickerProvider>

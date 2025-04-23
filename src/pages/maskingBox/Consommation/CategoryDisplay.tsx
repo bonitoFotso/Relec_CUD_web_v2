@@ -43,10 +43,6 @@ const CategoryDisplay = ({
               Consommation Énergétique {/* Détaillées */}
               {category !== "All" ? `- ${category}` : ""}
             </h2>
-            {/* <div className="border dark:bg-gray-900 rounded-lg p-2 text-sm text-gray-500">
-              {currentPeriod}
-            </div> */}
-
             <div className="flex flex-col sm:flex-row gap-4">
               <select
                 className="border bg-white dark:bg-gray-900 rounded-lg p-2 text-sm"

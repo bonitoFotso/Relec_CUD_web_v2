@@ -296,6 +296,7 @@ export const LampStatsTableByMunicipality = ({
 type LampNetwork = {
   networkId: string; // identifiant ou nom du réseau
   lampCount: number; // nombre de lampadaires dans ce réseau
+  networkMunicipalitie: string;//communes
 };
 
 export const LampCountByNetworkTable = ({
@@ -308,6 +309,7 @@ export const LampCountByNetworkTable = ({
     ([cabinetId, lampGroup]) => ({
       networkId: `Réseau ${cabinetId}`, // ou juste cabinetId si tu veux
       lampCount: lampGroup.length,
+      networkMunicipalitie: Array.from(new Set(lampGroup.map((lamp) => lamp.municipality))).join(", "),
     })
   );
 
@@ -316,6 +318,7 @@ export const LampCountByNetworkTable = ({
       <TableHeader>
         <TableRow>
           <TableCell className="px-4 py-2 font-semibold">Réseau</TableCell>
+          <TableCell className="px-4 py-2 font-semibold">Commune(s)</TableCell>
           <TableCell className="px-4 py-2 font-semibold">Nombre de Lampadaires</TableCell>
         </TableRow>
       </TableHeader>
@@ -323,6 +326,7 @@ export const LampCountByNetworkTable = ({
         {networks.map((network) => (
           <TableRow key={network.networkId}>
             <TableCell className="px-4 py-2">{network.networkId}</TableCell>
+            <TableCell className="px-4 py-2">{network.networkMunicipalitie}</TableCell>
             <TableCell className="px-4 py-2">{network.lampCount}</TableCell>
           </TableRow>
         ))}

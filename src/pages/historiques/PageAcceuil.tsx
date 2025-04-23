@@ -6,6 +6,7 @@ import Notifications from "../notifications/Notifications";
 import Recommandations from "../maskingBox/Recommandations";
 import UserManagement from "../users/Users";
 import { useNavigate, useLocation } from "react-router-dom";
+import PermissionsManagement from "../permissions/permissions";
 
 // Définition des routes pour chaque onglet
 const tabRoutes = {
@@ -15,6 +16,7 @@ const tabRoutes = {
   analyse: "/historiques/analyse",
   etat_support: "/historiques/etat_support",
   recommendations: "/historiques/recommendations",
+  permissions: "/historiques/permissions",
 };
 
 export default function PageAcceuil() {
@@ -58,7 +60,7 @@ export default function PageAcceuil() {
   }, [location.pathname]);
 
   return (
-    <div className="space-y-5 p-2 h-[80vh] bg-white dark:bg-black rounded-sm">
+    <div className="space-y-5 p-3 h-[80vh] bg-white dark:bg-black rounded-sm">
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-auto flex align-middle bg-gray-50 dark:bg-gray-800 text-gray-500 justify-center items-center p-6 gap-2">
           <TabsTrigger
@@ -80,6 +82,16 @@ export default function PageAcceuil() {
             }`}
           >
             Utilisateurs
+          </TabsTrigger>
+          <TabsTrigger
+            value="permissions"
+            className={`w-36 rounded-lg p-2 text-sm ${
+              activeTab === "permissions"
+                ? "bg-gray-500 text-white"
+                : "dark:bg-gray-900"
+            }`}
+          >
+            Permissions
           </TabsTrigger>
           <TabsTrigger
             value="activites"
@@ -129,6 +141,10 @@ export default function PageAcceuil() {
 
         <TabsContent value="utilisateurs" className="mt-6">
           <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="permissions" className="mt-6">
+          <PermissionsManagement />
         </TabsContent>
 
         <TabsContent value="activites" className="mt-6">

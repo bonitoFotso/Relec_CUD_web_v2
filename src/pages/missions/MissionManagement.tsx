@@ -53,18 +53,33 @@ import { MoreHorizontal } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 
 // Mise à jour du schéma de validation pour le formulaire
-const missionFormSchema = z.object({
+export const missionFormSchema = z.object({
   title: z
     .string()
     .min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
+
   description: z.string().optional(),
-  // Modification ici pour gérer un tableau d'identifiants de rues
+
+  municipality_id: z
+    .number()
+    .min(1, { message: "Veuillez sélectionner une commune." }),
+
   streets: z
     .array(z.number())
     .min(1, { message: "Veuillez sélectionner au moins une rue." }),
-  intervention_type_id: z.number({
-    required_error: "Veuillez sélectionner un type d'intervention.",
-  }),
+
+  intervention_type_id: z
+    .number()
+    .min(1, { message: "Veuillez sélectionner un type d'intervention." }),
+
+  company_id: z
+    .number()
+    .min(1, { message: "Veuillez sélectionner une compagnie." }),
+
+  agents: z
+    .array(z.number())
+    .min(1, { message: "Veuillez sélectionner au moins un agent." }),
+  network_type: z.string().min(3, { message: "Choisi le type de reseau" }),
 });
 
 export type MissionFormValues = z.infer<typeof missionFormSchema>;
@@ -172,11 +187,19 @@ const MissionManagement: React.FC = () => {
   const onSubmit = async (values: MissionFormValues) => {
     try {
       if (editingMission) {
-        await updateMission({ ...values, id: editingMission.id });
+        await updateMission({
+          ...values,
+          id: editingMission.id,
+          agents: values.agents,
+        });
         toast.success("Mission mise à jour");
       } else {
         // Notez que createMission attend désormais un objet de type Mission
-        await createMission(values as Mission);
+        await createMission({
+          ...values,
+          id: 0, // Provide a default value for 'id'
+          agents: values.agents,
+        });
         toast.success("Mission créée");
       }
       await fetchMissions();
