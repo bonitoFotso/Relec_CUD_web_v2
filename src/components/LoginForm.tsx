@@ -28,6 +28,7 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("submit prevented, loading:", loading);
     setError("");
     try {
       await login(email, password);
@@ -112,15 +113,6 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground text-blue-500">
-            <Link
-              to=""
-              className="font-medium text-primary hover:underline"
-            >
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
       </div>
       <div className="bg-blue-950 dark:bg-gray-900 hidden md:col-span-1 relative md:flex items-center justify-center z-1">

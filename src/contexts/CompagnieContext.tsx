@@ -97,7 +97,7 @@ export const CompanieProvider: React.FC<CompanieProviderProps> = ({
   const getAllUserId = useCallback(async (id: number): Promise<CompanieWithUsers> => {
     const data = await CompanieService.getAllUserId(id);
     return data
-  },[])
+  }, [])
 
 
   const value = {

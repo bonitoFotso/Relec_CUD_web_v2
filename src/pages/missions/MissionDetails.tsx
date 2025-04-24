@@ -12,7 +12,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   ArrowLeftIcon,
-  Pencil1Icon,
   TrashIcon,
   PersonIcon,
   ClipboardIcon,
@@ -22,7 +21,6 @@ import {
 } from "@radix-ui/react-icons";
 
 // Composants
-import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -46,18 +44,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AssignAgentDialog from "@/components/AssignAgentDialog";
-import { Mission } from "@/services/missions.service";
+import { Agent, Mission } from "@/services/missions.service";
 import { Sticker } from "@/services/stickers.service";
 import { toast } from "react-toastify";
 import { MapPinIcon } from "lucide-react";
 import StickerFormDialog from "@/components/StickerFormDialog";
 import StickerCard from "@/components/card/StickerCard";
 import { User } from "@/services/UsersService";
-
-export interface Agent {
-  id: number;
-  name: string;
-}
+import { SkeletonCard } from "@/components/card/SkeletonCard";
+import { Companie, CompanieService } from "@/services/companieService";
 
 // Schéma de validation pour le formulaire de sticker
 const stickerFormSchema = z.object({
@@ -99,6 +94,8 @@ const MissionDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isStickerDialogOpen, setIsStickerDialogOpen] = useState(false);
+const [companyNames, setCompanyNames] = useState<Record<number, string>>({});
+
 
   // Formulaire pour le sticker
   const stickerForm = useForm<StickerFormValues>({
@@ -162,6 +159,36 @@ const MissionDetails: React.FC = () => {
       return "Date invalide";
     }
   };
+  const getCompanyNameById = async (id: number): Promise<string | null> => {
+    try {
+      const companies: Companie[] = await CompanieService.getAll();
+      const company = companies.find((c) => c.id === id);
+      return company ? company.name : null;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des compagnies :", error);
+      return null;
+    }
+  };
+  useEffect(() => {
+    const fetchCompanyNames = async () => {
+      const names: Record<number, string> = {};
+      for (const agent of agents) {
+        // Si on n'a pas déjà ce company_id
+        if (!(agent.company_id in companyNames)) {
+          const name = await getCompanyNameById(agent.company_id);
+          names[agent.company_id] = name ?? "Inconnue";
+        }
+      }
+      if (Object.keys(names).length > 0) {
+        setCompanyNames(prev => ({ ...prev, ...names }));
+      }
+    };
+  
+    if (agents.length > 0) {
+      fetchCompanyNames();
+    }
+  }, [agents]);
+  
 
   // Formatter l'heure pour l'affichage
   const formatTime = (dateString?: string) => {
@@ -257,9 +284,9 @@ const MissionDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8 flex items-center justify-center h-[calc(100vh-200px)]">
-        <Spinner className="h-12 w-12" />
-      </div>
+        <div className="flex items-center justify-center p-8">
+          <SkeletonCard />
+        </div>
     );
   }
 
@@ -396,6 +423,7 @@ const MissionDetails: React.FC = () => {
               <h3 className="text-sm font-medium mb-3">Agents assignés</h3>
               <div className="h-44 overflow-hidden overflow-y-scroll">
                 {agents && agents.length > 0 ? (
+                  
                   <div className="space-y-2">
                     {agents.map((agent) => (
                       <div
@@ -403,7 +431,12 @@ const MissionDetails: React.FC = () => {
                         className="flex items-center bg-secondary/50 p-2 rounded"
                       >
                         <PersonIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-3">
                         <span>{agent.name}</span>
+                        <span className="font-bold">
+                          ( {companyNames[agent.company_id] ?? "Chargement…"} )
+                        </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -421,7 +454,7 @@ const MissionDetails: React.FC = () => {
       {/* Onglets pour les informations supplémentaires */}
       <Tabs defaultValue="stickers" className="w-full">
         <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-          <TabsTrigger value="stickers">Etiquettes</TabsTrigger>
+          <TabsTrigger value="stickers">Plaquettes d'identifications</TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
         </TabsList>
 
@@ -431,15 +464,15 @@ const MissionDetails: React.FC = () => {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                   <CardTitle className="text-lg">
-                    Etiquette de la mission
+                  Plaquettes d'identifications de la mission
                   </CardTitle>
                   <CardDescription>
-                    Liste des etiquettes associées à cette mission.
+                    Liste des plaquettes d'identifications associées à cette mission.
                   </CardDescription>
                 </div>
                 <Button variant="outline" onClick={handleAddStickerClick}>
                   <PlusIcon className="mr-2 h-4 w-4" />
-                  Générer l'étiquette
+                  Générer des plaquettes
                 </Button>
               </div>
             </CardHeader>

@@ -7,10 +7,14 @@ import { AlertType } from './types';
  */
 export const getInterventionTypeName = (id: number): string => {
   const types: Record<number, string> = {
-    1: 'Déploiement',
-    2: 'Maintenance',
-    3: 'Urgence',
-    4: 'Inspection'
+    1:'Déploiement',
+    2:'Dépannage',
+    3:'Identification',
+    4:'Installation',
+    5:'Inventaire',
+    6:'Maintenance',
+    7:'Rapport',
+    8:'Visite'
   };
   return types[id] || `Type ${id}`;
 };
@@ -54,25 +58,11 @@ export const getAlertStyles = (type: AlertType) => {
  */
 export const getMissionStatusStyles = (status: string | undefined) => {
   switch (status) {
-    case 'completed':
+    case 'Terminée':
       return 'bg-green-100 text-green-800';
-    case 'pending':
+    case 'En attente':
       return 'bg-yellow-100 text-yellow-800';
     default:
       return 'bg-blue-100 text-blue-800';
-  }
-};
-
-/**
- * Obtient le libellé pour un statut de mission
- */
-export const getMissionStatusLabel = (status: string | undefined) => {
-  switch (status) {
-    case 'completed':
-      return 'Terminée';
-    case 'pending':
-      return 'En attente';
-    default:
-      return 'En cours';
   }
 };

@@ -58,8 +58,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setCurrentUser(null);
           setIsAuthenticated(false);
         }
-      } finally {
-        if (isMounted) setLoading(false);
+      }finally {
+        if (isMounted) {
+          console.log("[Auth] loading→false, isAuthenticated→", isAuthenticated);
+          setLoading(false);
+        }
       }
     };
   

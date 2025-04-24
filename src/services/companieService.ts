@@ -18,36 +18,44 @@ export const CompanieService = {
     const { data } = await apiClient.get("/companies/index");
     return data.data || [];
   },
-  create: async (compagnie: Companie): Promise<Companie> => {
-    const formData = new FormData();
-    formData.append("name", compagnie.name);
-  
-    // Si on a un fichier, on l'ajoute tel quel :
-    if (compagnie.logo instanceof File) {
-      formData.append("logo", compagnie.logo);
-    }
-  
-    // Envoie sans header explicite
-    const { data } = await apiClient.post("/companies/store", formData);
-    console.log(data)
-    return data;
-  },
-  
+
   delete: async (id: number): Promise<void> => {
     const formData = new FormData();
     formData.append('id', id.toString());
-    
+
     await apiClient.post('/companies/delete', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   },
+  create: async (payload: { name: string; logo?: File }): Promise<Companie> => {
+    const { name, logo } = payload;
+
+    // Vérification du type de fichier : il doit commencer par "image/"
+    if (logo && !logo.type.startsWith("image/")) {
+      throw new Error("Le logo doit impérativement être un fichier image.");
+    }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    if (logo) {
+      formData.append("logo", logo);
+    }
+
+    const { data } = await apiClient.post("/companies/store", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // On retourne l'objet Companie créé par l'API
+    return data.data as Companie;
+  },
   getAllUserId: async (id: number): Promise<CompanieWithUsers> => {
     const formData = new FormData();
     formData.append('id', id.toString());
     console.log(11)
-    
+
+
     const { data } = await apiClient.post('/companies/users', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

@@ -36,11 +36,27 @@ const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
 
   // Afficher un indicateur de chargement pendant la vérification
   if (loading) {
-    return <div>Chargement...</div>;
+    return <div className="h-[100vh] flex items-center justify-center">
+        <div>
+          Chargement...
+        </div>
+      </div>;
   }
 
   // Rediriger vers la page de connexion si non authentifié
   return isAuthenticated ? element : <Navigate to="/login" />;
+};
+
+const PublicRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return <div className="h-[100vh] flex items-center justify-center">
+        <div>
+          Chargement...
+        </div>
+      </div>;
+  }
+  return isAuthenticated ? <Navigate to="/" /> : <>{element}</>;
 };
 
 const App: React.FC = () => {
@@ -49,8 +65,11 @@ const App: React.FC = () => {
       <AppProviders>
         <Router>
           <Routes>
-            {/* Routes d'authentification sans Layout */}
-            <Route path="/login" element={<LoginForm />} />
+              {/* route publique « login » */}
+            <Route
+              path="/login"
+              element={<PublicRoute element={<LoginForm />} />}
+            />
 
             {/* Routes privées avec Layout */}
             <Route element={<PrivateRoute element={<Layout />} />}>

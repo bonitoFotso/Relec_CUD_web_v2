@@ -43,7 +43,7 @@ export interface RegisterData {
 }
 
 // Récupération de l'URL du backend depuis les variables d'environnement
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 class AuthService {
   // Stockage du token dans le localStorage

@@ -11,9 +11,11 @@ export interface Mission {
   user_id?: number;
   title: string;
   description?: string;
-  streets: number[]; // Maintenant plusieurs identifiants de rues
+  //streets: number[]; // Maintenant plusieurs identifiants de rues
   intervention_type_id: number;
-  status?: string;
+  status: string;
+  started_at?: string;
+  finished_at?: string;
   created_at?: string;
   updated_at?: string;
   // Relations
@@ -21,12 +23,13 @@ export interface Mission {
     id: number;
     name: string;
   };
-  street?: Street[];
+  streets: Street[];
   intervention_type?: {
     id: number;
     name: string;
   };
-  agents?: number[];
+  agents: Agent[];
+  //agents: number[];
 }
 export interface Municipalities {
   id: number;
@@ -37,7 +40,7 @@ export interface Agent {
   name: string;
   email?: string;
   role?: string;
-  company: Companie;
+  company_id: number;
 }
 
 export interface Street {
@@ -183,6 +186,7 @@ export const MissionsService = {
         await apiClient.post("/missions/store", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        console.log("enregistrement", response.data);
       if (!response.data.status || !response.data.data) {
         throw new Error(
           response.data.message || "Erreur lors de la création de la mission"
@@ -410,25 +414,36 @@ export const MissionsService = {
  */
 function prepareFormData(mission: Mission): FormData {
   const formData = new FormData();
-
+  
   Object.entries(mission).forEach(([key, value]) => {
-    // Cas spécial pour le tableau streets
-    if (key === "streets" && Array.isArray(value)) {
-      // Ajouter chaque ID de rue individuellement avec le même nom de clé
-      value.forEach((streetId) => {
-        formData.append("streets[]", streetId.toString());
-      });
+    // Skip undefined or null values
+    if (value === undefined || value === null) {
+      return;
     }
-    // Pour les autres propriétés
-    else if (value !== undefined && value !== null) {
-      if (typeof value === "object") {
+    
+    // Handle arrays properly
+    if (Array.isArray(value)) {
+      // For streets and agents, append each element individually with array notation
+      if (key === "streets" || key === "agents") {
+        value.forEach((item) => {
+          formData.append(`${key}[]`, item.toString());
+        });
+      } 
+      // For other arrays, you might still want to stringify them
+      else {
         formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value.toString());
       }
     }
+    // Handle other objects
+    else if (typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+    }
+    // Handle primitive values
+    else {
+      formData.append(key, value.toString());
+    }
   });
-
+  
   return formData;
 }
 export default MissionsService;

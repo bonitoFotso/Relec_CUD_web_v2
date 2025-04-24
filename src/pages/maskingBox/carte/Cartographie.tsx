@@ -411,7 +411,7 @@ const EquipmentMap: React.FC = () => {
     .filter((pos) => !isNaN(pos[0]) && !isNaN(pos[1]));
   return (
     <div className=" dark:bg-gray-950">
-      <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
+      <div className="h-[calc(100vh-80px)]  w-full overflow-hidden rounded-lg relative z-10">
         <Filtres
           filterOpen={filterOpen}
           setFilterOpen={setFilterOpen}

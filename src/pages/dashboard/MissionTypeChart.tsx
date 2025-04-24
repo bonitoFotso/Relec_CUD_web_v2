@@ -56,7 +56,7 @@ const CustomLegend: React.FC<{ data: PieChartData[] }> = ({ data }) => {
   const total = data.reduce((sum, entry) => sum + entry.value, 0);
 
   return (
-    <div className="flex flex-wrap justify-center mt-4 gap-2">
+    <div className="flex flex-wrap justify-center mt-4 gap-2 text-black">
       {data.map((entry, index) => (
         <div
           key={`legend-${index}`}
