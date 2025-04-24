@@ -115,6 +115,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                   id: editingMission?.id || 0,
                   // Filtrez mais ne gardez que les IDs
                   agents: data.agents,
+                  status: ""
                 });
 
                 setLoading(false);
@@ -155,55 +156,65 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 )}
               />
 
-              {/* Commune */}
-              <FormField
-                control={control}
-                name="municipality_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Commune</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={String(field.value)}
-                        onValueChange={(v) => field.onChange(Number(v))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une commune" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {formData.municipalities?.map((m) => (
-                            <SelectItem key={m.id} value={String(m.id)}>
-                              {m.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+               {/* Commune et Rue(s) sur la même ligne */}
+              <div className="flex gap-4">
+                {/* Commune */}
+                <div className="w-1/2">
+                  <FormField
+                    control={control}
+                    name="municipality_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Commune</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(v) => field.onChange(Number(v))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner une commune" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {formData.municipalities?.map((m) => (
+                                <SelectItem key={m.id} value={String(m.id)}>
+                                  {m.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              {/* Rues */}
-              <FormField
-                control={control}
-                name="streets"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Rue(s)</FormLabel>
-                    <FormControl>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsStreetDialogOpen(true)}
-                      >
-                        {getStreetNamesText()}
-                      </Button>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Rues */}
+                <div className="w-1/2">
+                  <FormField
+                    control={control}
+                    name="streets"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Rue(s)</FormLabel>
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsStreetDialogOpen(true)}
+                            className="w-full overflow-x-hidden"
+                          >
+                            {getStreetNamesText()}
+                          </Button>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+            
 
               {/* Type d'intervention */}
               <FormField
@@ -233,6 +244,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                   </FormItem>
                 )}
               />
+              {/* network_type */}
               <FormField
                 control={control}
                 name="network_type" // tu peux changer ce nom selon ce que tu veux stocker
@@ -309,6 +321,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                         type="button"
                         variant="outline"
                         onClick={() => setIsAgentDialogOpen(true)}
+                        className="w-full overflow-x-hidden"
                       >
                         {getAgentNamesText()}
                       </Button>

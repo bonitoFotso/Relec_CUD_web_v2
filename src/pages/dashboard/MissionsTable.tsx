@@ -13,7 +13,6 @@ import {
 import { MissionsTableProps } from "./types";
 import {
   getMissionStatusStyles,
-  getMissionStatusLabel,
   getInterventionTypeName,
 } from "./utils";
 import { Mission } from "@/services/missions.service";
@@ -24,6 +23,8 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [interventionFilter, setInterventionFilter] = useState<string>("all");
+
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // État pour suivre la ligne survolée
@@ -51,9 +52,15 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
     const matchesSearch = mission.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+
     const matchesStatus =
       statusFilter === "all" || mission.status === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    const matchesIntervention =
+    interventionFilter === "all" ||
+    String(mission.intervention_type_id) === interventionFilter;
+
+    return matchesSearch && matchesStatus && matchesIntervention;
   });
 
   // Fonction pour formater une date (simulation)
@@ -93,9 +100,8 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
             <Filter className="h-4 w-4 mr-1" />
             Filtres
             <ChevronDown
-              className={`h-3 w-3 ml-1 transition-transform ${
-                showFilters ? "transform rotate-180" : ""
-              }`}
+              className={`h-3 w-3 ml-1 transition-transform ${showFilters ? "transform rotate-180" : ""
+                }`}
             />
           </button>
         </div>
@@ -108,26 +114,33 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
             <div>
               <label className="text-xs font-medium  block mb-1">Statut</label>
               <select
-                className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="bg-white dark:bg-gray-800  text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">Tous les statuts</option>
-                <option value="in_progress">En cours</option>
-                <option value="completed">Terminée</option>
-                <option value="pending">En attente</option>
+                <option value="En cours">En cours</option>
+                <option value="Terminée">Terminée</option>
+                <option value="En attente">En attente</option>
               </select>
             </div>
             <div>
               <label className="text-xs font-medium  block mb-1">
                 Type d'intervention
               </label>
-              <select className="text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+              value={interventionFilter}
+              onChange={(e) => setInterventionFilter(e.target.value)}
+              className="bg-white dark:bg-gray-800 text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option value="all">Tous les types</option>
                 <option value="1">Déploiement</option>
-                <option value="2">Maintenance</option>
-                <option value="3">Urgence</option>
-                <option value="4">Inspection</option>
+                <option value="2">Dépannage</option>
+                <option value="3">Identification</option>
+                <option value="4">Installation</option>
+                <option value="5">Inventaire</option>
+                <option value="6">Maintenance</option>
+                <option value="7">Rapport</option>
+                <option value="8">Visite</option>
               </select>
             </div>
           </div>
@@ -150,13 +163,13 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <MapPin className="h-3 w-3 mr-1" />
-                  Rue
+                  Commune
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
-                  Date
+                  Quartier
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
@@ -175,11 +188,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
               filteredMissions.slice(0, 5).map((mission) => (
                 <tr
                   key={mission.id}
-                  className={`${
-                    hoveredRow === mission.id
+                  className={`${hoveredRow === mission.id
                       ? "bg-blue-50 dark:bg-gray-700"
                       : "hover:bg-gray-50"
-                  } transition-colors duration-150`}
+                    } transition-colors duration-150`}
                   onMouseEnter={() => setHoveredRow(mission.id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
@@ -205,7 +217,10 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
                     <div className="text-sm ">
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                        {`Rue ${mission.street || "N/A"}`}
+                        {mission.streets
+                        ?.map((s) => s.name)
+                        .join(", ")
+                        .substring(0, 35)}
                       </div>
                     </div>
                   </td>
@@ -218,7 +233,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
                         mission.status
                       )}`}
                     >
-                      {getMissionStatusLabel(mission.status)}
+                      {mission.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

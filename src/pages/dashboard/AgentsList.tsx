@@ -18,7 +18,7 @@ const AgentsList: React.FC<AgentsListProps> = ({ agents, isLoading }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="h-full  bg-white dark:bg-gray-950 rounded-lg ">
       <div className="p-4 border-b border-gray-200">
@@ -35,16 +35,19 @@ const AgentsList: React.FC<AgentsListProps> = ({ agents, isLoading }) => {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium  truncate">{agent.name}</p>
                   <p className="text-sm text-gray-500  truncate">{agent.email}</p>
+                  <div>
+                    <p className="text-sm font-medium  truncate">{agent.company.name}</p>
+                  </div>
                 </div>
+
                 <div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    agent.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${agent.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {agent.status === 'active' ? 'Actif' : 'Inactif'}
                   </span>
                 </div>
               </div>
-            </li> 
+            </li>
           ))
         ) : (
           <li className="px-4 py-3 text-center text-sm text-gray-500">Aucun agent trouvé</li>

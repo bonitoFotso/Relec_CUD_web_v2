@@ -124,7 +124,7 @@ const MissionManagement: React.FC = () => {
     fetchUsers();
     fetchFormData();
     fetchMissions();
-  }, [fetchUsers]);
+  }, [fetchUsers,fetchFormData,fetchMissions]);
 
   // Remplir le formulaire lors de l'édition d'une mission
   useEffect(() => {
@@ -184,13 +184,14 @@ const MissionManagement: React.FC = () => {
   };
 
   // Gérer la soumission du formulaire (création ou mise à jour)
-  const onSubmit = async (values: MissionFormValues) => {
+  const onSubmit = async (values: Mission) => {
     try {
       if (editingMission) {
         await updateMission({
           ...values,
           id: editingMission.id,
           agents: values.agents,
+          status: ""
         });
         toast.success("Mission mise à jour");
       } else {
@@ -199,6 +200,7 @@ const MissionManagement: React.FC = () => {
           ...values,
           id: 0, // Provide a default value for 'id'
           agents: values.agents,
+          status: ""
         });
         toast.success("Mission créée");
       }
@@ -257,16 +259,6 @@ const MissionManagement: React.FC = () => {
     return interventionType?.name || "Type inconnu";
   };
 
-  // Nouvelle fonction pour obtenir les noms des rues associées à partir d'un tableau d'identifiants
-  const getStreetNames = (ids: number[]) => {
-    if (!ids || ids.length === 0) return "Boulevard De La Paix";
-    const names = ids.map((id) => {
-      const street = formData?.streets?.find((s) => s.id === id);
-      return street ? street.name : "Inconnue";
-    });
-    return names.join(", ");
-  };
-
   // Obtenir le nom de l'utilisateur
   const getUserName = (id: number) => {
     const user = users?.find((u) => u.id === id);
@@ -308,13 +300,13 @@ const MissionManagement: React.FC = () => {
                   Type d'intervention
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Communes
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Rue(s)
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Responsable
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Créée le
+                  Quartier(s)
                 </TableHead>
                 <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions

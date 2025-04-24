@@ -59,8 +59,11 @@ const CompanieFormDialog: React.FC<CompanieFormDialogProps> = ({
                   <FormControl>
                     <Input
                       type="file"
-                      accept=".png, .jpg, .jpeg"
-                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                      accept="image/png, image/jpeg, image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        field.onChange(file || null); // chaîne vide pour gérer les cas où rien n'est sélectionné
+                      }}
                       onBlur={field.onBlur}
                       name={field.name}
                       ref={field.ref}
@@ -70,6 +73,7 @@ const CompanieFormDialog: React.FC<CompanieFormDialogProps> = ({
                 </FormItem>
               )}
             />
+
             <DialogFooter>
               <Button type="submit">Enregistrer</Button>
               <Button type="button" variant="ghost" onClick={onCancel}>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {CompanieWithUsers, CompanieService } from '@/services/companieService';
+import { ArrowLeftIcon } from 'lucide-react';
 
 
 const CompanieUsers: React.FC = () => {
@@ -47,18 +48,23 @@ const CompanieUsers: React.FC = () => {
   }
 
   return (
-    <div className="m-4">
-      <div className="flex items-center justify-between mb-4">
+    <div className="m-4 bg-white p-4 shadow-md">
+      <div className="flex items-center gap-4 mb-4">
+        <Button onClick={() => navigate(-1)}>
+        <ArrowLeftIcon className="mr-2 h-4 w-4" />
+          Retour
+        </Button>
         <h1 className="text-2xl font-bold">{companie.name}</h1>
-        <Button onClick={() => navigate(-1)}>Retour</Button>
       </div>
       <p className="mb-4 text-sm text-gray-600">
         Créée le {companie.created_at && new Date(companie.created_at).toLocaleDateString()}
       </p>
 
       {companie.users.length === 0 ? (
-        <p>Aucun utilisateur pour cette compagnie.</p>
+        <p>Aucun utilisateur pour cette entreprise.</p>
       ) : (
+        <div>
+        <h1 className='font-bold text-center text-xl md:text-3xl'>Liste des utlisateurs pour cette entreprise</h1>
         <ul className="space-y-2">
           {companie.users.map((user) => (
             <li
@@ -75,6 +81,7 @@ const CompanieUsers: React.FC = () => {
             </li>
           ))}
         </ul>
+        </div>
       )}
     </div>
   );

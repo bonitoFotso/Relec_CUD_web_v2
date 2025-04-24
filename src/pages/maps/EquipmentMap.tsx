@@ -523,7 +523,7 @@ const EquipmentMap: React.FC = () => {
   return (
     <div className="container mx-auto">
       {/* Carte des équipements */}
-      <div className="h-[80vh] w-full overflow-hidden rounded-lg relative z-10">
+      <div className="h-[calc(100vh-80px)] w-full overflow-hidden rounded-lg relative z-10">
         {/* Filtrage des équipements */}
         <div className="absolute bottom-4 right-4 z-20">
           <button

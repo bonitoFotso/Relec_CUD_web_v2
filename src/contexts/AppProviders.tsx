@@ -20,8 +20,7 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
             <PermissionProvider>
               <EquipementProvider>
                 <CompanieProvider>
-                  
-                {children}
+                  {children}
                 </CompanieProvider>
               </EquipementProvider>
             </PermissionProvider>

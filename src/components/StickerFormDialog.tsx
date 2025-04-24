@@ -78,10 +78,10 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
       // Vérifier le nombre d'étiquettes et avertir si c'est beaucoup
       if (values.count > 100) {
         setProgress(
-          `Génération de ${values.count} étiquettes. Cela peut prendre un certain temps...`
+          `Génération de ${values.count} plaquettes. Cela peut prendre un certain temps...`
         );
       } else {
-        setProgress("Génération des étiquettes en cours...");
+        setProgress("Génération des plaquettes en cours...");
       }
 
       // Créer une promesse avec timeout personnalisé
@@ -89,7 +89,7 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
         requestTimeoutId = window.setTimeout(() => {
           reject(
             new Error(
-              "La génération des étiquettes prend trop de temps. Essayez avec moins d'étiquettes."
+              "La génération des plaquettes prend trop de temps. Essayez avec moins de plaquettes."
             )
           );
         }, 180000); // 3 minutes de timeout
@@ -137,7 +137,7 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
         setError("Format de réponse inattendu");
       }
     } catch (error) {
-      console.error("Erreur lors de la création du sticker:", error);
+      console.error("Erreur lors de la création de plaquettes:", error);
 
       // Annuler le timeout s'il est toujours actif
       if (requestTimeoutId) {
@@ -151,13 +151,13 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
       } else if (axios.isAxiosError(error)) {
         if (error.code === "ECONNABORTED") {
           errorMessage =
-            "La requête a dépassé le délai d'attente. Essayez avec moins d'étiquettes.";
+            "La requête a dépassé le délai d'attente. Essayez avec moins de plaquettes.";
         } else if (error.response?.status === 500) {
           errorMessage =
             "Erreur serveur. Vérifiez que tous les fichiers nécessaires existent sur le serveur.";
         } else if (error.response?.status === 413) {
           errorMessage =
-            "Le fichier généré est trop volumineux. Réduisez le nombre d'étiquettes.";
+            "Le fichier généré est trop volumineux. Réduisez le nombre de plaquettes.";
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
@@ -201,9 +201,9 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
     >
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un sticker</DialogTitle>
+          <DialogTitle>Ajouter des plaquettes</DialogTitle>
           <DialogDescription>
-            Ajoutez un sticker pour cette mission. Un fichier ZIP sera
+            Ajoutez des plaquettes pour cette mission. Un fichier ZIP sera
             téléchargé automatiquement.
           </DialogDescription>
         </DialogHeader>
@@ -298,7 +298,7 @@ const StickerFormDialog: React.FC<StickerFormDialogProps> = ({
                   <FormMessage />
                   {field.value > 100 && (
                     <p className="text-xs text-amber-600">
-                      Générer beaucoup d'étiquettes peut prendre du temps. Soyez
+                      Générer beaucoup de plaquettes peut prendre du temps. Soyez
                       patient.
                     </p>
                   )}

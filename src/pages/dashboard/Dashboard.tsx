@@ -52,9 +52,6 @@ const Dashboard: React.FC = () => {
         // Ajouter statut simulé pour démo
         const missionsWithStatus = missionsData.map((mission) => ({
           ...mission,
-          status: ["in_progress", "completed", "pending"][
-            Math.floor(Math.random() * 3)
-          ],
         }));
 
         setMissions(missionsWithStatus);
@@ -108,11 +105,11 @@ const Dashboard: React.FC = () => {
           pieData.length > 0
             ? pieData
             : [
-                { name: "Déploiement", value: 12 },
-                { name: "Maintenance", value: 8 },
-                { name: "Urgence", value: 3 },
-                { name: "Inspection", value: 7 },
-              ]
+              { name: "Déploiement", value: 12 },
+              { name: "Maintenance", value: 8 },
+              { name: "Urgence", value: 3 },
+              { name: "Inspection", value: 7 },
+            ]
         );
 
         // Générer données pour le graphique de stickers par mois
@@ -201,10 +198,10 @@ const Dashboard: React.FC = () => {
       <div className="container mx-auto flex flex-col space-y-4 mt-5">
         <SkeletonCardUser />
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:grid-cols-2  gap-4 mx-auto">
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
-          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] sm:w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] w-[280px] rounded-xl" />
+          <Skeleton className="h-[125px] lg:w-[200px] md:w-[200px] w-[280px] rounded-xl" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 p-2 md:p-4">
           <SkeletonCard />
@@ -263,7 +260,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MissionTypeChart data={missionTypeData} />
         <StickerUsageChart data={stickerMonthlyData} />
-      </div> 
+      </div>
 
       {/* tableaux */}
       <TableauCommunes />
@@ -273,9 +270,9 @@ const Dashboard: React.FC = () => {
         <div>
           <MissionsTable missions={missions} isLoading={loading} />
         </div>
-        <div>
+        {/*<div>
           <AgentsList agents={agents} isLoading={loading} />
-        </div>
+        </div>*/}
       </div>
 
       {/* Section des alertes */}

@@ -20,7 +20,7 @@ export const navigationGroups: NavigationGroup[] = [
     items: [{ name: "Maps", href: "/maps", iconName: "map" }],
   },
   {
-    items: [{ name: "Entreprises", href: "/companies", iconName: "account" }],
+    items: [{ name: "Comptes", href: "/companies", iconName: "account" }],
   },
   // {
   //   items: [{ name: "Utilisateurs", href: "/users", iconName: "users" }],

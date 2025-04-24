@@ -79,11 +79,11 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
       {/* Statistiques sommaires */}
       <div className="flex flex-wrap mb-4 text-xs ">
         <div className="mr-4">
-          Maximum: <span className="font-semibold">{maxValue} stickers</span>
+          Maximum: <span className="font-semibold">{maxValue} Plaquettes d'identifications</span>
         </div>
         <div>
           Moyenne:{" "}
-          <span className="font-semibold">{avgValue.toFixed(1)} stickers</span>
+          <span className="font-semibold">{avgValue.toFixed(1)} Plaquettes d'identifications</span>
         </div>
       </div>
 
@@ -96,7 +96,7 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
             <CartesianGrid
               strokeDasharray="3 3"
               opacity={0.2}
-              // stroke="#f0f0f0"
+            // stroke="#f0f0f0"
             />
             <XAxis
               dataKey="name"
@@ -148,7 +148,7 @@ const StickerUsageChart: React.FC<ChartProps> = ({ data }) => {
       <div className="flex  items-center gap-2 mt-2 text-xs ">
         <span className="font-medium">Tendance: </span>
         {(data as BarChartData[]).length >= 2 &&
-        (data as BarChartData[])[data.length - 1].stickers >
+          (data as BarChartData[])[data.length - 1].stickers >
           (data as BarChartData[])[data.length - 2].stickers ? (
           <span className="text-green-600 flex items-center justify-center">
             En hausse

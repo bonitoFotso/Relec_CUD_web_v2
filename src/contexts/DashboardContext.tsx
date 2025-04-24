@@ -151,10 +151,7 @@ import React, {
       }
     };
   
-    // Charger les données une seule fois au montage du contexte
-    useEffect(() => {
-      // fetchDashboardData();
-    }, []);
+
     // La fonction refresh est simplement fetchDashboardData
     const refresh = fetchDashboardData;
   

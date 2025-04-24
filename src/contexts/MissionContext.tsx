@@ -23,7 +23,7 @@ interface MissionProviderProps {
 
 export const MissionProvider: React.FC<MissionProviderProps> = ({ children }) => {
   const [missions, setMissions] = useState<Mission[]>([]);
-  const [formData, setFormData] = useState<MissionFormData>({});
+  const [formData, setFormData] = useState<MissionFormData>({} as MissionFormData);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
