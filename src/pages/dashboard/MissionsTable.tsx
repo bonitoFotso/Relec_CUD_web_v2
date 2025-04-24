@@ -67,7 +67,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-950 rounded-lg shadow overflow-hidden">
+    <div className="h-full bg-white dark:bg-gray-950 rounded-lg shadow overflow-hidden">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center">
           <h2 className="text-lg font-semibold ">Missions récentes</h2>
@@ -250,7 +250,7 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
         </div>
       )}
 
-      <div className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
+      <div className=" px-4 py-3 border-t border-gray-200 flex justify-between items-center">
         <div className="text-xs ">
           Mis à jour {new Date().toLocaleTimeString()}
         </div>

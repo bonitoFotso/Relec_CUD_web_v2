@@ -16,14 +16,14 @@ const ConsommationContent = ({
         defaultValue="All"
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as any)}
-        className="bg-white p-3 rounded-lg shadow-md dark:bg-gray-950"
+        className="p-3"
       >
         <TabsList className="mb-3 flex items-center justify-center gap-2">
           <TabsTrigger
             value="All"
             className={`w-36 border rounded-lg p-2 text-sm ${
               activeTab === "All"
-                ? "bg-gray-500 text-white"
+                ? "bg-gray-700 text-white"
                 : "dark:bg-gray-900"
             }`}
           >
@@ -33,7 +33,7 @@ const ConsommationContent = ({
             value="LED"
             className={`w-36 border rounded-lg p-2 text-sm ${
               activeTab === "LED"
-                ? "bg-gray-500 text-white"
+                ? "bg-gray-700 text-white"
                 : "dark:bg-gray-900"
             }`}
           >
@@ -43,7 +43,7 @@ const ConsommationContent = ({
             value="Decharges"
             className={`w-36 border rounded-lg p-2 text-sm ${
               activeTab === "Decharges"
-                ? "bg-gray-500 text-white"
+                ? "bg-gray-700 text-white"
                 : "dark:bg-gray-900"
             }`}
           >
@@ -62,7 +62,7 @@ const ConsommationContent = ({
       </Tabs>
 
       {/* Tableau technique comparatif */}
-      <div className="bg-white dark:bg-gray-950 px-3 py-3 rounded-lg shadow-md">
+      <div className="px-3 py-3 ">
         <h2 className="text-xl font-bold mb-4">Spécifications Techniques</h2>
         <TableComparatif />
       </div>

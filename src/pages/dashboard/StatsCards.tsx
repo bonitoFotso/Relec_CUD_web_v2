@@ -60,7 +60,7 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       bgcolor: "bg-green-200",
     },
     {
-      title: "Stickers utilisés",
+      title: "Plaquettes d'identification utilisés",
       value: stats.stickersCount,
       icon: "Tag",
       color: "bg-purple-500",

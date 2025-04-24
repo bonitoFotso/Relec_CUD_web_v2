@@ -114,57 +114,56 @@ export default function Tableau() {
     setReportType(null);
   };
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
-        <h2 className="text-2xl font-bold text-white">
-          PANNEAU DE CONTROLE MASSKING BOX
-        </h2>
+    <div className="bg-white dark:bg-gray-900 min-h-screen rounded-sm">
+      <div className=" py-4 px-2 md:px-3">
+        <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0 mb-4 mt-4">
+          <h2 className="text-2xl font-bold">
+            PANNEAU DE CONTROLE MASSKING BOX
+          </h2>
 
-        <div className="flex items-center gap-2 justify-center">
-          <select
-            className="ml-5 border bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-sm"
-            value={selectedMunicipality}
-            onChange={handleMunicipalityChange}
-          >
-            <option value="">Toutes les communes</option>
-            {availableMunicipalities.map((municipality, index) => (
-              <option key={index} value={municipality}>
-                {municipality}
-              </option>
-            ))}
-          </select>
-          <button
-            className="border bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 rounded-lg px-3 py-2 text-sm flex items-center"
-            onClick={() => handleReportGeneration("pdf")}
-          >
-            <span className="mr-1">📄</span> Exporter en PDF
-          </button>
-          <button
-            className="border bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 rounded-lg px-3 py-2 text-sm flex items-center"
-            onClick={() => handleReportGeneration("excel")}
-          >
-            <span className="mr-1">📊</span> Exporter en Excel
-          </button>
+          <div className="flex items-center gap-2 justify-center">
+            <select
+              className="ml-5 border bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-sm"
+              value={selectedMunicipality}
+              onChange={handleMunicipalityChange}
+            >
+              <option value="">Toutes les communes</option>
+              {availableMunicipalities.map((municipality, index) => (
+                <option key={index} value={municipality}>
+                  {municipality}
+                </option>
+              ))}
+            </select>
+            <button
+              className="border bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 rounded-lg px-3 py-2 text-sm flex items-center"
+              onClick={() => handleReportGeneration("pdf")}
+            >
+              <span className="mr-1">📄</span> Exporter en PDF
+            </button>
+            <button
+              className="border bg-white hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 rounded-lg px-3 py-2 text-sm flex items-center"
+              onClick={() => handleReportGeneration("excel")}
+            >
+              <span className="mr-1">📊</span> Exporter en Excel
+            </button>
+          </div>
         </div>
+        {/* Pass the filtered streetlights to StatistiquesCard */}
+        <StatistiquesCard filteredStreetlights={filteredStreetlights} />
+        {/* Pass filtered data to other components as needed */}
+        <ConsommationsPrimaires filteredStreetlights={filteredStreetlights} />
+        {showReportModal && (
+          <ReportGenerator
+            type={reportType}
+            data={filteredStreetlights.map((light) => ({
+              ...light,
+              id: light.id.toString(),
+            }))}
+            municipality={selectedMunicipality || "Toutes les communes"}
+            onClose={closeReportModal}
+          />
+        )}{" "}
       </div>
-
-      {/* Pass the filtered streetlights to StatistiquesCard */}
-      <StatistiquesCard filteredStreetlights={filteredStreetlights} />
-
-      {/* Pass filtered data to other components as needed */}
-      <ConsommationsPrimaires filteredStreetlights={filteredStreetlights} />
-
-      {showReportModal && (
-        <ReportGenerator
-          type={reportType}
-          data={filteredStreetlights.map((light) => ({
-            ...light,
-            id: light.id.toString(),
-          }))}
-          municipality={selectedMunicipality || "Toutes les communes"}
-          onClose={closeReportModal}
-        />
-      )}
     </div>
   );
 }

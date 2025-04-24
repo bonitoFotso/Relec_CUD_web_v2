@@ -3,20 +3,19 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import Notifications from "../notifications/Notifications";
-import Recommandations from "../maskingBox/Recommandations";
 import UserManagement from "../users/Users";
 import { useNavigate, useLocation } from "react-router-dom";
 import PermissionsManagement from "../permissions/permissions";
+import Anomalies from "../anomalies/Anomalies";
 
 // Définition des routes pour chaque onglet
 const tabRoutes = {
-  notifications: "/historiques/notifications",
-  utilisateurs: "/historiques/utilisateurs",
-  activites: "/historiques/activites",
-  analyse: "/historiques/analyse",
-  etat_support: "/historiques/etat_support",
-  recommendations: "/historiques/recommendations",
-  permissions: "/historiques/permissions",
+  notifications: "/parametres/notifications",
+  utilisateurs: "/parametres/utilisateurs",
+  activites: "/parametres/activites",
+  analyse: "/parametres/analyse",
+  etat_support: "/parametres/etat_support",
+  permissions: "/parametres/permissions",
 };
 
 export default function PageAcceuil() {
@@ -51,10 +50,7 @@ export default function PageAcceuil() {
       setActiveTab(currentTab);
     }
     // Si l'URL ne correspond à aucun onglet, redirige vers l'onglet par défaut
-    if (
-      currentTab === "notifications" &&
-      location.pathname === "/historiques"
-    ) {
+    if (currentTab === "notifications" && location.pathname === "/parametres") {
       navigate(tabRoutes.notifications);
     }
   }, [location.pathname]);
@@ -62,7 +58,7 @@ export default function PageAcceuil() {
   return (
     <div className="space-y-5 p-3 h-[80vh] bg-white dark:bg-black rounded-sm">
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="w-auto flex align-middle bg-gray-50 dark:bg-gray-800 text-gray-500 justify-center items-center p-6 gap-2">
+        <TabsList className="  h-9 w-auto flex align-middle bg-gray-50 dark:bg-gray-800 text-gray-500 justify-center items-center p-6 gap-2">
           <TabsTrigger
             value="notifications"
             className={`w-36 rounded-lg p-2 text-sm ${
@@ -93,45 +89,16 @@ export default function PageAcceuil() {
           >
             Permissions
           </TabsTrigger>
+
           <TabsTrigger
-            value="activites"
+            value="anomalies"
             className={`w-36 rounded-lg p-2 text-sm ${
-              activeTab === "activites"
+              activeTab === "anomalies"
                 ? "bg-gray-500 text-white"
                 : "dark:bg-gray-900"
             }`}
           >
-            Activités menées
-          </TabsTrigger>
-          <TabsTrigger
-            value="analyse"
-            className={`w-36 rounded-lg p-2 text-sm ${
-              activeTab === "analyse"
-                ? "bg-gray-500 text-white"
-                : "dark:bg-gray-900"
-            }`}
-          >
-            Analyses
-          </TabsTrigger>
-          <TabsTrigger
-            value="etat_support"
-            className={`w-36 rounded-lg p-2 text-sm ${
-              activeTab === "etat_support"
-                ? "bg-gray-500 text-white"
-                : "dark:bg-gray-900"
-            }`}
-          >
-            Etat de support
-          </TabsTrigger>
-          <TabsTrigger
-            value="recommendations"
-            className={`w-36 rounded-lg p-2 text-sm ${
-              activeTab === "recommendations"
-                ? "bg-gray-500 text-white"
-                : "dark:bg-gray-900"
-            }`}
-          >
-            Recommendations
+            Anomalies
           </TabsTrigger>
         </TabsList>
 
@@ -147,40 +114,8 @@ export default function PageAcceuil() {
           <PermissionsManagement />
         </TabsContent>
 
-        <TabsContent value="activites" className="mt-6">
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Activités menées</h2>
-            <p className="text-gray-600">Contenu des activités menées</p>
-            <p className="text-sm text-gray-500 mt-2">
-              URL: {tabRoutes.activites}
-            </p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analyse" className="mt-6">
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Analyses</h2>
-            <p className="text-gray-600">Contenu des analyses</p>
-            <p className="text-sm text-gray-500 mt-2">
-              URL: {tabRoutes.analyse}
-            </p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="etat_support" className="mt-6">
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-xl font-bold mb-4">État de support</h2>
-            <p className="text-gray-600">
-              Contenu relatif à l'état des supports
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              URL: {tabRoutes.etat_support}
-            </p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="recommendations" className="mt-6">
-          <Recommandations />
+        <TabsContent value="anomalies" className="mt-6">
+          <Anomalies />
         </TabsContent>
       </Tabs>
     </div>

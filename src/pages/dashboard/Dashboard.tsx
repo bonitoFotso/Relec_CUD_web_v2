@@ -263,14 +263,14 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MissionTypeChart data={missionTypeData} />
         <StickerUsageChart data={stickerMonthlyData} />
-      </div> 
+      </div>
 
       {/* tableaux */}
       <TableauCommunes />
 
       {/* Tableau des missions récentes et liste des agents */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="col-span-2">
           <MissionsTable missions={missions} isLoading={loading} />
         </div>
         <div>

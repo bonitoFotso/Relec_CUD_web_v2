@@ -1,5 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Mission, MissionFormData, MissionsDetailsResponse, MissionsService } from '@/services/missions.service';
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 interface MissionContextType {
   missions: Mission[];

@@ -1,5 +1,4 @@
 import React from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 // Type des données
 interface Anomaly {
@@ -46,7 +45,7 @@ const AnomalyItem: React.FC<Anomaly> = ({
   description,
 }) => {
   return (
-    <li className="flex items-start gap-4 p-4 border rounded-lg m-2 bg-white dark:bg-gray-950 shadow">
+    <li className="flex items-start gap-4 p-2 border rounded-lg m-2 bg-white dark:bg-gray-950 shadow">
       {/* Avatar avec initiale du titre */}
       <div className="h-10 w-10 rounded-full bg-slate-500/15 flex justify-center items-center font-bold text-md md:text-lg">
         <div>{title.charAt(0)}</div>
@@ -68,7 +67,7 @@ const AnomalyItem: React.FC<Anomaly> = ({
 // Composant principal
 const Anomalies = () => {
   return (
-    <div className="p-4 min-h-screen">
+    <div className="p-2 h-[100%]">
       <h1 className="text-3xl font-bold mb-4">Anomalies</h1>
       <ul>
         {anomalies.map((anomaly) => (

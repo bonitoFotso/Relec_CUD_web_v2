@@ -26,7 +26,7 @@ const AgentsList: React.FC<AgentsListProps> = ({ agents, isLoading }) => {
       </div>
       <ul className="divide-y divide-gray-200">
         {agents.length > 0 ? (
-          agents.slice(0, 5).map((agent) => (
+          agents.slice(0, 4).map((agent) => (
             <li key={agent.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 ">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">

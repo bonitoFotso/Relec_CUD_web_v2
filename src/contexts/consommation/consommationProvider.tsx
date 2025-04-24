@@ -137,35 +137,7 @@ const ConsommationProvider = ({
     let timeLabels: string[] = [];
     // let fluctuationFactor = 0.2; // Facteur de fluctuation pour rendre les données plus réalistes
 
-    // if (period === "Journaliere") {
-    //   timeLabels = Array.from({ length: 24 }, (_, i) => `${i}h`);
-    //   fluctuationFactor = 0.4; // Plus de variation pour les données horaires
-    // } else if (period === "Hebdomadaire") {
-    //   timeLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-    //   fluctuationFactor = 0.3;
-    // } else if (period === "Mensuelle") {
-    //   timeLabels = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
-    //   fluctuationFactor = 0.25;
-    // } else if (period === "Annuelle") {
-    //   timeLabels = [
-    //     "Jan",
-    //     "Fév",
-    //     "Mar",
-    //     "Avr",
-    //     "Mai",
-    //     "Juin",
-    //     "Juil",
-    //     "Août",
-    //     "Sep",
-    //     "Oct",
-    //     "Nov",
-    //     "Déc",
-    //   ];
-    //   fluctuationFactor = 0.15;
-    // }
-
-    // // Calculer le tarif par kWh
-    // const tarifKWh = 50;
+   
 
     if (period === "Journaliere") {
       timeLabels = Array.from({ length: 24 }, (_, i) => `${i}h`);

@@ -41,13 +41,40 @@ export interface Streetlight {
   // Add other properties as needed
 }
 
-
-
-
-
 export interface municipalities {
   municipalities: string[];
 }
+export interface Recommendation {
+  id: string;
+  type: RecommendationType;
+  title: string;
+  description: string;
+  municipality: string;
+  municipalityId: number;
+  priority: number; // 1-5, 5 being highest
+}
+
+export type RecommendationType =
+  | "maintenance"
+  | "energy"
+  | "pollution"
+  | "upgrade"
+  | "urgent";
+
+export interface SupportConditionStats {
+  condition: string;
+  count: number;
+  percentage: number;
+}
+
+// Define the type for municipality stats
+export interface MunicipalityStats {
+  id: number;
+  name: string;
+  totalStreetlights: number;
+  supportConditions: SupportConditionStats[];
+}
+
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";

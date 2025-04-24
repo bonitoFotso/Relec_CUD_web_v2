@@ -12,11 +12,12 @@ import {
   LayoutDashboard,
   ScrollText,
   Bell,
-  ServerCrash,
   MapPin,
   SlidersHorizontal,
   UserCircle,
-  CogIcon,
+  HelpCircle,
+  Settings,
+  ChartArea,
 } from "lucide-react";
 
 // Mapping des icônes Lucide
@@ -27,13 +28,15 @@ const iconMapping: Record<string, JSX.Element> = {
   users: <Users className="w-5 h-5" />,
   permissions: <ScrollText className="w-5 h-5" />,
   notifications: <Bell className="w-5 h-5" />,
-  anomalies: <ServerCrash className="w-5 h-5" />,
+  // anomalies: <ServerCrash className="w-5 h-5" />,
   account: <UserCircle className="w-5 h-5" />,
+  settings: <Settings className="w-5 h-5" />,
 };
 const maskingboxIcon: Record<string, JSX.Element> = {
   box: <SlidersHorizontal className="w-5 h-5" />,
   carte: <MapPin className="w-5 h-5" />,
-  settings: <CogIcon className="w-5 h-5" />,
+  historique: <ChartArea className="w-5 h-5" />,
+  aide: <HelpCircle className="w-5 h-5" />,
 };
 
 interface SidebarProps {

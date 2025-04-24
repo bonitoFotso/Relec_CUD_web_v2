@@ -3,6 +3,7 @@
 import apiClient from "./apiClient";
 
 export interface EquipementStreetlights {
+  [x: string]: any;
   brightness_level: number;
   on_time: number;
   off_time: number;

@@ -22,25 +22,12 @@ export const navigationGroups: NavigationGroup[] = [
   {
     items: [{ name: "Entreprises", href: "/companies", iconName: "account" }],
   },
+
   // {
-  //   items: [{ name: "Utilisateurs", href: "/users", iconName: "users" }],
-  // },
-  // {
-  //   items: [
-  //     { name: "Permissions", href: "/permissions", iconName: "permissions" },
-  //   ],
-  // },
-  // {
-  //   items: [
-  //     {
-  //       name: "Notifications",
-  //       href: "/notifications",
-  //       iconName: "notifications",
-  //     },
-  //   ],
+  //   items: [{ name: "Anomalies", href: "/anomalies", iconName: "anomalies" }],
   // },
   {
-    items: [{ name: "Anomalies", href: "/anomalies", iconName: "anomalies" }],
+    items: [{ name: "Parametres", href: "/parametres", iconName: "settings" }],
   },
 ];
 
@@ -59,7 +46,16 @@ export const maskingbox: NavigationGroup[] = [
   },
   {
     items: [
-      { name: "Historiques", href: "/historiques", iconName: "settings" },
+      {
+        name: "Historiques",
+        href: "/historiques",
+        iconName: "historique",
+      },
+    ],
+  },
+  {
+    items: [
+      { name: "Aide et Support", href: "/help&center", iconName: "aide" },
     ],
   },
 ];

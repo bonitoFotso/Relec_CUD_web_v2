@@ -45,12 +45,20 @@
   position: relative !important; /* Garde la carte à l'intérieur de sa div */
 }
 
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* Masque les scrollbars sur tous les navigateurs modernes */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+.container {
+  overflow: scroll;
   scrollbar-width: none; /* Firefox */
 }
 
+.container::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
