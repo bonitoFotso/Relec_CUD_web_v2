@@ -17,8 +17,8 @@ const LogoCustom: React.FC<LogoProps> = ({
 }) => {
   // Determine which logo image to use based on variant
   const logoSrc = variant === 'dark' 
-    ? '/images/logo.png' // Assuming you have a white version
-    : '/logo.png';  // Path relative to the public folder
+    ? '/2rc_logo.png' // Assuming you have a white version
+    : '/2rc_logo.png';  // Path relative to the public folder
 
   // Size mapping for the logo
   const sizeClasses = {
@@ -46,7 +46,7 @@ const LogoCustom: React.FC<LogoProps> = ({
             variant === 'light' ? 'text-primary' : 'text-white'
           )}
         >
-          Rélec-cud
+          2RC
         </span>
       )}
     </div>

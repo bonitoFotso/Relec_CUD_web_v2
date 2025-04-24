@@ -27,6 +27,7 @@ import PageCompte from "./pages/comptes/PageComptes";
 import PageAcceuil from "./pages/historiques/PageAcceuil";
 import Companies from "./pages/companies/Companies";
 import CompanieUsers from "./pages/companies/CompanieUsers";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -36,7 +37,7 @@ const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   if (loading) {
     return <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+        <LoadingScreen />
         </div>
       </div>;
   }
@@ -50,7 +51,7 @@ const PublicRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   if (loading) {
     return <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+        <LoadingScreen />
         </div>
       </div>;
   }
