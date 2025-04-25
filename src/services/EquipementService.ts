@@ -69,20 +69,22 @@ export interface EquipementMetters {
   created_at: string;
   updated_at: string;
   municipality_id: number;
-  meter_type: {
-    id: number;
-    name: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-  };
   municipality: {
     id: number;
     name: string;
     created_at: string;
     updated_at: string;
   };
+  street:{
+    id:number;
+    municipality_id:number;
+    name:string;
+    created_at: string;
+    updated_at: string;
+  };
   substation?: string;
+  cabinet_id?: number;
+  street_id: number;
 }
 
 export interface EquipementCabinets {
@@ -104,7 +106,10 @@ export interface EquipementCabinets {
     created_at: string;
     updated_at: string;
   };
+  street_id: number;
+  
 }
+
 
 export interface EquipementSubstations {
   id: number;
@@ -129,17 +134,21 @@ export interface EquipementSubstations {
 
 export const EquipementService = {
   getAllStreetlights: async (): Promise<EquipementStreetlights[]> => {
+    console.log("lampadaires")
     const { data } = await apiClient.get("/equipments/get-all-streetlights");
+    console.log(data.data)
     return data.data || [];
   },
 
   getAllMetters: async (): Promise<EquipementMetters[]> => {
     const { data } = await apiClient.get("/equipments/get-all-meters");
+    console.log("compteurs",data.data)
     return data.data || [];
   },
 
   getAllCabinets: async (): Promise<EquipementCabinets[]> => {
     const { data } = await apiClient.get("/equipments/get-all-cabinets");
+    console.log("armoires",data.data)
     return data.data || [];
   },
 

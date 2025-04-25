@@ -60,7 +60,9 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     setLoading(true);
     setError(null);
     try {
+      console.log("11")
       const data = await EquipementService.getAllStreetlights();
+      console.log("12")
       setStreetlights(data);
     } catch (err) {
       setError("Erreur lors de la récupération des lampadaires.");
@@ -186,12 +188,12 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     [fetchMetters]
   );
 
-  // useEffect(() => {
-  //   fetchStreetlights();
-  //   fetchMetters();
-  //   fetchCabinets();
-  //   fetchSubstations();
-  // }, [fetchStreetlights, fetchMetters, fetchCabinets, fetchSubstations]);
+  useEffect(() => {
+    fetchStreetlights();
+    fetchMetters();
+    fetchCabinets();
+    fetchSubstations();
+  }, [fetchStreetlights, fetchMetters, fetchCabinets, fetchSubstations]);
 
   // Valeur du contexte
   const value = {

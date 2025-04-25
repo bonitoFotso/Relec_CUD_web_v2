@@ -266,14 +266,13 @@ const Dashboard: React.FC = () => {
       <TableauCommunes />
 
       {/* Tableau des missions récentes et liste des agents */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="col-span-2">
+        <div>
           <MissionsTable missions={missions} isLoading={loading} />
         </div>
         {/*<div>
           <AgentsList agents={agents} isLoading={loading} />
         </div>*/}
-      </div>
+      
 
       {/* Section des alertes */}
       {/* <AlertsSection alerts={alerts} /> */}

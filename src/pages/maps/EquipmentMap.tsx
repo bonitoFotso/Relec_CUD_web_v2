@@ -34,7 +34,6 @@ import {
   customLabelIcon,
   DefaultIcon,
   equipmentIcons,
-  getAddressFromCoords,
   parseLocation,
 } from "./functions";
 
@@ -83,7 +82,6 @@ const EquipmentMap: React.FC = () => {
     distance: number;
     cabinetId: string;
   } | null>(null);
-  const [popupAddress, setPopupAddress] = useState<string | null>(null);
 
   const MapUpdater = () => {
     const map = useMap();
@@ -283,12 +281,6 @@ const EquipmentMap: React.FC = () => {
   };
 
   const renderPopup = (category: string, eq: any) => {
-    if (eq && eq.location) {
-      const [lat, lng] = eq.location.split(",");
-      getAddressFromCoords(Number(lat), Number(lng)).then((addr) => {
-        setPopupAddress(addr);
-      });
-    }
 
     switch (category) {
       case "Lampadaires":
@@ -351,10 +343,12 @@ const EquipmentMap: React.FC = () => {
         return (
           <div className="z-50">
             <div className="w-full flex justify-center items-center">
+              {eq.photo &&
               <img
                 src="https://static.thenounproject.com/png/3237447-200.png"
                 alt="compteur"
               />
+            }
             </div>
             <p>
               <strong>Presence : </strong>
@@ -383,14 +377,13 @@ const EquipmentMap: React.FC = () => {
               </p>
             )}
             <p>
-              <strong>Type : </strong>
-              {eq.meter_type.name}
-            </p>
-            <p>
               <strong>Commune :</strong>{" "}
               {typeof eq.municipality === "string"
                 ? eq.municipality
                 : eq.municipality?.name}
+            </p>
+            <p>
+              <strong>Rue :</strong> {eq.street.name}
             </p>
           </div>
         );
@@ -441,10 +434,6 @@ const EquipmentMap: React.FC = () => {
               {typeof eq.municipality === "string"
                 ? eq.municipality
                 : eq.municipality?.name}
-            </p>
-            <p>
-              <strong>Localisation : </strong>
-              {popupAddress || "Chargement..."}
             </p>
           </div>
         );

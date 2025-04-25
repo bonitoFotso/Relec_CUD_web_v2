@@ -1,20 +1,9 @@
-import React, { ReactNode, useEffect } from "react";
-import { useDashboard } from "@/contexts/DashboardContext";
+import React from "react";
 
-const LoadingScreen: React.FC<{
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  children: ReactNode;
-}> = ({ isLoading, setIsLoading, children }) => {
-  const { loading } = useDashboard(); // Utilisation du DashboardContext
+const LoadingScreen: React.FC<{}> = ({}) => {
 
-  useEffect(() => {
-    if (!loading) {
-      setIsLoading(false);
-    }
-  }, [loading, setIsLoading]);
 
-  if (isLoading) {
+ 
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background">
         <div className="relative h-48 md:h-64 w-48 md:w-64 flex justify-center items-center">
@@ -25,7 +14,7 @@ const LoadingScreen: React.FC<{
                 width={300}
                 height={200}
                 className="h-28 md:h-36 w-44 md:w-60"
-                src="/logo.png"
+                src="/2rc_logo.png"
                 alt="Logo"
               />
             </div>
@@ -33,9 +22,6 @@ const LoadingScreen: React.FC<{
         </div>
       </div>
     );
-  }
-
-  return <>{children}</>;
-};
+  };
 
 export default LoadingScreen;

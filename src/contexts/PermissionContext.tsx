@@ -48,9 +48,9 @@ import React, {
     }, []);
   
     // Vous pouvez aussi lancer fetchAssignRoles dès le montage du composant si nécessaire
-    // useEffect(() => {
-    //   fetchAssignRoles();
-    // }, [fetchAssignRoles]);
+    useEffect(() => {
+      fetchAssignRoles();
+    }, [fetchAssignRoles]);
   
     const value = {
       assignRolesData,

@@ -43,7 +43,7 @@ const StickerCard = ({ sticker, equipment_type }: StickerProps) => {
     <Card className="w-full max-w-sm shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-medium">Etiquette #{sticker.id}</CardTitle>
+          <CardTitle className="text-lg font-medium">Plaquette #{sticker.id}</CardTitle>
           <Badge variant={sticker.used ? "secondary" : "default"} className="ml-2">
             {sticker.used ? "Used" : "Available"}
           </Badge>
@@ -53,7 +53,7 @@ const StickerCard = ({ sticker, equipment_type }: StickerProps) => {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-center p-4 border rounded-md bg-gray-50">
           <QrCode size={100} className="text-gray-700" />
-          <span className="sr-only">QR Code for sticker #{sticker.qrcode_id}</span>
+          <span className="sr-only">QR #{sticker.qrcode_id}</span>
         </div>
         
         <div className="space-y-2 text-sm">

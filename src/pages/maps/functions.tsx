@@ -295,6 +295,7 @@ export const LampStatsTableByMunicipality = ({
 
 type LampNetwork = {
   networkId: string; // identifiant ou nom du réseau
+  distance: number;//distance du réseau en kilomètre
   lampCount: number; // nombre de lampadaires dans ce réseau
   networkMunicipalitie: string;//communes
 };
@@ -306,11 +307,28 @@ export const LampCountByNetworkTable = ({
 }) => {
   // On transforme groupedByCabinet en un tableau de LampNetwork
   const networks: LampNetwork[] = Object.entries(groupedByCabinet).map(
-    ([cabinetId, lampGroup]) => ({
-      networkId: `Réseau ${cabinetId}`, // ou juste cabinetId si tu veux
-      lampCount: lampGroup.length,
-      networkMunicipalitie: Array.from(new Set(lampGroup.map((lamp) => lamp.municipality))).join(", "),
-    })
+    ([cabinetId, lampGroup]) => {
+      // 1. Récupère les positions numériques [lat, lng]
+      const positions: [number, number][] = lampGroup
+        .map((l) => {
+          const parts = l.location.split(",").map(Number);
+          return parts.length === 2 ? ([parts[0], parts[1]] as [number, number]) : null;
+        })
+        .filter((p): p is [number, number] => p !== null);
+
+      // 2. Calcule la distance totale du réseau (en km)
+      const distance = calculateTotalDistance(positions);
+
+      // 3. Construit l’objet LampNetwork
+      return {
+        networkId: `Réseau ${cabinetId}`,
+        distance: distance,
+        lampCount: lampGroup.length,
+        networkMunicipalitie: Array.from(
+          new Set(lampGroup.map((lamp) => lamp.municipality))
+        ).join(", "),
+      };
+    }
   );
 
   return (
@@ -318,6 +336,7 @@ export const LampCountByNetworkTable = ({
       <TableHeader>
         <TableRow>
           <TableCell className="px-4 py-2 font-semibold">Réseau</TableCell>
+          <TableCell className="px-4 py-2 font-semibold">Distance</TableCell>
           <TableCell className="px-4 py-2 font-semibold">Commune(s)</TableCell>
           <TableCell className="px-4 py-2 font-semibold">Nombre de Lampadaires</TableCell>
         </TableRow>
@@ -326,6 +345,7 @@ export const LampCountByNetworkTable = ({
         {networks.map((network) => (
           <TableRow key={network.networkId}>
             <TableCell className="px-4 py-2">{network.networkId}</TableCell>
+            <TableCell className="px-4 py-2">{network.distance} km</TableCell>
             <TableCell className="px-4 py-2">{network.networkMunicipalitie}</TableCell>
             <TableCell className="px-4 py-2">{network.lampCount}</TableCell>
           </TableRow>

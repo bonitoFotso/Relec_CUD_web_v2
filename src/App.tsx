@@ -29,16 +29,16 @@ import Companies from "./pages/companies/Companies";
 import CompanieUsers from "./pages/companies/CompanieUsers";
 import HelpCenter from "./pages/maskingBox/helpcenter/Help_Center";
 import HistoriquePage from "./pages/historique/Historiques";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
-
   // Afficher un indicateur de chargement pendant la vérification
   if (loading) {
     return <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+        <LoadingScreen />
         </div>
       </div>;
   }
@@ -49,15 +49,18 @@ const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
 
 const PublicRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
+  // Afficher un indicateur de chargement pendant la vérification
   if (loading) {
     return <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+        <LoadingScreen />
         </div>
       </div>;
   }
   return isAuthenticated ? <Navigate to="/" /> : <>{element}</>;
 };
+
+
 
 const App: React.FC = () => {
   return (

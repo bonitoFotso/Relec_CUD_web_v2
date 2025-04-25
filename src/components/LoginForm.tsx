@@ -42,12 +42,12 @@ const LoginForm: React.FC = () => {
   const displayError = error || authError;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen bg-background">
-      <div className="col-span-1 px-4 md:px-0 flex justify-center items-center bg-white dark:bg-gray-600">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="px-4 md:px-0 flex justify-center items-center bg-white dark:bg-gray-600">
       <Card className="max-w-md bg-white">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
-            <LogoCustom size="lg" showTitle={false} />
+            <LogoCustom size="xl" showTitle={false} />
           </div>
           <CardTitle className="text-2xl font-bold text-center text-gray-800">
             Connexion
@@ -114,25 +114,6 @@ const LoginForm: React.FC = () => {
           </form>
         </CardContent>
       </Card>
-      </div>
-      <div className="bg-blue-950 dark:bg-gray-900 hidden md:col-span-1 relative md:flex items-center justify-center z-1">
-        <div className="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
-          <img src="/images/shape/grid-01.svg" alt="grid" />
-        </div>
-        <div className="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
-          <img src="/images/shape/grid-01.svg" alt="grid" />
-        </div>
-        <div className="flex items-center min-w-xs">
-          <Link to="/" className="block mb-4">
-            <img
-              width={300}
-              height={200}
-              className="w-full h-full"
-              src="/logo-white.png"
-              alt="Logo"
-            />
-          </Link>
-        </div>
       </div>
     </div>
   );

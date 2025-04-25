@@ -303,10 +303,10 @@ const MissionManagement: React.FC = () => {
                   Communes
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Rue(s)
+                  Responsable
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Quartier(s)
+                  Crée le
                 </TableHead>
                 <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -405,6 +405,7 @@ const MissionManagement: React.FC = () => {
             </TableBody>
           </Table>
         </div>
+        
       )}
 
       {/* Formulaire de mission */}
