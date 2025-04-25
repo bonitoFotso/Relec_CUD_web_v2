@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMissions } from "@/contexts/MissionContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   PlusIcon,
-  CalendarIcon,
   Pencil1Icon,
   TrashIcon,
   PersonIcon,
@@ -51,6 +50,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Mise à jour du schéma de validation pour le formulaire
 export const missionFormSchema = z.object({
@@ -108,6 +108,18 @@ const MissionManagement: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { users, fetchUsers } = useUsers();
+
+    // États de filtres et recherche
+    const [searchText, setSearchText] = useState<string>("");
+
+      // Filtrage
+  const filtered = useMemo(() =>
+    missions.filter(m => {
+      if (searchText && !m.title.toLowerCase().includes(searchText.toLowerCase())) return false;
+      return true;
+    }),
+    [missions, searchText]
+  );
 
   // Mise à jour des valeurs par défaut pour le formulaire
   const form = useForm<MissionFormValues>({
@@ -259,21 +271,47 @@ const MissionManagement: React.FC = () => {
     return interventionType?.name || "Type inconnu";
   };
 
+    // Computed stats
+    const totalMissions = missions.length;
+    const pendingCount = missions.filter(m => m.status.toLowerCase() === "en attente").length;
+    const inProgressCount = missions.filter(m => m.status.toLowerCase() === "en cours").length;
+    const completedCount = missions.filter(m => m.status.toLowerCase() === "terminée").length;
+    const percent = (count: number) => totalMissions ? ((count / totalMissions) * 100).toFixed(0) : "0";
+
   // Obtenir le nom de l'utilisateur
-  const getUserName = (id: number) => {
-    const user = users?.find((u) => u.id === id);
-    return user?.name || "Utilisateur inconnu";
-  };
+  // const getUserName = (id: number) => {
+  //   const user = users?.find((u) => u.id === id);
+  //   return user?.name || "Utilisateur inconnu";
+  // };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto px-2  py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des Missions</h1>
+    
         <Button onClick={handleAddClick}>
           <PlusIcon className="mr-2 h-4 w-4" />
           Ajouter une mission
         </Button>
       </div>
+           {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card><CardHeader><CardTitle>Total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{totalMissions}</div></CardContent></Card>
+        <Card><CardHeader><CardTitle>En attente</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{pendingCount} ({percent(pendingCount)}%)</div></CardContent></Card>
+        <Card><CardHeader><CardTitle>En cours</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{inProgressCount} ({percent(inProgressCount)}%)</div></CardContent></Card>
+        <Card><CardHeader><CardTitle>Terminées</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{completedCount} ({percent(completedCount)}%)</div></CardContent></Card>
+      </div>
+
+      {/* Recherche */}
+      <div className="w-full border-2 rounded-sm shadow-md ">
+          <input 
+            type="text" 
+            className="w-full px-4 py-3" 
+            placeholder="Rechercher par titre..." 
+            value={searchText} 
+            onChange={e=>setSearchText(e.target.value)}
+          />
+        </div>
 
       {error && (
         <Alert variant="destructive">
@@ -303,10 +341,13 @@ const MissionManagement: React.FC = () => {
                   Communes
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Responsable
+                  Entreprise
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Crée le
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status
                 </TableHead>
                 <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -314,94 +355,20 @@ const MissionManagement: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missions.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    Aucune mission trouvée. Cliquez sur "Ajouter une mission"
-                    pour commencer.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                missions.map((mission) => (
-                  <TableRow
-                    key={mission.id}
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleDetailsClick(mission)}
-                  >
-                    <TableCell className="font-medium">
-                      {mission.title.length > 20
-                        ? mission.title.substring(0, 20).concat("...")
-                        : mission.title}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getInterventionTypeName(mission.intervention_type_id)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {/* Utilisation de la nouvelle fonction pour les rues multiples */}
-                      {mission.streets
-                        ?.map((s) => s.name)
-                        .join(", ")
-                        .substring(0, 35)}
-                    </TableCell>
-                    <TableCell>
-                      {mission.user_id && getUserName(mission.user_id)}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <CalendarIcon className="h-3 w-3 text-gray-500" />
-                        <span className="text-sm">
-                          {formatDate(mission.created_at)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          asChild
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Ouvrir menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e: React.MouseEvent) =>
-                              handleEditClick(mission, e)
-                            }
-                          >
-                            <Pencil1Icon className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e: React.MouseEvent) =>
-                              handleAssignClick(mission, e)
-                            }
-                          >
-                            <PersonIcon className="mr-2 h-4 w-4" />
-                            Assigner un agent
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600"
-                            onClick={(e: React.MouseEvent) =>
-                              handleDeleteClick(mission, e)
-                            }
-                          >
-                            <TrashIcon className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+            {filtered.length===0?
+            <TableRow><TableCell colSpan={7} className="text-center py-8 text-gray-500">Aucune mission trouvée.</TableCell></TableRow>:
+            filtered.map(m=>
+              <TableRow key={m.id} className="cursor-pointer hover:bg-gray-50" onClick={()=>handleDetailsClick(m)}>
+                <TableCell>{m.title}</TableCell>
+                <TableCell><Badge variant="outline">{getInterventionTypeName(m.intervention_type_id)}</Badge></TableCell>
+                <TableCell>DOUALA 1</TableCell>
+                <TableCell>CUD</TableCell>
+                <TableCell>{formatDate(m.created_at)}</TableCell>
+                <TableCell><Badge>{m.status}</Badge></TableCell>
+                <TableCell className="text-right"><DropdownMenu><DropdownMenuTrigger asChild onClick={e=>e.stopPropagation()}><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal/></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={e=>handleEditClick(m,e)}><Pencil1Icon className="mr-2 h-4 w-4"/>Modifier</DropdownMenuItem><DropdownMenuItem onClick={e=>handleAssignClick(m,e)}><PersonIcon className="mr-2 h-4 w-4"/>Assigner</DropdownMenuItem><DropdownMenuItem className="text-red-600" onClick={e=>handleDeleteClick(m,e)}><TrashIcon className="mr-2 h-4 w-4"/>Supprimer</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell>
+              </TableRow>
+            )
+          }
             </TableBody>
           </Table>
         </div>

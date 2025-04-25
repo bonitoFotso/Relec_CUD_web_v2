@@ -240,8 +240,7 @@ const Dashboard: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold ">Tableau de bord</h1>
           <p className=" mt-1 font-medium">
-            Bienvenue, {currentUser?.name || "Utilisateur"}. Voici vos
-            statistiques d'aujourd'hui.
+            Bienvenue, {currentUser?.name || "Utilisateur"}
           </p>
         </div>
         <button

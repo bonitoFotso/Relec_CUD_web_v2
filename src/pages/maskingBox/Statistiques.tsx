@@ -171,7 +171,7 @@ const StatistiquesCard: React.FC<StatistiquesCardsPropsUpdated> = ({
   // Statistics for display
   const statisticsData = [
     {
-      title: "Total des réseaux supervisés",
+      title: "Total des Lampadaires",
       value: statistics.totalStreetlights || 0,
       icon: "Lamp",
       color: "bg-blue-500",
