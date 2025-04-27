@@ -127,23 +127,6 @@ const EquipmentMap: React.FC = () => {
     return null;
   };
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          setUserPosition([latitude, longitude]);
-        },
-        (err) => {
-          console.error("Erreur géolocalisation : ", err);
-        }
-      );
-    } else {
-      console.warn("La géolocalisation n'est pas supportée par ce navigateur.");
-    }
-  }, []);
-
   // Fonctions de gestion des filtres
   const toggleMunicipality = (municipality: string) => {
     setActiveFilters((prev) => {

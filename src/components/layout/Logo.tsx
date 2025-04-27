@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface LogoProps {
   variant?: 'light' | 'dark';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showTitle?: boolean;
   className?: string;
 }
@@ -25,6 +25,7 @@ const LogoCustom: React.FC<LogoProps> = ({
     sm: 'hidden',
     md: 'h-18',
     lg: 'h-16',
+    xl: 'h-32'
   };
 
   return (

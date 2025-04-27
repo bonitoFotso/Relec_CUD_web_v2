@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -42,12 +41,12 @@ const LoginForm: React.FC = () => {
   const displayError = error || authError;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className=" px-4 md:px-0 flex justify-center items-center bg-white dark:bg-gray-600">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="px-4 md:px-0 flex justify-center items-center bg-white dark:bg-gray-600">
       <Card className="max-w-md bg-white">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
-            <LogoCustom size="lg" showTitle={false} />
+            <LogoCustom size="xl" showTitle={false} />
           </div>
           <CardTitle className="text-2xl font-bold text-center text-gray-800">
             Connexion

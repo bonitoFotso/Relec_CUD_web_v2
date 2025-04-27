@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo } from "react";
 import {
+  calculateTotalDistance,
   computeStatsByMunicipality,
   LampCountByNetworkTable,
   LampStatsTableByMunicipality,

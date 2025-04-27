@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // pages/MissionDetails.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -409,15 +410,13 @@ const [companyNames, setCompanyNames] = useState<Record<number, string>>({});
               <p className="text-sm text-muted-foreground mb-4">
                 {mission.streets?.map((s) => s.name).join(", ")}
               </p>
-              
               <h3 className="text-sm font-medium flex items-center mb-2">
-              <Network className="mr-2 h-4 w-4"/>
+                <Network className="mr-2 h-4 w-4" />
                 Type de réseau
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {mission.network_type}
               </p>
-              
               <h3 className="text-sm font-medium flex items-center mb-2">
                 <PersonIcon className="mr-2 h-4 w-4" />
                 Responsable

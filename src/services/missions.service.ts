@@ -29,7 +29,7 @@ export interface Mission {
     name: string;
   };
   agents: Agent[];
-  network_type: string;
+  network_type:string;
   //agents: number[];
 }
 export interface Municipalities {
@@ -93,7 +93,6 @@ export const MissionsService = {
           response.data.message || "Erreur lors de la récupération des missions"
         );
       }
-
       return response.data.data || [];
     } catch (error) {
       const errorMessage =

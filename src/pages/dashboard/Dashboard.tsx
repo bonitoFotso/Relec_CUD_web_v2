@@ -10,7 +10,6 @@ import { Sticker, StickersService } from "@/services/stickers.service";
 // Components
 import StatsCards from "./StatsCards";
 import MissionsTable from "./MissionsTable";
-import AgentsList from "./AgentsList";
 import MissionTypeChart from "./MissionTypeChart";
 import StickerUsageChart from "./StickerUsageChart";
 import { Alert, BarChartData, DashboardStats, PieChartData } from "./types";
@@ -240,8 +239,7 @@ const Dashboard: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold ">Tableau de bord</h1>
           <p className=" mt-1 font-medium">
-            Bienvenue, {currentUser?.name || "Utilisateur"}. Voici vos
-            statistiques d'aujourd'hui.
+            Bienvenue, {currentUser?.name || "Utilisateur"}
           </p>
         </div>
         <button
@@ -266,9 +264,16 @@ const Dashboard: React.FC = () => {
       <TableauCommunes />
 
       {/* Tableau des missions récentes et liste des agents */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-        <MissionsTable missions={missions} isLoading={loading} />
-      </div>
+        <div>
+          <MissionsTable missions={missions} isLoading={loading} />
+        </div>
+        {/*<div>
+          <AgentsList agents={agents} isLoading={loading} />
+        </div>*/}
+      
+
+      {/* Section des alertes */}
+      {/* <AlertsSection alerts={alerts} /> */}
     </div>
   );
 };
