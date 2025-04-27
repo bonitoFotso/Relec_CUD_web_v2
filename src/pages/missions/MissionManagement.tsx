@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect } from "react";
 import { useMissions } from "@/contexts/MissionContext";
 import { useForm } from "react-hook-form";
@@ -51,7 +52,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import MissionsTable from "../dashboard/MissionsTable";
 
 // Mise à jour du schéma de validation pour le formulaire
 export const missionFormSchema = z.object({
@@ -134,7 +134,7 @@ const MissionManagement: React.FC = () => {
         title: editingMission.title,
         description: editingMission.description || "",
         // Adaptation ici pour prendre en compte plusieurs rues
-        streets: editingMission.streets || [],
+        streets: editingMission.streets?.map((street) => street.id) || [],
         intervention_type_id: editingMission.intervention_type_id,
       });
     }
@@ -456,10 +456,6 @@ const MissionManagement: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-        <MissionsTable missions={missions} isLoading={loading} />
-      </div>
     </div>
   );
 };

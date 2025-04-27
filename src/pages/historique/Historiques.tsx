@@ -4,7 +4,6 @@ import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tabs } from "@radix-ui/react-tabs";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Activites from "./Activites";
 import Analyses from "./Analyses";
 import Etat_de_Support from "./Etat_de_Support";
 import Recommandations from "../maskingBox/Recommandations";
@@ -29,7 +28,7 @@ export default function HistoriquePage() {
     );
 
     // Retourne l'onglet correspondant ou "activities" par défaut
-    return currentTab ? currentTab[0] : "activities";
+    return currentTab ? currentTab[0] : "analyse";
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
@@ -48,8 +47,8 @@ export default function HistoriquePage() {
       setActiveTab(currentTab);
     }
     // Si l'URL ne correspond à aucun onglet, redirige vers l'onglet par défaut
-    if (currentTab === "activities" && location.pathname === "/historiques") {
-      navigate(tabRoutes.activities);
+    if (currentTab === "analyse" && location.pathname === "/historiques") {
+      navigate(tabRoutes.analyse);
     }
   }, [location.pathname]);
 

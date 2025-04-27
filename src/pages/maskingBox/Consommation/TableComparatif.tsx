@@ -35,7 +35,7 @@ const TableComparatif = () => {
             <TableCell>{type.puissanceConsommee}</TableCell>
             <TableCell>{calculerRendement(type)}</TableCell>
             <TableCell>
-              {calculerConsommationMoyenne(type).toFixed(4)}
+              {calculerConsommationMoyenne(type).toFixed(2)}
             </TableCell>
           </TableRow>
         ))}

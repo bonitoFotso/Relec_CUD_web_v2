@@ -20,19 +20,34 @@ const ConsommationProvider = ({
   );
   const streetlights = filteredStreetlights || allStreetlights;
 
-  const [currentPeriod, setCurrentPeriod] = useState<string>("Hebdomadaire");
+  const [currentPeriod, setCurrentPeriod] = useState<string>("Journaliere");
   const [data, setData] = useState<any[]>([]);
 
-  // Convertir les données des lampadaires de l'API en StreetlightType
+  // Ajouter un état pour stocker la commune sélectionnée
+  const [selectedMunicipality] = useState<string>("Toutes les communes");
 
+  // Modifier la fonction useEffect qui traite les lampadaires
   useEffect(() => {
     if (streetlights && streetlights.length > 0) {
-      // Regrouper les lampadaires par type et catégorie
+      // Modification de la logique de regroupement en fonction de la commune sélectionnée
       const streetlightsByType = streetlights.reduce((acc, streetlight) => {
-        const typeKey = `${streetlight.lamps[0].lamp_type}_${streetlight.lamps[0].with_balast}`;
+        // Vérifier si ce lampadaire appartient à la commune sélectionnée
+        // Si "Toutes les communes" est sélectionné, tous les lampadaires sont inclus
+        // Définir la clé de regroupement - simplifiée pour "Toutes les communes"
+        let typeKey;
+        if (selectedMunicipality === "Toutes les communes") {
+          // Pour "Toutes les communes", regrouper uniquement par catégorie principale (LED ou Décharges)
+          typeKey = streetlight.lamps[0].lamp_type.includes("LED")
+            ? "LED"
+            : "Decharges";
+        } else {
+          // Pour une commune spécifique, conserver le regroupement détaillé actuel
+          typeKey = `${streetlight.lamps[0].lamp_type}_${streetlight.lamps[0].with_balast}`;
+        }
+
         if (!acc[typeKey]) {
           acc[typeKey] = {
-            id: streetlight.lamps[0].streetlight_id,
+            id: streetlight.lamps[0].streelight_id,
             name: streetlight.lamps[0].lamp_type,
             category: streetlight.lamps[0].lamp_type.includes("LED")
               ? "LED"
@@ -44,7 +59,6 @@ const ConsommationProvider = ({
               streetlight.off_time
             ),
             quantite: 1,
-            // couleur: getColorForType(typeKey),
             couleur: getColorForType(
               streetlight.lamps[0].lamp_type.includes("LED")
             ),
@@ -65,17 +79,16 @@ const ConsommationProvider = ({
         return acc;
       }, {} as Record<string, StreetlightType & { with_balast: boolean }>);
 
-      // Transformer l'objet en tableau
+      // Transformer l'objet en tableau comme avant
       const typesArray = Object.values(streetlightsByType).map(
         (type, index) => {
-          const streetlightType = type as StreetlightType; // Explicitly cast to StreetlightType
+          const streetlightType = type as StreetlightType;
           return {
             ...streetlightType,
-            id: index + 1, // Assurer un ID unique
-            // Estimation de la puissance lumineuse basée sur le type
+            id: index + 1,
             puissanceLumineuse:
               streetlightType.category === "LED"
-                ? streetlightType.puissanceConsommee * 2.5 // Les LEDs ont généralement un meilleur rendement
+                ? streetlightType.puissanceConsommee * 2.5
                 : streetlightType.puissanceConsommee * 1.1,
           };
         }
@@ -83,7 +96,7 @@ const ConsommationProvider = ({
 
       setStreetlightTypes(typesArray);
     }
-  }, [streetlights]);
+  }, [streetlights, selectedMunicipality]); // Ajout de selectedMunicipality comme dépendance
 
   // Fonction pour calculer la durée d'utilisation à partir des heures de démarrage et d'arrêt
   const calculateUsageDuration = (onTime: string, offTime: string): number => {
@@ -108,27 +121,10 @@ const ConsommationProvider = ({
     }
   };
 
-  // Attribuer une couleur à chaque type de lampadaire
-  // const getColorForType = (typeKey: string): string => {
-  //   const colorMap: Record<string, string> = {
-  //     LED_true: "#10B722",
-  //     LED_false: "#059FFF",
-  //     HPS_true: "#F59E00", // High Pressure Sodium
-  //     HPS_false: "#EF4444",
-  //     MH_true: "#9333EA", // Metal Halide
-  //     MH_false: "#8B5CF6",
-  //     Mercury_true: "#FBBF24",
-  //     Mercury_false: "#F87171",
-  //   };
-
-  //   return (
-  //     colorMap[typeKey] ||
-  //     `#${Math.floor(Math.random() * 16777215).toString(16)}`
-  //   );
-  // };
   const getColorForType = (isLED: boolean): string => {
-    return isLED ? "#4CAF50" : "#FF9800"; // Vert pour LED, Orange pour autres
+    return isLED ? "#EF4444" : "#FF9800"; // Vert pour LED, Orange pour autres
   };
+
   // Fonction pour générer les données
   const generateData = (period: string) => {
     if (streetlightTypes.length === 0) return [];
@@ -136,8 +132,6 @@ const ConsommationProvider = ({
     // Définir la longueur et les étiquettes de temps en fonction de la période
     let timeLabels: string[] = [];
     // let fluctuationFactor = 0.2; // Facteur de fluctuation pour rendre les données plus réalistes
-
-   
 
     if (period === "Journaliere") {
       timeLabels = Array.from({ length: 24 }, (_, i) => `${i}h`);
@@ -384,7 +378,6 @@ const ConsommationProvider = ({
         calculerRendement,
         filterByCategory,
         filterTotalsByCategory,
-
         error,
         loading: streetlights === undefined,
       }}
