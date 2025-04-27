@@ -47,7 +47,7 @@ import AssignAgentDialog from "@/components/AssignAgentDialog";
 import { Agent, Mission } from "@/services/missions.service";
 import { Sticker } from "@/services/stickers.service";
 import { toast } from "react-toastify";
-import { MapPinIcon } from "lucide-react";
+import { MapPinIcon, Network } from "lucide-react";
 import StickerFormDialog from "@/components/StickerFormDialog";
 import StickerCard from "@/components/card/StickerCard";
 import { User } from "@/services/UsersService";
@@ -409,7 +409,15 @@ const [companyNames, setCompanyNames] = useState<Record<number, string>>({});
               <p className="text-sm text-muted-foreground mb-4">
                 {mission.streets?.map((s) => s.name).join(", ")}
               </p>
-
+              
+              <h3 className="text-sm font-medium flex items-center mb-2">
+              <Network className="mr-2 h-4 w-4"/>
+                Type de réseau
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {mission.network_type}
+              </p>
+              
               <h3 className="text-sm font-medium flex items-center mb-2">
                 <PersonIcon className="mr-2 h-4 w-4" />
                 Responsable

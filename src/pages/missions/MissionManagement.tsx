@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
+import MissionsTable from "../dashboard/MissionsTable";
 
 // Mise à jour du schéma de validation pour le formulaire
 export const missionFormSchema = z.object({
@@ -124,7 +125,7 @@ const MissionManagement: React.FC = () => {
     fetchUsers();
     fetchFormData();
     fetchMissions();
-  }, [fetchUsers,fetchFormData,fetchMissions]);
+  }, [fetchUsers, fetchFormData, fetchMissions]);
 
   // Remplir le formulaire lors de l'édition d'une mission
   useEffect(() => {
@@ -191,7 +192,7 @@ const MissionManagement: React.FC = () => {
           ...values,
           id: editingMission.id,
           agents: values.agents,
-          status: ""
+          status: "",
         });
         toast.success("Mission mise à jour");
       } else {
@@ -200,7 +201,7 @@ const MissionManagement: React.FC = () => {
           ...values,
           id: 0, // Provide a default value for 'id'
           agents: values.agents,
-          status: ""
+          status: "",
         });
         toast.success("Mission créée");
       }
@@ -306,7 +307,7 @@ const MissionManagement: React.FC = () => {
                   Rue(s)
                 </TableHead>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Quartier(s)
+                  Crée le
                 </TableHead>
                 <TableHead className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -455,6 +456,10 @@ const MissionManagement: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+        <MissionsTable missions={missions} isLoading={loading} />
+      </div>
     </div>
   );
 };

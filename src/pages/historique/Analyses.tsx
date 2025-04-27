@@ -47,9 +47,8 @@ const Analyses = () => {
       const municipalityMap = new Map<string, MunicipalityData>();
 
       streetlights.forEach((streetlight) => {
-        // Extract municipality from location or use "Unknown" if not available
-        const location = streetlight.location || "";
-        const municipality = location.split(",")[0] || "Unknown";
+        // Extract municipalities from streelights
+        const municipality = streetlight.municipality || "Unknown";
 
         // Calculate operating hours
         const onTime = String(streetlight.on_time || "18:00");
@@ -225,10 +224,8 @@ const Analyses = () => {
   return (
     <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-        Analyses du Fonctionnement des Réseaux d'Éclairage Public
+        Analyses du Fonctionnement des Réseaux d'Éclairage Publique
       </h1>
-
-      {/* Municipality Selector */}
       <div className="flex gap-3 items-center mb-6">
         <label
           htmlFor="municipality"
@@ -250,56 +247,18 @@ const Analyses = () => {
         </select>
       </div>
 
-      {/* Municipality Overview */}
-      {selectedMunicipality && (
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {municipalities
-            .filter((m) => m.name === selectedMunicipality)
-            .map((municipality) => (
-              <div key={municipality.name}>
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-                  <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-4">
-                    Vue d'ensemble - {municipality.name}
-                  </h2>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Nombre de lampadaires:
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-white">
-                        {municipality.streetlightCount}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Heures de fonctionnement:
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-white">
-                        {municipality.avgOperatingHours.toFixed(1)} h/jour
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Consommation totale:
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-white">
-                        {municipality.powerConsumption.toFixed(0)} kWh
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Pourcentage LED:
-                      </span>
-                      <span className="font-medium text-gray-800 dark:text-white">
-                        {municipality.ledPercentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      )}
+
+      <MunicipalityTable
+        municipalities={municipalities}
+        selectedMunicipality={undefined}
+      />
+
+
+      {/* <ComparisationTable
+        selectedMunicipality={selectedMunicipality}
+        municipalities={municipalities}
+        setSelectedMunicipality={setSelectedMunicipality}
+      /> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Operating Hours Chart */}
@@ -375,12 +334,6 @@ const Analyses = () => {
           </div>
         </div>
       </div>
-
-      {/* Municipality Comparison Table */}
-      <MunicipalityTable
-        municipalities={municipalities}
-        selectedMunicipality={undefined}
-      />
 
       {/* Consumption Bar Chart */}
       <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">

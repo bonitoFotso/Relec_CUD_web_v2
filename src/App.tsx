@@ -27,8 +27,9 @@ import PageCompte from "./pages/comptes/PageComptes";
 import PageAcceuil from "./pages/parametres/PageAcceuil";
 import Companies from "./pages/companies/Companies";
 import CompanieUsers from "./pages/companies/CompanieUsers";
-import HelpCenter from "./pages/maskingBox/helpcenter/Help_Center";
+import LoadingScreen from "./components/LoadingScreen";
 import HistoriquePage from "./pages/historique/Historiques";
+import HelpCenter from "./pages/maskingBox/helpcenter/Help_Center";
 
 // Composant de protection des routes privées
 const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -36,11 +37,13 @@ const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
 
   // Afficher un indicateur de chargement pendant la vérification
   if (loading) {
-    return <div className="h-[100vh] flex items-center justify-center">
+    return (
+      <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+          <LoadingScreen />
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Rediriger vers la page de connexion si non authentifié
@@ -50,11 +53,13 @@ const PrivateRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
 const PublicRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
-    return <div className="h-[100vh] flex items-center justify-center">
+    return (
+      <div className="h-[100vh] flex items-center justify-center">
         <div>
-          Chargement...
+          <LoadingScreen />
         </div>
-      </div>;
+      </div>
+    );
   }
   return isAuthenticated ? <Navigate to="/" /> : <>{element}</>;
 };
@@ -65,7 +70,7 @@ const App: React.FC = () => {
       <AppProviders>
         <Router>
           <Routes>
-              {/* route publique « login » */}
+            {/* route publique « login » */}
             <Route
               path="/login"
               element={<PublicRoute element={<LoginForm />} />}

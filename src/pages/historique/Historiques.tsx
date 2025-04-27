@@ -61,15 +61,10 @@ export default function HistoriquePage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-4 ">
-          <TabsTrigger value="activities">Activités menées</TabsTrigger>
-          <TabsTrigger value="analyse">Analyse</TabsTrigger>
+          <TabsTrigger value="analyse">Analyses</TabsTrigger>
           <TabsTrigger value="etat_support">Etat de support</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="activities">
-          <Activites />
-        </TabsContent>
 
         <TabsContent value="analyse">
           <Analyses />
@@ -78,7 +73,7 @@ export default function HistoriquePage() {
         <TabsContent value="etat_support">
           <Etat_de_Support />
         </TabsContent>
-        
+
         <TabsContent value="recommendations" className="mt-6">
           <Recommandations />
         </TabsContent>

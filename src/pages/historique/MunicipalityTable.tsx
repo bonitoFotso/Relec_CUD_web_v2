@@ -16,7 +16,7 @@ export default function MunicipalityTable({
   selectedMunicipality: any;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-8">
+    <div className="mt-5 bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-8">
       <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-4">
         Comparaison par Commune
       </h2>

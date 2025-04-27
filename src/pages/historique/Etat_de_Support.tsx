@@ -117,7 +117,7 @@ const Etat_de_Support: React.FC = () => {
         <div className="flex space-x-4">
           <div className="relative">
             <select
-              className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-10 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none  border border-gray-300  rounded-md py-2 pl-3 pr-10 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               value={selectedMunicipality || ""}
               onChange={(e) =>
                 setSelectedMunicipality(
@@ -160,7 +160,7 @@ const Etat_de_Support: React.FC = () => {
           {filteredStats.map((stat) => (
             <div
               key={stat.id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+              className="border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
             >
               <div className="p-4 border-b">
                 <div className="flex justify-between items-center">
@@ -221,7 +221,8 @@ const Etat_de_Support: React.FC = () => {
               <div className="p-4 bg-gray-50 rounded-b-lg">
                 <button
                   onClick={() =>
-                    (window.location.href = `/equipements/lampadaires?municipality=${stat.id}`)
+                    // (window.location.href = `/equipements/lampadaires?municipality=${stat.id}`)
+                    console.info("Voir les détails")
                   }
                   className="w-full py-2 bg-transparent hover:bg-gray-100 text-blue-600 font-semibold rounded border border-blue-500 transition-colors"
                 >

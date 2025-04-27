@@ -105,11 +105,11 @@ const Dashboard: React.FC = () => {
           pieData.length > 0
             ? pieData
             : [
-              { name: "Déploiement", value: 12 },
-              { name: "Maintenance", value: 8 },
-              { name: "Urgence", value: 3 },
-              { name: "Inspection", value: 7 },
-            ]
+                { name: "Déploiement", value: 12 },
+                { name: "Maintenance", value: 8 },
+                { name: "Urgence", value: 3 },
+                { name: "Inspection", value: 7 },
+              ]
         );
 
         // Générer données pour le graphique de stickers par mois
@@ -266,17 +266,9 @@ const Dashboard: React.FC = () => {
       <TableauCommunes />
 
       {/* Tableau des missions récentes et liste des agents */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="col-span-2">
-          <MissionsTable missions={missions} isLoading={loading} />
-        </div>
-        {/*<div>
-          <AgentsList agents={agents} isLoading={loading} />
-        </div>*/}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+        <MissionsTable missions={missions} isLoading={loading} />
       </div>
-
-      {/* Section des alertes */}
-      {/* <AlertsSection alerts={alerts} /> */}
     </div>
   );
 };

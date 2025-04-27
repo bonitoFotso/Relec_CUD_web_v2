@@ -29,6 +29,7 @@ export interface Mission {
     name: string;
   };
   agents: Agent[];
+  network_type: string;
   //agents: number[];
 }
 export interface Municipalities {

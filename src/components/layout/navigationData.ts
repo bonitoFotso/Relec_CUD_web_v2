@@ -47,7 +47,7 @@ export const maskingbox: NavigationGroup[] = [
   {
     items: [
       {
-        name: "Historiques",
+        name: "État & Historique",
         href: "/historiques",
         iconName: "historique",
       },
