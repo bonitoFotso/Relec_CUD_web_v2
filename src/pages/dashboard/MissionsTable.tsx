@@ -217,10 +217,11 @@ const MissionsTable: React.FC<MissionsTableProps> = ({
                     <div className="text-sm ">
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                        {mission.streets
+                        {/*mission.streets
                         ?.map((s) => s.name)
                         .join(", ")
-                        .substring(0, 35)}
+                        .substring(0, 35)*/}
+                        DOUALA 1
                       </div>
                     </div>
                   </td>
