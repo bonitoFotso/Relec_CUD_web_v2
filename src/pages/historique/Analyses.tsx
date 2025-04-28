@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import MunicipalityTable from "./MunicipalityTable";
+import ComparisationTable from "./ComparisationTable";
 
 interface MunicipalityData {
   name: string;
@@ -26,7 +26,8 @@ interface MunicipalityData {
 
 interface OperatingHoursData {
   time: string;
-  value: number;
+  dayValue: number;
+  nightValue: number;
 }
 
 const Analyses = () => {
@@ -110,11 +111,7 @@ const Analyses = () => {
     if (selectedMunicipality && streetlights) {
       // Filter streetlights for selected municipality
       const municipalityStreetlights = streetlights.filter(
-        (streetlight: { location: string }) => {
-          const location = streetlight.location || "";
-          const municipality = location.split(",")[0] || "Unknown";
-          return municipality === selectedMunicipality;
-        }
+        (streetlight) => streetlight.municipality === selectedMunicipality
       );
 
       // Create hourly operating data (24-hour format)
@@ -122,7 +119,8 @@ const Analyses = () => {
         { length: 24 },
         (_, i) => ({
           time: `${i}:00`,
-          value: 0,
+          dayValue: 0,
+          nightValue: 0,
         })
       );
 
@@ -134,19 +132,45 @@ const Analyses = () => {
         const onHour = parseInt(String(onTime).split(":")[0], 10);
         const offHour = parseInt(String(offTime).split(":")[0], 10);
 
-        // Set all hours between on_time and off_time to 1 (active)
-        if (onHour < offHour) {
-          // Simple case: on at 18:00, off at 06:00
-          for (let i = onHour; i < offHour; i++) {
-            hourlyData[i].value++;
+        // Définir les heures de jour (6h à 18h) et de nuit (18h à 6h)
+        const isDayHour = (hour: number) => hour >= 6 && hour < 18;
+        const isNightHour = (hour: number) => hour >= 18 || hour < 6;
+
+        // Déterminer si le lampadaire est allumé à chaque heure
+        // et incrémenter les valeurs de jour ou de nuit selon l'heure
+        for (let i = 0; i < 24; i++) {
+          let isActive = false;
+
+          if (onHour < offHour) {
+            // Simple case: on at 18:00, off at 06:00
+            isActive = i >= onHour && i < offHour;
+          } else {
+            // Complex case: crosses midnight
+            isActive = i >= onHour || i < offHour;
           }
-        } else {
-          // Complex case: crosses midnight
-          for (let i = onHour; i < 24; i++) {
-            hourlyData[i].value++;
+
+          if (isActive) {
+            if (isDayHour(i)) {
+              hourlyData[i].dayValue++;
+            } else if (isNightHour(i)) {
+              hourlyData[i].nightValue++;
+            }
           }
-          for (let i = 0; i < offHour; i++) {
-            hourlyData[i].value++;
+        }
+
+        // On ajoute aussi la valeur d'activité basée sur is_on_day et is_on_night
+        if (streetlight.is_on_day === 1) {
+          for (let i = 6; i < 18; i++) {
+            hourlyData[i].dayValue++;
+          }
+        }
+
+        if (streetlight.is_on_night === 1) {
+          for (let i = 0; i < 6; i++) {
+            hourlyData[i].nightValue++;
+          }
+          for (let i = 18; i < 24; i++) {
+            hourlyData[i].nightValue++;
           }
         }
       });
@@ -247,24 +271,17 @@ const Analyses = () => {
         </select>
       </div>
 
-
-      <MunicipalityTable
-        municipalities={municipalities}
-        selectedMunicipality={undefined}
-      />
-
-
-      {/* <ComparisationTable
+      <ComparisationTable
         selectedMunicipality={selectedMunicipality}
         municipalities={municipalities}
         setSelectedMunicipality={setSelectedMunicipality}
-      /> */}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Operating Hours Chart */}
+        {/* Operating Hours Chart - Modifié pour afficher jour/nuit */}
         <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-4">
-            Heures de Fonctionnement
+            Heures de Fonctionnement Réelles (Jour/Nuit)
           </h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -280,18 +297,41 @@ const Analyses = () => {
                 />
                 <YAxis tick={{ fill: "gray" }} />
                 <Tooltip
-                  formatter={(value) => [
-                    `${value} lampadaires actifs`,
-                    "Nombre",
-                  ]}
+                  formatter={(value, name) => {
+                    const label =
+                      name === "dayValue"
+                        ? "Jour"
+                        : name === "nightValue"
+                        ? "Nuit"
+                        : name;
+                    return [`${value} lampadaires actifs`, label];
+                  }}
                   labelFormatter={(label) => `Heure: ${label}`}
                 />
-                <Legend />
+                <Legend
+                  formatter={(value) => {
+                    return value === "dayValue"
+                      ? "Jour (6h-18h)"
+                      : value === "nightValue"
+                      ? "Nuit (18h-6h)"
+                      : value;
+                  }}
+                />
+                {/* Ligne pour le fonctionnement de jour (bleu) */}
                 <Line
                   type="monotone"
-                  dataKey="value"
-                  name="Lampadaires en fonction"
+                  dataKey="dayValue"
+                  name="dayValue"
                   stroke="#059FFF"
+                  strokeWidth={2}
+                  activeDot={{ r: 8 }}
+                />
+                {/* Ligne pour le fonctionnement de nuit (orange) */}
+                <Line
+                  type="monotone"
+                  dataKey="nightValue"
+                  name="nightValue"
+                  stroke="#F59E00"
                   strokeWidth={2}
                   activeDot={{ r: 8 }}
                 />

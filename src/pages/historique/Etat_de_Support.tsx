@@ -156,7 +156,7 @@ const Etat_de_Support: React.FC = () => {
           <p>Aucune donnée disponible</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {filteredStats.map((stat) => (
             <div
               key={stat.id}
@@ -218,7 +218,7 @@ const Etat_de_Support: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-4 bg-gray-50 rounded-b-lg">
+              {/* <div className=" p-4 bg-gray-50 rounded-b-lg">
                 <button
                   onClick={() =>
                     // (window.location.href = `/equipements/lampadaires?municipality=${stat.id}`)
@@ -228,7 +228,7 @@ const Etat_de_Support: React.FC = () => {
                 >
                   Voir les détails
                 </button>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>
@@ -241,22 +241,22 @@ const Etat_de_Support: React.FC = () => {
 const getColorByCondition = (condition: string): string => {
   const conditionLower = condition.toLowerCase();
 
-  if (conditionLower.includes("bon") || conditionLower.includes("good")) {
+  if (conditionLower.includes("excellent")) {
     return "bg-green-500";
+  } else if (conditionLower.includes("bien")) {
+    return "bg-blue-500";
   } else if (
-    conditionLower.includes("moyen") ||
-    conditionLower.includes("fair") ||
+    conditionLower.includes("moyen") || 
     conditionLower.includes("normal")
   ) {
-    return "bg-yellow-500";
+    return "bg-orange-500";
   } else if (
-    conditionLower.includes("mauvais") ||
-    conditionLower.includes("poor") ||
+    conditionLower.includes("defectueux") ||
     conditionLower.includes("bad")
   ) {
-    return "bg-red-500";
+    return "bg-amber-400";
   } else {
-    return "bg-gray-500";
+    return "bg-red-500";
   }
 };
 

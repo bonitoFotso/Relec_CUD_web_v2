@@ -50,8 +50,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Filter, MoreHorizontal, Search } from "lucide-react";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getMissionStatusStyles } from "../dashboard/utils";
+import StatistiquesMissions from "./StatistiquesMissions";
 
 // Mise à jour du schéma de validation pour le formulaire
 export const missionFormSchema = z.object({
@@ -107,39 +107,44 @@ const MissionManagement: React.FC = () => {
   const [missionToDelete, setMissionToDelete] = useState<Mission | null>(null);
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-    const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [interventionFilter, setInterventionFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [interventionFilter, setInterventionFilter] = useState<string>("all");
 
-      const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   const { fetchUsers } = useUsers();
 
-    // États de filtres et recherche
-    const [searchText, setSearchText] = useState<string>("");
+  // États de filtres et recherche
+  const [searchText, setSearchText] = useState<string>("");
 
-      // Filtrage
-  const filtered = useMemo(() =>
-    missions.filter(m => {
-      //recherche 
-      if (searchText && !m.title.toLowerCase().includes(searchText.toLowerCase())) return false;
+  // Filtrage
+  const filtered = useMemo(
+    () =>
+      missions.filter((m) => {
+        //recherche
+        if (
+          searchText &&
+          !m.title.toLowerCase().includes(searchText.toLowerCase())
+        )
+          return false;
 
-    // Filtre par statut
-    if (
-      statusFilter !== "all" &&
-      m.status.toLowerCase() !== statusFilter.toLowerCase()
-    ) {
-      return false;
-    }
+        // Filtre par statut
+        if (
+          statusFilter !== "all" &&
+          m.status.toLowerCase() !== statusFilter.toLowerCase()
+        ) {
+          return false;
+        }
 
-    // Filtre par type d'intervention
-    if (
-      interventionFilter !== "all" &&
-      String(m.intervention_type) !== interventionFilter
-    ) {
-      return false;
-    }
-      return true;
-    }),
+        // Filtre par type d'intervention
+        if (
+          interventionFilter !== "all" &&
+          String(m.intervention_type) !== interventionFilter
+        ) {
+          return false;
+        }
+        return true;
+      }),
     [missions, searchText, statusFilter, interventionFilter]
   );
 
@@ -293,19 +298,24 @@ const MissionManagement: React.FC = () => {
     return interventionType?.name || "Type inconnu";
   };
 
-    // Computed stats
-// plus sûr : on transforme d'abord status en chaîne vide si elle n'existe pas
-const safeStatus = (m: Mission) => (m.status || "").toLowerCase();
+  // Computed stats
+  // plus sûr : on transforme d'abord status en chaîne vide si elle n'existe pas
+  const safeStatus = (m: Mission) => (m.status || "").toLowerCase();
 
-const totalMissions   = missions.length;
-const pendingCount    = missions.filter(m => safeStatus(m) === "en attente").length;
-const inProgressCount = missions.filter(m => safeStatus(m) === "en cours").length;
-const completedCount  = missions.filter(m => safeStatus(m) === "terminée").length;
+  const totalMissions = missions.length;
+  const pendingCount = missions.filter(
+    (m) => safeStatus(m) === "en attente"
+  ).length;
+  const inProgressCount = missions.filter(
+    (m) => safeStatus(m) === "en cours"
+  ).length;
+  const completedCount = missions.filter(
+    (m) => safeStatus(m) === "terminée"
+  ).length;
 
-// et ta fonction percent reste la même
-const percent = (count: number) =>
-  totalMissions ? ((count / totalMissions) * 100).toFixed(0) : "0";
-
+  // et ta fonction percent reste la même
+  const percent = (count: number) =>
+    totalMissions ? ((count / totalMissions) * 100).toFixed(0) : "0";
 
   // Obtenir le nom de l'utilisateur
   // const getUserName = (id: number) => {
@@ -314,34 +324,36 @@ const percent = (count: number) =>
   // };
 
   return (
-    <div className="container mx-auto px-2  py-6 space-y-6">
+    <div className="bg-white rounded-lg container mx-auto px-4 py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des Missions</h1>
-    
-        <Button onClick={handleAddClick}>
-          <PlusIcon className="mr-2 h-4 w-4" />
-          Ajouter une mission
-        </Button>
-      </div>
-           {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card><CardHeader><CardTitle>Total</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{totalMissions}</div></CardContent></Card>
-        <Card><CardHeader><CardTitle>En attente</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{pendingCount} ({percent(pendingCount)}%)</div></CardContent></Card>
-        <Card><CardHeader><CardTitle>En cours</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{inProgressCount} ({percent(inProgressCount)}%)</div></CardContent></Card>
-        <Card><CardHeader><CardTitle>Terminées</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{completedCount} ({percent(completedCount)}%)</div></CardContent></Card>
+        <div className="flex space-x-4">
+          <Button onClick={handleAddClick}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Ajouter une mission
+          </Button>
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="Rechercher une mission par titre..."
+              className="w-[250px] h-10 pl-8 pr-4 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
       </div>
 
+      <StatistiquesMissions
+        totalMissions={totalMissions}
+        pendingCount={pendingCount}
+        inProgressCount={inProgressCount}
+        completedCount={completedCount}
+        percent={percent}
+      />
+
       {/* Recherche */}
-        <div className="relative w-full">
-                    <input
-                      type="text"
-                      placeholder="Rechercher par titre..."
-                      className="h-16 w-full pl-8 pr-4 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-                      value={searchText}
-                      onChange={e=>setSearchText(e.target.value)}
-                    />
-                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  </div>
 
       {error && (
         <Alert variant="destructive">
@@ -360,59 +372,142 @@ const percent = (count: number) =>
           <Table>
             <TableCaption>Liste des missions</TableCaption>
             <TableHeader>
-            <div className="flex items-center space-x-2">
-          <button
-            className="flex items-center text-sm  hover:text-blue-600 focus:outline-none p-2 bg-blue-800 text-white rounded-md"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            Filtres
-            <ChevronDown
-              className={`h-3 w-3 ml-1 transition-transform ${showFilters ? "transform rotate-180" : ""
-                }`}
-            />
-          </button>
-        </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="w-[100px] flex items-center text-sm  focus:outline-none p-2 bg-blue-800 text-white rounded-md"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filtres
+                  <ChevronDown
+                    className={`h-3 w-3 ml-2 transition-transform ${
+                      showFilters ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </div>
 
-      {/* Filtres additionnels (affichés conditionnellement) */}
-      {showFilters && (
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 ">
-          <div className="flex items-center space-x-4">
-            <div>
-              <label className="text-xs font-medium  block mb-1">Statut</label>
-              <select
-                className="bg-white dark:bg-gray-800  text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="En cours">En cours</option>
-                <option value="Terminée">Terminée</option>
-                <option value="En attente">En attente</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium  block mb-1">
-                Type d'intervention
-              </label>
-              <select 
-              value={interventionFilter}
-              onChange={(e) => setInterventionFilter(e.target.value)}
-              className="bg-white dark:bg-gray-800 text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="all">Tous les types</option>
-                <option value="Déploiement">Déploiement</option>Déploiement
-                <option value="Dépannage">Dépannage</option>
-                <option value="Identification">Identification</option>
-                <option value="Installation">Installation</option>
-                <option value="Inventaire">Inventaire</option>
-                <option value="Inventaire">Maintenance</option>
-                <option value="Rapport">Rapport</option>
-                <option value="Visite">Visite</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Filtres additionnels (affichés conditionnellement) */}
+              {showFilters && (
+                // <div className="px-4 py-2 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 ">
+                //   <div className="flex items-center space-x-4">
+                //     <div>
+                //       <label className="text-xs font-medium  block mb-1">
+                //         Statut
+                //       </label>
+                //       <select
+                //         className="bg-white dark:bg-gray-800  text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                //         value={statusFilter}
+                //         onChange={(e) => setStatusFilter(e.target.value)}
+                //       >
+                //         <option value="all">Tous les statuts</option>
+                //         <option value="En cours">En cours</option>
+                //         <option value="Terminée">Terminée</option>
+                //         <option value="En attente">En attente</option>
+                //       </select>
+                //     </div>
+                //     <div>
+                //       <label className="text-xs font-medium  block mb-1">
+                //         Type d'intervention
+                //       </label>
+                //       <select
+                //         value={interventionFilter}
+                //         onChange={(e) => setInterventionFilter(e.target.value)}
+                //         className="bg-white dark:bg-gray-800 text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                //       >
+                //         <option value="all">Tous les types</option>
+                //         <option value="Déploiement">Déploiement</option>
+                //         Déploiement
+                //         <option value="Dépannage">Dépannage</option>
+                //         <option value="Identification">Identification</option>
+                //         <option value="Installation">Installation</option>
+                //         <option value="Inventaire">Inventaire</option>
+                //         <option value="Inventaire">Maintenance</option>
+                //         <option value="Rapport">Rapport</option>
+                //         <option value="Visite">Visite</option>
+                //       </select>
+                //     </div>
+                //   </div>
+                // </div>
+
+                <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
+                    {/* Filtre de statut */}
+                    <div className="w-full md:w-auto">
+                      <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                        Statut
+                      </label>
+                      <div className="relative">
+                        <select
+                          className="w-full bg-white dark:bg-gray-800 text-sm border border-gray-300 dark:border-gray-700 rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-colors duration-200"
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                          <option value="all">Tous les statuts</option>
+                          <option value="En attente">En attente</option>
+                          <option value="En cours">En cours</option>
+                          <option value="Terminée">Terminée</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
+                      </div>
+                    </div>
+
+                    {/* Filtre de type d'intervention */}
+                    <div className="w-full md:w-auto">
+                      <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                        Type d'intervention
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={interventionFilter}
+                          onChange={(e) =>
+                            setInterventionFilter(e.target.value)
+                          }
+                          className="w-full bg-white dark:bg-gray-800 text-sm border border-gray-300 dark:border-gray-700 rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-colors duration-200"
+                        >
+                          <option value="all">Tous les types</option>
+                          <option value="Déploiement">Déploiement</option>
+                          <option value="Dépannage">Dépannage</option>
+                          <option value="Identification">Identification</option>
+                          <option value="Installation">Installation</option>
+                          <option value="Inventaire">Inventaire</option>
+                          <option value="Maintenance">Maintenance</option>
+                          <option value="Rapport">Rapport</option>
+                          <option value="Visite">Visite</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
+                      </div>
+                    </div>
+
+                    {/* Bouton pour réinitialiser les filtres */}
+                    <div className="md:ml-auto mt-2 md:mt-0">
+                      <button
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setInterventionFilter("all");
+                        }}
+                        className="text-xs px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors duration-200 flex items-center"
+                      >
+                        <span>Réinitialiser</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5 ml-1.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <TableRow>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Titre
@@ -438,28 +533,79 @@ const percent = (count: number) =>
               </TableRow>
             </TableHeader>
             <TableBody>
-            {filtered.length===0?
-            <TableRow><TableCell colSpan={7} className="text-center py-8 text-gray-500">Aucune mission trouvée.</TableCell></TableRow>:
-            filtered.map((m: Mission)=>
-              <TableRow key={m.id} className="cursor-pointer hover:bg-gray-50" onClick={()=>handleDetailsClick(m)}>
-                <TableCell>{m.title}</TableCell>
-                <TableCell><Badge variant="outline">{getInterventionTypeName(m.intervention_type_id)}</Badge></TableCell>
-                <TableCell>DOUALA 1</TableCell>
-                <TableCell>CUD</TableCell>
-                <TableCell>{formatDate(m.created_at)}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getMissionStatusStyles(
-                                        m.status
-                    )}`}>{m.status? m.status: 'En attente'}</span>
-                </TableCell>
-                <TableCell className="text-right"><DropdownMenu><DropdownMenuTrigger asChild onClick={e=>e.stopPropagation()}><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal/></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={e=>handleEditClick(m,e)}><Pencil1Icon className="mr-2 h-4 w-4"/>Modifier</DropdownMenuItem><DropdownMenuItem onClick={e=>handleAssignClick(m,e)}><PersonIcon className="mr-2 h-4 w-4"/>Assigner</DropdownMenuItem><DropdownMenuItem className="text-red-600" onClick={e=>handleDeleteClick(m,e)}><TrashIcon className="mr-2 h-4 w-4"/>Supprimer</DropdownMenuItem></DropdownMenuContent></DropdownMenu></TableCell>
-              </TableRow>
-            )
-          }
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    Aucune mission trouvée.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((m: Mission) => (
+                  <TableRow
+                    key={m.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleDetailsClick(m)}
+                  >
+                    <TableCell>{m.title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getInterventionTypeName(m.intervention_type_id)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>DOUALA 1</TableCell>
+                    <TableCell>CUD</TableCell>
+                    <TableCell>{formatDate(m.created_at)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getMissionStatusStyles(
+                          m.status
+                        )}`}
+                      >
+                        {m.status ? m.status : "En attente"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => handleEditClick(m, e)}
+                          >
+                            <Pencil1Icon className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => handleAssignClick(m, e)}
+                          >
+                            <PersonIcon className="mr-2 h-4 w-4" />
+                            Assigner
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={(e) => handleDeleteClick(m, e)}
+                          >
+                            <TrashIcon className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
-        
       )}
 
       {/* Formulaire de mission */}

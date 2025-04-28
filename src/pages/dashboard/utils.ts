@@ -1,20 +1,20 @@
 // src/components/Dashboard/utils.ts
-import { AlertCircle, Clock } from 'lucide-react';
-import { AlertType } from './types';
+import { AlertCircle, Clock } from "lucide-react";
+import { AlertType } from "./types";
 
 /**
  * Fonction utilitaire pour mapper les IDs de type d'intervention aux noms
  */
 export const getInterventionTypeName = (id: number): string => {
   const types: Record<number, string> = {
-    1:'Déploiement',
-    2:'Dépannage',
-    3:'Identification',
-    4:'Installation',
-    5:'Inventaire',
-    6:'Maintenance',
-    7:'Rapport',
-    8:'Visite'
+    1: "Déploiement",
+    2: "Dépannage",
+    3: "Identification",
+    4: "Installation",
+    5: "Inventaire",
+    6: "Maintenance",
+    7: "Rapport",
+    8: "Visite",
   };
   return types[id] || `Type ${id}`;
 };
@@ -24,8 +24,8 @@ export const getInterventionTypeName = (id: number): string => {
  */
 export const getIconComponent = (iconName: string) => {
   const icons: Record<string, React.ElementType> = {
-    'AlertCircle': AlertCircle,
-    'Clock': Clock,
+    AlertCircle: AlertCircle,
+    Clock: Clock,
     // Ajouter d'autres icônes au besoin
   };
   return icons[iconName] || AlertCircle;
@@ -37,19 +37,19 @@ export const getIconComponent = (iconName: string) => {
 export const getAlertStyles = (type: AlertType) => {
   const styles = {
     warning: {
-      bg: 'bg-yellow-50',
-      border: 'border-yellow-400',
-      text: 'text-yellow-700',
-      icon: 'text-yellow-400'
+      bg: "bg-yellow-50",
+      border: "border-yellow-400",
+      text: "text-yellow-700",
+      icon: "text-yellow-400",
     },
     error: {
-      bg: 'bg-red-50',
-      border: 'border-red-400',
-      text: 'text-red-700',
-      icon: 'text-red-400'
-    }
+      bg: "bg-red-50",
+      border: "border-red-400",
+      text: "text-red-700",
+      icon: "text-red-400",
+    },
   };
-  
+
   return styles[type];
 };
 
@@ -58,11 +58,11 @@ export const getAlertStyles = (type: AlertType) => {
  */
 export const getMissionStatusStyles = (status: string | undefined) => {
   switch (status) {
-    case 'Terminée':
-      return 'bg-green-100 text-green-800';
-    case 'En attente':
-      return 'bg-yellow-100 text-yellow-800';
+    case "Terminée":
+      return "bg-green-100 text-emerald-800";
+    case "En attente":
+      return "bg-yellow-100 text-amber-800";
     default:
-      return 'bg-blue-100 text-blue-800';
+      return "bg-blue-100 text-blue-800";
   }
 };

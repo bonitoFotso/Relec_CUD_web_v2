@@ -11,6 +11,7 @@ export interface StreetlightType {
   quantite: number; // nombre de lampadaires de ce type
   couleur: string; // couleur pour les graphiques
 }
+
 export interface ConsommationContextType {
   streetlightTypes: StreetlightType[];
   currentPeriod: string;
