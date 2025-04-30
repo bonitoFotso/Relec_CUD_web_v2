@@ -109,6 +109,8 @@ const MissionManagement: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [interventionFilter, setInterventionFilter] = useState<string>("all");
+  const [companieFilter, setCompanieFilter] = useState<string>("all");
+  const [communeFilter, setCommuneFilter] = useState<string>("all");
 
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
@@ -143,9 +145,27 @@ const MissionManagement: React.FC = () => {
         ) {
           return false;
         }
+        // Filtre par entreprice
+        if (
+          companieFilter !== "all" &&
+          String(Array.from(new Set(m.agents.map((a)=>(
+            a.company_id
+          ))))) !== companieFilter
+        ) {
+          return false;
+        }
+         // Filtre par commune
+         if (
+          communeFilter !== "all" &&
+          String(Array.from(new Set(m.streets.map((s)=>(
+            s.municipality_id
+          ))))) !== communeFilter
+        ) {
+          return false;
+        }
         return true;
       }),
-    [missions, searchText, statusFilter, interventionFilter]
+    [missions, searchText, statusFilter, interventionFilter,companieFilter,communeFilter]
   );
 
   // Mise à jour des valeurs par défaut pour le formulaire
@@ -295,8 +315,24 @@ const MissionManagement: React.FC = () => {
     const interventionType = formData?.interventions?.find(
       (type) => type.id === id
     );
-    return interventionType?.name || "Type inconnu";
+    return interventionType?.name || "chargement...";
   };
+    // Obtenir le libellé de la commune
+    const getMunicipalityName = (id: number[]) => {
+      const municipalityId: number = Array.from(new Set(id))[0];
+      const municipality = formData?.municipalities?.find(
+        (m) => m.id === municipalityId
+      );
+      return municipality?.name || "chargement...";
+    };
+    // Obtenir le libellé de l'entreprise'
+        const getCompanyName = (id: number[]) => {
+          const companyId: number = Array.from(new Set(id))[0];
+          const company = formData?.companies?.find(
+            (c) => c.id === companyId
+          );
+          return company?.name || "chargement...";
+        };
 
   // Computed stats
   // plus sûr : on transforme d'abord status en chaîne vide si elle n'existe pas
@@ -310,7 +346,7 @@ const MissionManagement: React.FC = () => {
     (m) => safeStatus(m) === "en cours"
   ).length;
   const completedCount = missions.filter(
-    (m) => safeStatus(m) === "terminée"
+    (m) => safeStatus(m) === "terminé"
   ).length;
 
   // et ta fonction percent reste la même
@@ -327,7 +363,7 @@ const MissionManagement: React.FC = () => {
     <div className="bg-white rounded-lg container mx-auto px-4 py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center">
         <h1 className="text-3xl font-bold">Gestion des Missions</h1>
-        <div className="flex space-x-4">
+        <div className="flex gap-3 flex-col md:flex-row">
           <Button onClick={handleAddClick}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Ajouter une mission
@@ -369,68 +405,9 @@ const MissionManagement: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
-          <Table>
-            <TableCaption>Liste des missions</TableCaption>
-            <TableHeader>
-              <div className="flex items-center space-x-2">
-                <button
-                  className="w-[100px] flex items-center text-sm  focus:outline-none p-2 bg-blue-800 text-white rounded-md"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter className="h-4 w-4 mr-1" />
-                  Filtres
-                  <ChevronDown
-                    className={`h-3 w-3 ml-2 transition-transform ${
-                      showFilters ? "transform rotate-180" : ""
-                    }`}
-                  />
-                </button>
-              </div>
+          {showFilters && (
 
-              {/* Filtres additionnels (affichés conditionnellement) */}
-              {showFilters && (
-                // <div className="px-4 py-2 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 ">
-                //   <div className="flex items-center space-x-4">
-                //     <div>
-                //       <label className="text-xs font-medium  block mb-1">
-                //         Statut
-                //       </label>
-                //       <select
-                //         className="bg-white dark:bg-gray-800  text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                //         value={statusFilter}
-                //         onChange={(e) => setStatusFilter(e.target.value)}
-                //       >
-                //         <option value="all">Tous les statuts</option>
-                //         <option value="En cours">En cours</option>
-                //         <option value="Terminée">Terminée</option>
-                //         <option value="En attente">En attente</option>
-                //       </select>
-                //     </div>
-                //     <div>
-                //       <label className="text-xs font-medium  block mb-1">
-                //         Type d'intervention
-                //       </label>
-                //       <select
-                //         value={interventionFilter}
-                //         onChange={(e) => setInterventionFilter(e.target.value)}
-                //         className="bg-white dark:bg-gray-800 text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                //       >
-                //         <option value="all">Tous les types</option>
-                //         <option value="Déploiement">Déploiement</option>
-                //         Déploiement
-                //         <option value="Dépannage">Dépannage</option>
-                //         <option value="Identification">Identification</option>
-                //         <option value="Installation">Installation</option>
-                //         <option value="Inventaire">Inventaire</option>
-                //         <option value="Inventaire">Maintenance</option>
-                //         <option value="Rapport">Rapport</option>
-                //         <option value="Visite">Visite</option>
-                //       </select>
-                //     </div>
-                //   </div>
-                // </div>
-
-                <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
+                <div className="w-auto px-4 py-4 mt-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
                   <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
                     {/* Filtre de statut */}
                     <div className="w-full md:w-auto">
@@ -446,7 +423,7 @@ const MissionManagement: React.FC = () => {
                           <option value="all">Tous les statuts</option>
                           <option value="En attente">En attente</option>
                           <option value="En cours">En cours</option>
-                          <option value="Terminée">Terminée</option>
+                          <option value="Terminé">Terminé</option>
                         </select>
                         <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
                       </div>
@@ -466,7 +443,7 @@ const MissionManagement: React.FC = () => {
                           className="w-full bg-white dark:bg-gray-800 text-sm border border-gray-300 dark:border-gray-700 rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-colors duration-200"
                         >
                           <option value="all">Tous les types</option>
-                          <option value="Déploiement">Déploiement</option>
+                          <option value="Déploiement">Déploiement</option>
                           <option value="Dépannage">Dépannage</option>
                           <option value="Identification">Identification</option>
                           <option value="Installation">Installation</option>
@@ -478,6 +455,52 @@ const MissionManagement: React.FC = () => {
                         <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
                       </div>
                     </div>
+                    {/* Filtre per Entreprise */}
+                    <div className="w-full md:w-auto">
+                      <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                        Entreprise
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={companieFilter}
+                          onChange={(e) =>
+                            setCompanieFilter(e.target.value)
+                          }
+                          className="w-full bg-white dark:bg-gray-800 text-sm border border-gray-300 dark:border-gray-700 rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-colors duration-200"
+                        >
+                          <option value="all">Tous les types</option>
+                          {formData?.companies?.map((company) => (
+                            <option key={company.id} value={company.id}>
+                              {company.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
+                      </div>
+                    </div>
+                     {/* Filtre per Commune */}
+                     <div className="w-full md:w-auto">
+                      <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                        Commune
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={communeFilter}
+                          onChange={(e) =>
+                            setCommuneFilter(e.target.value)
+                          }
+                          className="w-full bg-white dark:bg-gray-800 text-sm border border-gray-300 dark:border-gray-700 rounded-md py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-colors duration-200"
+                        >
+                          <option value="all">Tous les types</option>
+                          {formData?.municipalities?.map((mucipality) => (
+                            <option key={mucipality.id} value={mucipality.id}>
+                              {mucipality.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 pointer-events-none text-gray-500" />
+                      </div>
+                    </div>
 
                     {/* Bouton pour réinitialiser les filtres */}
                     <div className="md:ml-auto mt-2 md:mt-0">
@@ -485,6 +508,8 @@ const MissionManagement: React.FC = () => {
                         onClick={() => {
                           setStatusFilter("all");
                           setInterventionFilter("all");
+                          setCompanieFilter("all");
+                          setCommuneFilter("all");
                         }}
                         className="text-xs px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors duration-200 flex items-center"
                       >
@@ -508,6 +533,28 @@ const MissionManagement: React.FC = () => {
                   </div>
                 </div>
               )}
+          
+          <Table>
+            <TableCaption>Liste des missions</TableCaption>
+            <TableHeader>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="w-[100px] flex items-center text-sm  focus:outline-none p-2 bg-blue-800 text-white rounded-md"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filtres
+                  <ChevronDown
+                    className={`h-3 w-3 ml-2 transition-transform ${
+                      showFilters ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+              
+
+              {/* Filtres additionnels (affichés conditionnellement) */}
+              
               <TableRow>
                 <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Titre
@@ -555,8 +602,13 @@ const MissionManagement: React.FC = () => {
                         {getInterventionTypeName(m.intervention_type_id)}
                       </Badge>
                     </TableCell>
-                    <TableCell>DOUALA 1</TableCell>
-                    <TableCell>CUD</TableCell>
+                    <TableCell>
+                      {getMunicipalityName(m.streets.map((s)=>(s.municipality_id)))}
+                    </TableCell>
+                    <TableCell>
+                    {getCompanyName(m.agents.map((a)=>(a.company_id)))}
+                      
+                    </TableCell>
                     <TableCell>{formatDate(m.created_at)}</TableCell>
                     <TableCell>
                       <span

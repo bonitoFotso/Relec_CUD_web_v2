@@ -286,7 +286,7 @@ const MissionFormDialog: React.FC<MissionFormDialogProps> = ({
                 name="company_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Compagnie</FormLabel>
+                    <FormLabel>Entreprise</FormLabel>
                     <FormControl>
                       <Select
                         value={String(field.value)}

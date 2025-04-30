@@ -32,10 +32,10 @@ import { FilterState } from "../maskingBox/types";
 import {
   calculateTotalDistance,
   customLabelIcon,
-  DefaultIcon,
   equipmentIcons,
   parseLocation,
 } from "./functions";
+import DonneesComplete from "../maskingBox/carte/DonneesComplete";
 
 const EquipmentMap: React.FC = () => {
   const {
@@ -442,6 +442,20 @@ const EquipmentMap: React.FC = () => {
     }
   };
 
+  const renderIcon = (category: string, eq: any) => {
+
+    if(category==="Lampadaires"){
+      if(eq.is_on_day==0 && eq.is_on_night==1){
+        return 1;
+      }else{
+       return 2;
+      }
+  
+    }else{
+      return null;
+    }
+  };
+
   // Fonction pour extraire et dédupliquer les municipalités et réseaux
   useEffect(() => {
     if (!loading) {
@@ -690,6 +704,8 @@ const EquipmentMap: React.FC = () => {
             </div>
           )}
         </div>
+        {/*total par equipement */}
+        <DonneesComplete filteredEquipments={filteredEquipments} />
         {/*carte */}
         <MapContainer
           center={[4.0911652, 9.7358404]}
@@ -710,11 +726,25 @@ const EquipmentMap: React.FC = () => {
                 // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
                 verifyAndUpdatePosition(eq.id, newposition, category);
               };
+              let IconEquipment = equipmentIcons[category]; 
+              let isGood=renderIcon(category, eq);
+              if(category=="Lampadaires"){
+                if(isGood==1){
+                  IconEquipment=equipmentIcons[category]
+                }else{
+                  IconEquipment=  L.icon({
+                      iconUrl: "/Svg_example4.svg",
+                      iconSize: [20, 20],
+                    })
+                }
+              }
+            
+             
               return (
                 <Marker
                   key={`${category}-${eq.id}`}
                   position={[lat, lng]}
-                  icon={equipmentIcons[category] || DefaultIcon}
+                  icon={IconEquipment}
                   draggable={true}
                   eventHandlers={{
                     dragend: handleDragEnd,
@@ -739,10 +769,23 @@ const EquipmentMap: React.FC = () => {
               const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
               const [cabLat, cabLng] =
                 cabinet?.location.split(",").map(Number) || [];
+                const hasCabinet = !!cabinet;
+                const hasMeter = hasCabinet && !!cabinet.meter_id;
+            
+                // Déterminer la couleur en fonction du type de regroupement
+                let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
+                
+                if (hasCabinet && !hasMeter) {
+                  polylineColor = "yellow"; // Avec armoire, sans compteur
+                } else if (hasCabinet && hasMeter) {
+                  polylineColor = "green"; // Avec armoire et compteur
+                } else if (!hasCabinet && hasMeter) {
+                  polylineColor = "cyan"; // Sans armoire mais avec compteur
+                }
+            
 
               const totalDistance = calculateTotalDistance(positions);
 
-              //const midIndex = Math.floor(positions.length / 2);
               const centerPos = positions[0];
 
               return (
@@ -750,7 +793,7 @@ const EquipmentMap: React.FC = () => {
                   {/* Polyline entre lampadaires */}
                   <Polyline
                     positions={positions}
-                    color="blue"
+                    color={polylineColor}
                     eventHandlers={{
                       click: () => {
                         const midIndex = Math.floor(positions.length / 2);
@@ -775,7 +818,7 @@ const EquipmentMap: React.FC = () => {
                   {centerPos && (
                     <Marker
                       position={centerPos}
-                      icon={customLabelIcon(`R${index + 1}`)}
+                      icon={customLabelIcon(`EP${index + 1}`)}
                     />
                   )}
                 </Fragment>
