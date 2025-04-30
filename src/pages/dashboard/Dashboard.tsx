@@ -264,16 +264,9 @@ const Dashboard: React.FC = () => {
       <TableauCommunes />
 
       {/* Tableau des missions récentes et liste des agents */}
-        <div>
-          <MissionsTable missions={missions} isLoading={loading} />
-        </div>
-        {/*<div>
-          <AgentsList agents={agents} isLoading={loading} />
-        </div>*/}
-      
-
-      {/* Section des alertes */}
-      {/* <AlertsSection alerts={alerts} /> */}
+      <div>
+        <MissionsTable missions={missions} isLoading={loading} />
+      </div>
     </div>
   );
 };

@@ -389,48 +389,7 @@ const MissionManagement: React.FC = () => {
 
               {/* Filtres additionnels (affichés conditionnellement) */}
               {showFilters && (
-                // <div className="px-4 py-2 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 ">
-                //   <div className="flex items-center space-x-4">
-                //     <div>
-                //       <label className="text-xs font-medium  block mb-1">
-                //         Statut
-                //       </label>
-                //       <select
-                //         className="bg-white dark:bg-gray-800  text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                //         value={statusFilter}
-                //         onChange={(e) => setStatusFilter(e.target.value)}
-                //       >
-                //         <option value="all">Tous les statuts</option>
-                //         <option value="En cours">En cours</option>
-                //         <option value="Terminée">Terminée</option>
-                //         <option value="En attente">En attente</option>
-                //       </select>
-                //     </div>
-                //     <div>
-                //       <label className="text-xs font-medium  block mb-1">
-                //         Type d'intervention
-                //       </label>
-                //       <select
-                //         value={interventionFilter}
-                //         onChange={(e) => setInterventionFilter(e.target.value)}
-                //         className="bg-white dark:bg-gray-800 text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                //       >
-                //         <option value="all">Tous les types</option>
-                //         <option value="Déploiement">Déploiement</option>
-                //         Déploiement
-                //         <option value="Dépannage">Dépannage</option>
-                //         <option value="Identification">Identification</option>
-                //         <option value="Installation">Installation</option>
-                //         <option value="Inventaire">Inventaire</option>
-                //         <option value="Inventaire">Maintenance</option>
-                //         <option value="Rapport">Rapport</option>
-                //         <option value="Visite">Visite</option>
-                //       </select>
-                //     </div>
-                //   </div>
-                // </div>
-
-                <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
+                <div className="mt-2 px-4 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
                   <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
                     {/* Filtre de statut */}
                     <div className="w-full md:w-auto">

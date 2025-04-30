@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import StatistiquesCard from "./Statistiques";
 import ConsommationsPrimaires from "./Consommation/ConsommationPrimaire";
 import { useEquipements } from "@/contexts/EquipementContext";
+import StatistiquesCard from "./Statistiques";
 
 export default function Tableau() {
   // Get streetlights data from context

@@ -1,4 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-refresh/only-export-components */
+import { EquipementContextType } from "@/pages/maskingBox/Consommation/types";
+import EquipementService, {
+  EquipementCabinets,
+  EquipementMetters,
+  EquipementStreetlights,
+  EquipementSubstations,
+} from "@/services/EquipementService";
 import {
   createContext,
   useState,
@@ -7,31 +15,6 @@ import {
   useEffect,
   useContext,
 } from "react";
-
-import EquipementService, {
-  EquipementStreetlights,
-  EquipementMetters,
-  EquipementCabinets,
-  EquipementSubstations,
-} from "@/services/EquipementService";
-
-// Définition du type du contexte
-interface EquipementContextType {
-  streetlights: EquipementStreetlights[];
-  metters: EquipementMetters[];
-  cabinets: EquipementCabinets[];
-  substations: EquipementSubstations[];
-  loading: boolean;
-  error: string | null;
-  fetchStreetlights: () => Promise<void>;
-  fetchMetters: () => Promise<void>;
-  fetchCabinets: () => Promise<void>;
-  fetchSubstations: () => Promise<void>;
-  updateStreetlightPosition: (id: number, location: string) => Promise<void>;
-  updateMeterPosition: (id: number, location: string) => Promise<void>;
-  updateCabinetPosition: (id: number, location: string) => Promise<void>;
-  updateSubstationPosition: (id: number, location: string) => Promise<void>;
-}
 
 // Création du contexte
 const EquipementContext = createContext<EquipementContextType | undefined>(
@@ -60,9 +43,9 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     setLoading(true);
     setError(null);
     try {
-      console.log("11")
+      console.log("11");
       const data = await EquipementService.getAllStreetlights();
-      console.log("12")
+      console.log("12");
       setStreetlights(data);
     } catch (err) {
       setError("Erreur lors de la récupération des lampadaires.");

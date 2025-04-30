@@ -96,7 +96,7 @@ const ConsommationProvider = ({
 
       setStreetlightTypes(typesArray);
     }
-  }, [streetlights, selectedMunicipality]); // Ajout de selectedMunicipality comme dépendance
+  }, [streetlights, selectedMunicipality]);
 
   // Fonction pour calculer la durée d'utilisation à partir des heures de démarrage et d'arrêt
   const calculateUsageDuration = (onTime: string, offTime: string): number => {
@@ -122,7 +122,7 @@ const ConsommationProvider = ({
   };
 
   const getColorForType = (isLED: boolean): string => {
-    return isLED ? "#EF4444" : "#FF9800"; // Vert pour LED, Orange pour autres
+    return isLED ? "#E91f67" : "#1F9800";
   };
 
   // Fonction pour générer les données
