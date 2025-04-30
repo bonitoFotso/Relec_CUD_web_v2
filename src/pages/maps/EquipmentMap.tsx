@@ -26,7 +26,7 @@ import { toast } from "react-toastify";
 import { useEquipements } from "@/contexts/EquipementContext";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { EquipementStreetlights } from "@/services/EquipementService";
+import { EquipementStreetlights,EquipementMetters } from "@/services/EquipementService";
 import { Check, Filter, X } from "lucide-react";
 import { FilterState } from "../maskingBox/types";
 import {
@@ -81,6 +81,11 @@ const EquipmentMap: React.FC = () => {
     position: [number, number];
     distance: number;
     cabinetId: string;
+  } | null>(null);
+  const [popupInfoMetter, setPopupInfoMetter] = useState<{
+    position: [number, number];
+    distance: number;
+    metterId: string;
   } | null>(null);
 
   const MapUpdater = () => {
@@ -521,6 +526,17 @@ const EquipmentMap: React.FC = () => {
     return acc;
   }, {} as Record<number, EquipementStreetlights[]>);
 
+  const groupedByMetter = streetlights.reduce((acc, streetlight)=> {
+    if (!streetlight.meter_id) return acc;
+
+    if (!acc[streetlight.meter_id]) {
+      acc[streetlight.meter_id] = [];
+    }
+
+    acc[streetlight.meter_id].push(streetlight);
+    return acc;
+  }, {} as Record<number, EquipementStreetlights[]>);
+
   // Calcul des stats du reseau de lampadaires par commune
 
   return (
@@ -776,7 +792,7 @@ const EquipmentMap: React.FC = () => {
                 let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
                 
                 if (hasCabinet && !hasMeter) {
-                  polylineColor = "yellow"; // Avec armoire, sans compteur
+                  polylineColor = "orange"; // Avec armoire, sans compteur
                 } else if (hasCabinet && hasMeter) {
                   polylineColor = "green"; // Avec armoire et compteur
                 } else if (!hasCabinet && hasMeter) {
@@ -811,6 +827,76 @@ const EquipmentMap: React.FC = () => {
                   {positions.length > 0 && (
                     <Polyline
                       positions={[positions[0], [cabLat, cabLng]]}
+                      color="gray"
+                      dashArray="4"
+                    />
+                  )}
+                  {centerPos && (
+                    <Marker
+                      position={centerPos}
+                      icon={customLabelIcon(`EP${index + 1}`)}
+                    />
+                  )}
+                </Fragment>
+              );
+            }
+          )}
+                    {Object.entries(groupedByMetter).map(
+            ([metterId, lampGroup], index) => {
+              const positions: [number, number][] = lampGroup
+                .map((l) => {
+                  const parts = l.location.split(",").map(Number);
+                  if (parts.length === 2)
+                    return [parts[0], parts[1]] as [number, number];
+                  return null;
+                })
+                .filter((pos): pos is [number, number] => pos !== null);
+
+              const metter = metters.find((c) => c.id === Number(metterId));
+              const [metLat, metLng] =
+              metter?.location.split(",").map(Number) || [];
+                // 
+            const hasMetter = !!metter;
+                // const hasMeter = hasCabinet && !!cabinet.meter_id;
+            
+                // // Déterminer la couleur en fonction du type de regroupement
+                // let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
+                
+                // if (hasCabinet && !hasMeter) {
+                //   polylineColor = "orange"; // Avec armoire, sans compteur
+                // } else if (hasCabinet && hasMeter) {
+                //   polylineColor = "green"; // Avec armoire et compteur
+                // } else if (!hasCabinet && hasMeter) {
+                //   polylineColor = "cyan"; // Sans armoire mais avec compteur
+                // }
+
+              const totalDistance = calculateTotalDistance(positions);
+
+              const centerPos = positions[0];
+
+              return (
+                <Fragment key={metterId}>
+                  {/* Polyline entre lampadaires */}
+                  <Polyline
+                    positions={positions}
+                    color="blue"
+                    eventHandlers={{
+                      click: () => {
+                        const midIndex = Math.floor(positions.length / 2);
+                        const centerPos = positions[midIndex];
+                        setPopupInfoMetter({
+                          position: centerPos,
+                          distance: totalDistance,
+                          metterId,
+                        });
+                      },
+                    }}
+                  />
+
+                  {/* Lignes entre chaque groupe lampadaire et le compteur */}
+                  {positions.length > 0 && (
+                    <Polyline
+                      positions={[positions[0], [metLat, metLng]]}
                       color="gray"
                       dashArray="4"
                     />
@@ -883,12 +969,33 @@ const EquipmentMap: React.FC = () => {
             </button>
             <h2 className="text-lg font-bold mb-4">Détails du Réseau</h2>
             <p className="text-sm">
-              <span className="font-semibold">Cabinet ID :</span>{" "}
+              <span className="font-semibold"> ID Armoire:</span>{" "}
               {popupInfo.cabinetId}
             </p>
             <p className="text-sm">
               <span className="font-semibold">Distance du réseau :</span>{" "}
               {popupInfo.distance.toFixed(4)} km
+            </p>
+          </div>
+        </div>
+      )}
+      {popupInfoMetter && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setPopupInfoMetter(null)}
+            >
+              ✕
+            </button>
+            <h2 className="text-lg font-bold mb-4">Détails du Réseau</h2>
+            <p className="text-sm">
+              <span className="font-semibold">ID Compteur:</span>{" "}
+              {popupInfoMetter.metterId}
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Distance du réseau :</span>{" "}
+              {popupInfoMetter.distance.toFixed(4)} km
             </p>
           </div>
         </div>
