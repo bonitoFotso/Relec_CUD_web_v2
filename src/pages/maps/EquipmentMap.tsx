@@ -26,16 +26,16 @@ import { toast } from "react-toastify";
 import { useEquipements } from "@/contexts/EquipementContext";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { EquipementStreetlights } from "@/services/EquipementService";
+import { EquipementStreetlights,EquipementMetters } from "@/services/EquipementService";
 import { Check, Filter, X } from "lucide-react";
 import { FilterState } from "../maskingBox/types";
 import {
   calculateTotalDistance,
   customLabelIcon,
-  DefaultIcon,
   equipmentIcons,
   parseLocation,
 } from "./functions";
+import DonneesComplete from "../maskingBox/carte/DonneesComplete";
 
 const EquipmentMap: React.FC = () => {
   const {
@@ -81,6 +81,11 @@ const EquipmentMap: React.FC = () => {
     position: [number, number];
     distance: number;
     cabinetId: string;
+  } | null>(null);
+  const [popupInfoMetter, setPopupInfoMetter] = useState<{
+    position: [number, number];
+    distance: number;
+    metterId: string;
   } | null>(null);
 
   const MapUpdater = () => {
@@ -442,6 +447,20 @@ const EquipmentMap: React.FC = () => {
     }
   };
 
+  const renderIcon = (category: string, eq: any) => {
+
+    if(category==="Lampadaires"){
+      if(eq.is_on_day==0 && eq.is_on_night==1){
+        return 1;
+      }else{
+       return 2;
+      }
+  
+    }else{
+      return null;
+    }
+  };
+
   // Fonction pour extraire et dédupliquer les municipalités et réseaux
   useEffect(() => {
     if (!loading) {
@@ -504,6 +523,17 @@ const EquipmentMap: React.FC = () => {
     }
 
     acc[streetlight.cabinet_id].push(streetlight);
+    return acc;
+  }, {} as Record<number, EquipementStreetlights[]>);
+
+  const groupedByMetter = streetlights.reduce((acc, streetlight)=> {
+    if (!streetlight.meter_id) return acc;
+
+    if (!acc[streetlight.meter_id]) {
+      acc[streetlight.meter_id] = [];
+    }
+
+    acc[streetlight.meter_id].push(streetlight);
     return acc;
   }, {} as Record<number, EquipementStreetlights[]>);
 
@@ -690,6 +720,8 @@ const EquipmentMap: React.FC = () => {
             </div>
           )}
         </div>
+        {/*total par equipement */}
+        <DonneesComplete filteredEquipments={filteredEquipments} />
         {/*carte */}
         <MapContainer
           center={[4.0911652, 9.7358404]}
@@ -710,11 +742,25 @@ const EquipmentMap: React.FC = () => {
                 // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
                 verifyAndUpdatePosition(eq.id, newposition, category);
               };
+              let IconEquipment = equipmentIcons[category]; 
+              let isGood=renderIcon(category, eq);
+              if(category=="Lampadaires"){
+                if(isGood==1){
+                  IconEquipment=equipmentIcons[category]
+                }else{
+                  IconEquipment=  L.icon({
+                      iconUrl: "/Svg_example4.svg",
+                      iconSize: [20, 20],
+                    })
+                }
+              }
+            
+             
               return (
                 <Marker
                   key={`${category}-${eq.id}`}
                   position={[lat, lng]}
-                  icon={equipmentIcons[category] || DefaultIcon}
+                  icon={IconEquipment}
                   draggable={true}
                   eventHandlers={{
                     dragend: handleDragEnd,
@@ -739,10 +785,23 @@ const EquipmentMap: React.FC = () => {
               const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
               const [cabLat, cabLng] =
                 cabinet?.location.split(",").map(Number) || [];
+                const hasCabinet = !!cabinet;
+                const hasMeter = hasCabinet && !!cabinet.meter_id;
+            
+                // Déterminer la couleur en fonction du type de regroupement
+                let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
+                
+                if (hasCabinet && !hasMeter) {
+                  polylineColor = "orange"; // Avec armoire, sans compteur
+                } else if (hasCabinet && hasMeter) {
+                  polylineColor = "green"; // Avec armoire et compteur
+                } else if (!hasCabinet && hasMeter) {
+                  polylineColor = "cyan"; // Sans armoire mais avec compteur
+                }
+            
 
               const totalDistance = calculateTotalDistance(positions);
 
-              //const midIndex = Math.floor(positions.length / 2);
               const centerPos = positions[0];
 
               return (
@@ -750,7 +809,7 @@ const EquipmentMap: React.FC = () => {
                   {/* Polyline entre lampadaires */}
                   <Polyline
                     positions={positions}
-                    color="blue"
+                    color={polylineColor}
                     eventHandlers={{
                       click: () => {
                         const midIndex = Math.floor(positions.length / 2);
@@ -775,7 +834,77 @@ const EquipmentMap: React.FC = () => {
                   {centerPos && (
                     <Marker
                       position={centerPos}
-                      icon={customLabelIcon(`R${index + 1}`)}
+                      icon={customLabelIcon(`EP${index + 1}`)}
+                    />
+                  )}
+                </Fragment>
+              );
+            }
+          )}
+                    {Object.entries(groupedByMetter).map(
+            ([metterId, lampGroup], index) => {
+              const positions: [number, number][] = lampGroup
+                .map((l) => {
+                  const parts = l.location.split(",").map(Number);
+                  if (parts.length === 2)
+                    return [parts[0], parts[1]] as [number, number];
+                  return null;
+                })
+                .filter((pos): pos is [number, number] => pos !== null);
+
+              const metter = metters.find((c) => c.id === Number(metterId));
+              const [metLat, metLng] =
+              metter?.location.split(",").map(Number) || [];
+                // 
+            const hasMetter = !!metter;
+                // const hasMeter = hasCabinet && !!cabinet.meter_id;
+            
+                // // Déterminer la couleur en fonction du type de regroupement
+                // let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
+                
+                // if (hasCabinet && !hasMeter) {
+                //   polylineColor = "orange"; // Avec armoire, sans compteur
+                // } else if (hasCabinet && hasMeter) {
+                //   polylineColor = "green"; // Avec armoire et compteur
+                // } else if (!hasCabinet && hasMeter) {
+                //   polylineColor = "cyan"; // Sans armoire mais avec compteur
+                // }
+
+              const totalDistance = calculateTotalDistance(positions);
+
+              const centerPos = positions[0];
+
+              return (
+                <Fragment key={metterId}>
+                  {/* Polyline entre lampadaires */}
+                  <Polyline
+                    positions={positions}
+                    color="blue"
+                    eventHandlers={{
+                      click: () => {
+                        const midIndex = Math.floor(positions.length / 2);
+                        const centerPos = positions[midIndex];
+                        setPopupInfoMetter({
+                          position: centerPos,
+                          distance: totalDistance,
+                          metterId,
+                        });
+                      },
+                    }}
+                  />
+
+                  {/* Lignes entre chaque groupe lampadaire et le compteur */}
+                  {positions.length > 0 && (
+                    <Polyline
+                      positions={[positions[0], [metLat, metLng]]}
+                      color="gray"
+                      dashArray="4"
+                    />
+                  )}
+                  {centerPos && (
+                    <Marker
+                      position={centerPos}
+                      icon={customLabelIcon(`EP${index + 1}`)}
                     />
                   )}
                 </Fragment>
@@ -840,12 +969,33 @@ const EquipmentMap: React.FC = () => {
             </button>
             <h2 className="text-lg font-bold mb-4">Détails du Réseau</h2>
             <p className="text-sm">
-              <span className="font-semibold">Cabinet ID :</span>{" "}
+              <span className="font-semibold"> ID Armoire:</span>{" "}
               {popupInfo.cabinetId}
             </p>
             <p className="text-sm">
               <span className="font-semibold">Distance du réseau :</span>{" "}
               {popupInfo.distance.toFixed(4)} km
+            </p>
+          </div>
+        </div>
+      )}
+      {popupInfoMetter && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              onClick={() => setPopupInfoMetter(null)}
+            >
+              ✕
+            </button>
+            <h2 className="text-lg font-bold mb-4">Détails du Réseau</h2>
+            <p className="text-sm">
+              <span className="font-semibold">ID Compteur:</span>{" "}
+              {popupInfoMetter.metterId}
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Distance du réseau :</span>{" "}
+              {popupInfoMetter.distance.toFixed(4)} km
             </p>
           </div>
         </div>

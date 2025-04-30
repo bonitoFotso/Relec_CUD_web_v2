@@ -35,8 +35,8 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Définir les icônes spécifiques
 export const equipmentIcons: Record<string, L.Icon> = {
   Lampadaires: L.icon({
-    iconUrl: "/clipart-blue-circle-f058.svg",
-    iconSize: [15, 15],
+    iconUrl: "/enorme-point-vert-fond-blanc-vecteur-point-vert_302321-1287-removebg-preview.png",
+    iconSize: [20, 20],
   }),
   Compteurs: L.icon({
     iconUrl: "/compteur-removebg-preview.png",
@@ -355,28 +355,12 @@ export const LampCountByNetworkTable = ({
   );
 };
 
-const API_KEY ="pk.89a51ef9eae107835c3b991b3269edc0"
-
-export const getAddressFromCoords = async (lat: number, lng: number) => {
-  const response = await fetch(
-    `https://us1.locationiq.com/v1/reverse.php?key=${API_KEY}&lat=${lat}&lon=${lng}&format=json`
-  );
-  const data = await response.json();
-  const fullAddress = data.display_name || 'Adresse inconnue';
-
-  // On prend juste les 2 premiers éléments de l'adresse
-  const addressParts = fullAddress.split(',');
-  const shortAddress = addressParts.slice(0, 2).join(',').trim();
-
-  return shortAddress;
-};
-
 
 export function customLabelIcon(label: string) {
   return L.divIcon({
-    className: "lamp-label",
-    html: `<div style="background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid gray; font-size: 12px;">${label}</div>`,
+    className: "lamp-label text-white",
+    html: `<div style="background: black; border-radius: 4px; border: 1px solid gray; font-size: 12px;">${label}</div>`,
     iconSize: [30, 15],
-    iconAnchor: [25, 45],
+    iconAnchor: [25, 30],
   });
 }

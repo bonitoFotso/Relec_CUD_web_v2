@@ -18,6 +18,7 @@ import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 import TableauCommunes from "./TableauCommunes";
+import { useEquipements } from "@/contexts/EquipementContext";
 //import { DashboardStats, PieChartData, BarChartData, Alert } from './types';
 //import { getInterventionTypeName } from './utils';
 
@@ -38,6 +39,12 @@ const Dashboard: React.FC = () => {
     []
   );
   const [alerts, setAlerts] = useState<Alert[]>([]);
+    const {
+      streetlights,
+      metters,
+      cabinets,
+      substations
+    } = useEquipements();
 
   useEffect(() => {
     const fetchDashboardData = async (): Promise<void> => {
@@ -71,16 +78,13 @@ const Dashboard: React.FC = () => {
 
         // Mettre à jour les statistiques
         const completedCount = missionsWithStatus.filter(
-          (m) => m.status === "completed"
+          (m) => m.status === "Terminé"
         ).length;
 
         setStats({
           missionsCount: missionsWithStatus.length,
           agentsCount: agentsData.length,
-          stickersCount: stickersData.reduce(
-            (acc, sticker) => acc + (sticker.count || 0),
-            0
-          ),
+          stickersCount: streetlights.length+metters.length+substations.length+cabinets.length,
           completedMissionsCount: completedCount,
         });
 

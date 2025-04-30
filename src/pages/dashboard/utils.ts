@@ -58,7 +58,7 @@ export const getAlertStyles = (type: AlertType) => {
  */
 export const getMissionStatusStyles = (status: string | undefined) => {
   switch (status) {
-    case "Terminée":
+    case "Terminé":
       return "bg-green-100 text-emerald-800";
     case "En attente":
       return "bg-yellow-100 text-amber-800";
