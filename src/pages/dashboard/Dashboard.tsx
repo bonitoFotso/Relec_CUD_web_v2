@@ -39,12 +39,7 @@ const Dashboard: React.FC = () => {
     []
   );
   const [alerts, setAlerts] = useState<Alert[]>([]);
-    const {
-      streetlights,
-      metters,
-      cabinets,
-      substations
-    } = useEquipements();
+  const { streetlights, metters, cabinets, substations } = useEquipements();
 
   useEffect(() => {
     const fetchDashboardData = async (): Promise<void> => {
@@ -84,7 +79,11 @@ const Dashboard: React.FC = () => {
         setStats({
           missionsCount: missionsWithStatus.length,
           agentsCount: agentsData.length,
-          stickersCount: streetlights.length+metters.length+substations.length+cabinets.length,
+          stickersCount:
+            streetlights.length +
+            metters.length +
+            substations.length +
+            cabinets.length,
           completedMissionsCount: completedCount,
         });
 
@@ -187,7 +186,12 @@ const Dashboard: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [
+    cabinets.length,
+    metters.length,
+    streetlights.length,
+    substations.length,
+  ]);
 
   // Fonction pour générer le rapport PDF
   const handleDownloadReport = (): void => {

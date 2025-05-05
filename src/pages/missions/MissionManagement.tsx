@@ -410,7 +410,7 @@ const MissionManagement: React.FC = () => {
       ) : (
         <div className="bg-white dark:bg-gray-950 p-4 rounded-xl">
           {showFilters && (
-            <div className="w-auto px-4 py-4 mt-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4">
+            <div className="w-auto px-4 py-4 mt-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 mb-4 transition-all duration-200">
               <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
                 {/* Filtre de statut */}
                 <div className="w-full md:w-auto">
