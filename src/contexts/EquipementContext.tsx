@@ -14,6 +14,7 @@ import EquipementService, {
   EquipementCabinets,
   EquipementSubstations,
 } from "@/services/EquipementService";
+import { useAuth } from "./AuthContext";
 
 // Définition du type du contexte
 interface EquipementContextType {
@@ -31,178 +32,150 @@ interface EquipementContextType {
   updateMeterPosition: (id: number, location: string) => Promise<void>;
   updateCabinetPosition: (id: number, location: string) => Promise<void>;
   updateSubstationPosition: (id: number, location: string) => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
-// Création du contexte
-const EquipementContext = createContext<EquipementContextType | undefined>(
-  undefined
-);
+const EquipementContext = createContext<EquipementContextType | undefined>(undefined);
 
-// Interface pour le provider
 interface EquipementProviderProps {
   children: ReactNode;
 }
 
-export const EquipementProvider: React.FC<EquipementProviderProps> = ({
-  children,
-}) => {
-  const [streetlights, setStreetlights] = useState<EquipementStreetlights[]>(
-    []
-  );
-  const [metters, setMetters] = useState<EquipementMetters[]>([]);
-  const [cabinets, setCabinets] = useState<EquipementCabinets[]>([]);
-  const [substations, setSubstations] = useState<EquipementSubstations[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+export const EquipementProvider: React.FC<EquipementProviderProps> = ({ children }) => {
+  const [equipments, setEquipments] = useState({
+    streetlights: [] as EquipementStreetlights[],
+    metters: [] as EquipementMetters[],
+    cabinets: [] as EquipementCabinets[],
+    substations: [] as EquipementSubstations[],
+  });
 
-  // Récupération des lampadaires
+  const [status, setStatus] = useState({
+    loading: false,
+    error: null as string | null,
+  });
+  const { isAuthenticated } = useAuth(); // Vérifie si l'utilisateur est connecté
+  // Fonction générique pour gérer les requêtes
+  const handleRequest = async <T,>(
+    request: () => Promise<T>,
+    errorMessage: string
+  ): Promise<T | undefined> => {
+    setStatus(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      return await request();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : errorMessage;
+      setStatus(prev => ({ ...prev, error: message }));
+      console.error(err);
+      return undefined;
+    } finally {
+      setStatus(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Récupération des données
   const fetchStreetlights = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      console.log("11")
-      const data = await EquipementService.getAllStreetlights();
-      console.log("12")
-      setStreetlights(data);
-    } catch (err) {
-      setError("Erreur lors de la récupération des lampadaires.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const data = await handleRequest(
+      EquipementService.getAllStreetlights,
+      "Erreur lors de la récupération des lampadaires"
+    );
+    if (data) setEquipments(prev => ({ ...prev, streetlights: data }));
+  }, [isAuthenticated]);
 
-  // Récupération des compteurs
   const fetchMetters = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await EquipementService.getAllMetters();
-      setMetters(data);
-    } catch (err) {
-      setError("Erreur lors de la récupération des compteurs.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const data = await handleRequest(
+      EquipementService.getAllMetters,
+      "Erreur lors de la récupération des compteurs"
+    );
+    if (data) setEquipments(prev => ({ ...prev, metters: data }));
+  }, [isAuthenticated]);
 
-  // Récupération des armoires électriques
   const fetchCabinets = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await EquipementService.getAllCabinets();
-      setCabinets(data);
-    } catch (err) {
-      setError("Erreur lors de la récupération des armoires électriques.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const data = await handleRequest(
+      EquipementService.getAllCabinets,
+      "Erreur lors de la récupération des armoires"
+    );
+    if (data) setEquipments(prev => ({ ...prev, cabinets: data }));
+  }, [isAuthenticated]);
 
-  // Récupération des sous-stations
   const fetchSubstations = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await EquipementService.getAllSubstations();
-      setSubstations(data);
-    } catch (err) {
-      setError("Erreur lors de la récupération des sous-stations.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const data = await handleRequest(
+      EquipementService.getAllSubstations,
+      "Erreur lors de la récupération des sous-stations"
+    );
+    if (data) setEquipments(prev => ({ ...prev, substations: data }));
+  }, [isAuthenticated]);
 
-  //modifier la position d'un lampadaire
+  // Mise à jour des positions
   const updateStreetlightPosition = useCallback(
     async (id: number, location: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        await EquipementService.updateStreetlightLocation(id, location);
-        await fetchStreetlights(); // rafraîchit les données après la mise à jour
-      } catch (err) {
-        setError("Erreur lors de la mise à jour de la position du lampadaire.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      await handleRequest(
+        () => EquipementService.updateStreetlightLocation(id, location),
+        "Erreur lors de la mise à jour du lampadaire"
+      );
+      await fetchStreetlights();
     },
     [fetchStreetlights]
   );
 
-  //modifier la position  d'un compteur
   const updateMeterPosition = useCallback(
     async (id: number, location: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        await EquipementService.updateMeterLocation(id, location);
-        await fetchMetters(); // rafraîchit les données après la mise à jour
-      } catch (err) {
-        setError("Erreur lors de la mise à jour de la position du compteur.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-  //modifier la position  d'un amoire
-  const updateCabinetPosition = useCallback(
-    async (id: number, location: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        await EquipementService.updateCabinetLocation(id, location);
-        await fetchCabinets(); // rafraîchit les données après la mise à jour
-      } catch (err) {
-        setError("Erreur lors de la mise à jour de la position du cabinet.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  //modifier la position  d'un poste
-  const updateSubstationPosition = useCallback(
-    async (id: number, location: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        await EquipementService.updateSubstationLocation(id, location);
-        await fetchSubstations(); // rafraîchit les données après la mise à jour
-      } catch (err) {
-        setError("Erreur lors de la mise à jour de la position du cabinet.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      await handleRequest(
+        () => EquipementService.updateMeterLocation(id, location),
+        "Erreur lors de la mise à jour du compteur"
+      );
+      await fetchMetters();
     },
     [fetchMetters]
   );
 
-  useEffect(() => {
-    fetchStreetlights();
-    fetchMetters();
-    fetchCabinets();
-    fetchSubstations();
+  const updateCabinetPosition = useCallback(
+    async (id: number, location: string) => {
+      await handleRequest(
+        () => EquipementService.updateCabinetLocation(id, location),
+        "Erreur lors de la mise à jour de l'armoire"
+      );
+      await fetchCabinets();
+    },
+    [fetchCabinets]
+  );
+
+  const updateSubstationPosition = useCallback(
+    async (id: number, location: string) => {
+      await handleRequest(
+        () => EquipementService.updateSubstationLocation(id, location),
+        "Erreur lors de la mise à jour de la sous-station"
+      );
+      await fetchSubstations();
+    },
+    [fetchSubstations]
+  );
+
+  // Rafraîchir toutes les données
+  const refreshAll = useCallback(async () => {
+    setStatus(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      await Promise.all([fetchStreetlights(), fetchMetters(), fetchCabinets(), fetchSubstations()]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur lors du rafraîchissement";
+      setStatus(prev => ({ ...prev, error: message }));
+    } finally {
+      setStatus(prev => ({ ...prev, loading: false }));
+    }
   }, [fetchStreetlights, fetchMetters, fetchCabinets, fetchSubstations]);
+
+  // Chargement initial
+  // useEffect(() => {
+  //   refreshAll();
+  // }, [refreshAll]);
 
   // Valeur du contexte
   const value = {
-    streetlights,
-    metters,
-    cabinets,
-    substations,
-    loading,
-    error,
+    streetlights: equipments.streetlights,
+    metters: equipments.metters,
+    cabinets: equipments.cabinets,
+    substations: equipments.substations,
+    loading: status.loading,
+    error: status.error,
     fetchStreetlights,
     fetchMetters,
     fetchCabinets,
@@ -211,6 +184,7 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
     updateMeterPosition,
     updateCabinetPosition,
     updateSubstationPosition,
+    refreshAll,
   };
 
   return (
@@ -220,8 +194,7 @@ export const EquipementProvider: React.FC<EquipementProviderProps> = ({
   );
 };
 
-// Import the hook from the new file
-export const useEquipements = () => {
+export const useEquipements = (): EquipementContextType => {
   const context = useContext(EquipementContext);
   if (context === undefined) {
     throw new Error("useEquipements must be used within a EquipementProvider");

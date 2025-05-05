@@ -19,11 +19,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
 import TableauCommunes from "./TableauCommunes";
 import { useEquipements } from "@/contexts/EquipementContext";
-//import { DashboardStats, PieChartData, BarChartData, Alert } from './types';
-//import { getInterventionTypeName } from './utils';
+import EquipementService, { EquipementCabinets, EquipementMetters, EquipementStreetlights, EquipementSubstations } from "@/services/EquipementService";
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
+  const { 
+    streetlights,
+      metters,
+      cabinets,
+      substations,
+      fetchStreetlights,
+      fetchMetters,
+      fetchCabinets,
+      fetchSubstations,
+   } = useEquipements();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
@@ -39,12 +48,14 @@ const Dashboard: React.FC = () => {
     []
   );
   const [alerts, setAlerts] = useState<Alert[]>([]);
-    const {
-      streetlights,
-      metters,
-      cabinets,
-      substations
-    } = useEquipements();
+
+
+      useEffect(() => {
+    fetchStreetlights();
+    fetchMetters();
+    fetchCabinets();
+    fetchSubstations();
+  }, [fetchStreetlights, fetchMetters, fetchCabinets, fetchSubstations]);
 
   useEffect(() => {
     const fetchDashboardData = async (): Promise<void> => {
@@ -54,6 +65,7 @@ const Dashboard: React.FC = () => {
 
         // Récupérer les missions
         const missionsData: Mission[] = await MissionsService.getAll();
+        
 
         // Ajouter statut simulé pour démo
         const missionsWithStatus = missionsData.map((mission) => ({
@@ -73,19 +85,19 @@ const Dashboard: React.FC = () => {
           }))
         );
 
-        // Récupérer les statistiques de stickers
+        // Récupérer les statistiques 
         const stickersData: Sticker[] = await StickersService.getAll();
+        const streetlightsData: EquipementStreetlights[] = await EquipementService.getAllStreetlights();
+        const mettersData: EquipementMetters[] = await EquipementService.getAllMetters();
+        const substationsData: EquipementSubstations[] = await EquipementService.getAllSubstations();
+        const cabinetsData: EquipementCabinets[] = await EquipementService.getAllCabinets();
 
-        // Mettre à jour les statistiques
-        const completedCount = missionsWithStatus.filter(
-          (m) => m.status === "Terminé"
-        ).length;
 
         setStats({
           missionsCount: missionsWithStatus.length,
           agentsCount: agentsData.length,
-          stickersCount: streetlights.length+metters.length+substations.length+cabinets.length,
-          completedMissionsCount: completedCount,
+          stickersCount: streetlightsData.length+mettersData.length+substationsData.length+cabinetsData.length,
+          completedMissionsCount: stickersData.length,
         });
 
         // Générer données pour le graphique circulaire

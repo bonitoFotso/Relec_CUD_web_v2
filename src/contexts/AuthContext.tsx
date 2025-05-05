@@ -58,6 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setCurrentUser(null);
           setIsAuthenticated(false);
         }
+        console.log("[erreur] AuthProvider initAuth", err);
       }finally {
         if (isMounted) {
           console.log("[Auth] loading→false, isAuthenticated→", isAuthenticated);
@@ -86,6 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec de la connexion');
       setIsAuthenticated(false);
+      console.log("[Auth] login error");
     } 
       setLoading(false);
     

@@ -12,7 +12,6 @@ import {
   Cell,
 } from "recharts";
 import { ChartProps } from "./types";
-import { MoveDownRight, MoveUpRight } from "lucide-react";
 import { useEquipements } from "@/contexts/EquipementContext";
 
 // Nouveau type pour les données du graphique
