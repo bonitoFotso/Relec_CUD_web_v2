@@ -192,7 +192,7 @@ const Companies = () => {
         <div className="flex items-center space-x-3">
           <Building2 className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-gray-800">Entreprises</h1>
-          <Badge variant="outline" className="ml-2">
+          <Badge variant="outline" className="ml-2 bg-white p-2">
             {companies.length}{" "}
             {companies.length > 1 ? "entreprises" : "entreprise"}
           </Badge>
@@ -246,7 +246,7 @@ const Companies = () => {
               )}
             </svg>
           </Button>
-          <div className="relative">
+          <div className="relative bg-white rounded-md shadow-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               type="text"
@@ -365,9 +365,6 @@ const Companies = () => {
                 <CardContent className="p-4">
                   <p className="text-gray-500 text-sm">ID: {company.id}</p>
                   {/* afficher le nombres d'agent de l'entreprise */}
-                  <p className="text-gray-500 text-sm">
-                    Nombre d'agents: {company.users?.length || 0}
-                  </p>
                   {/* Autres détails de l'entreprise peuvent être ajoutés ici */}
                 </CardContent>
                 <CardFooter className="bg-gray-50 p-3 flex justify-end">
