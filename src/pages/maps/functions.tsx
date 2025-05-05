@@ -35,7 +35,8 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Définir les icônes spécifiques
 export const equipmentIcons: Record<string, L.Icon> = {
   Lampadaires: L.icon({
-    iconUrl: "/enorme-point-vert-fond-blanc-vecteur-point-vert_302321-1287-removebg-preview.png",
+    //iconUrl: "/enorme-point-vert-fond-blanc-vecteur-point-vert_302321-1287-removebg-preview.png",
+    iconUrl:"/clipart-blue-circle-f058.svg",
     iconSize: [20, 20],
   }),
   Compteurs: L.icon({

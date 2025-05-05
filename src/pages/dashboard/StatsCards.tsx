@@ -67,7 +67,7 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       bgcolor: "bg-purple-200",
     },
     {
-      title: "Missions terminées",
+      title: "Plaquettes d'identificattions générées",
       value: stats.completedMissionsCount,
       icon: "CheckCircle",
       color: "bg-amber-500",

@@ -26,7 +26,7 @@ import { toast } from "react-toastify";
 import { useEquipements } from "@/contexts/EquipementContext";
 import { SkeletonCardUser } from "@/components/card/SkeletonCardUser";
 import { SkeletonCard } from "@/components/card/SkeletonCard";
-import { EquipementStreetlights,EquipementMetters } from "@/services/EquipementService";
+import { EquipementStreetlights } from "@/services/EquipementService";
 import { Check, Filter, X } from "lucide-react";
 import { FilterState } from "../maskingBox/types";
 import {
@@ -722,215 +722,154 @@ const EquipmentMap: React.FC = () => {
         </div>
         {/*total par equipement */}
         <DonneesComplete filteredEquipments={filteredEquipments} />
-        {/*carte */}
-        <MapContainer
-          center={[4.0911652, 9.7358404]}
-          zoom={100}
-          style={{ height: "100%", width: "100%" }}
-          className="leaflet-container rounded-lg z-10"
+    
+{/*carte */}
+<MapContainer
+  center={[4.0911652, 9.7358404]}
+  zoom={100}
+  style={{ height: "100%", width: "100%" }}
+  className="leaflet-container rounded-lg z-10"
+>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  <MapUpdater />
+  
+  {/* Affichage des équipements individuels */}
+  {Object.entries(filteredEquipments).map(([category, equipments]) =>
+    equipments.map((eq) => {
+      const { lat, lng } = parseLocation(eq.location);
+
+      const handleDragEnd = (e: L.LeafletEvent) => {
+        const marker = e.target;
+        const position = marker.getLatLng();
+        const newposition = `${position.lat},${position.lng}`;
+        verifyAndUpdatePosition(eq.id, newposition, category);
+      };
+      
+      let IconEquipment = equipmentIcons[category]; 
+      let isGood = renderIcon(category, eq);
+      
+      if(category === "Lampadaires"){
+        IconEquipment = isGood === 1 ? equipmentIcons[category] : L.icon({
+          iconUrl: "/Svg_example4.svg",
+          iconSize: [20, 20],
+        });
+      }
+    
+      return (
+        <Marker
+          key={`${category}-${eq.id}`}
+          position={[lat, lng]}
+          icon={IconEquipment}
+          draggable={true}
+          eventHandlers={{
+            dragend: handleDragEnd,
+          }}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <MapUpdater />
-          {Object.entries(filteredEquipments).map(([category, equipments]) =>
-            equipments.map((eq) => {
-              const { lat, lng } = parseLocation(eq.location);
+          <Popup>{renderPopup(category, eq)}</Popup>
+        </Marker>
+      );
+    })
+  )}
 
-              const handleDragEnd = (e: L.LeafletEvent) => {
-                const marker = e.target;
-                const position = marker.getLatLng();
-                const newposition = `${position.lat},${position.lng}`;
-                // Au lieu de mettre à jour directement, ouvrir le modal d'authentification
-                verifyAndUpdatePosition(eq.id, newposition, category);
-              };
-              let IconEquipment = equipmentIcons[category]; 
-              let isGood=renderIcon(category, eq);
-              if(category=="Lampadaires"){
-                if(isGood==1){
-                  IconEquipment=equipmentIcons[category]
-                }else{
-                  IconEquipment=  L.icon({
-                      iconUrl: "/Svg_example4.svg",
-                      iconSize: [20, 20],
-                    })
-                }
+  {/* Combinaison de tous les groupes pour une numérotation continue */}
+  {[
+    ...Object.entries(groupedByCabinet).map(([id, group]) => ({ type: 'cabinet', id, group })),
+    ...Object.entries(groupedByMetter).map(([id, group]) => ({ type: 'metter', id, group }))
+  ].map(({ type, id, group }, globalIndex) => {
+    const positions: [number, number][] = group
+      .map((l) => {
+        const parts = l.location.split(",").map(Number);
+        return parts.length === 2 ? [parts[0], parts[1]] : null;
+      })
+      .filter((pos): pos is [number, number] => pos !== null);
+
+    // Trouver l'équipement parent (armoire ou compteur)
+    const parent = type === 'cabinet' 
+      ? cabinets.find(c => c.id === Number(id))
+      : metters.find(m => m.id === Number(id));
+      
+    const [parentLat, parentLng] = parent?.location?.split(",").map(Number) || [];
+    const hasParent = !!parent;
+    const hasMeter = type === 'cabinet' && hasParent && 'meter_id' in parent && !!parent.meter_id;
+
+    // Déterminer la couleur en fonction du type de regroupement
+    let polylineColor = type === 'metter' ? 'blue' : 'red';
+    if (type === 'cabinet') {
+      if (hasParent && !hasMeter) polylineColor = 'orange';
+      if (hasParent && hasMeter) polylineColor = 'green';
+      if (!hasParent && hasMeter) polylineColor = 'cyan';
+    }
+
+    const totalDistance = calculateTotalDistance(positions);
+    const centerPos = positions[0];
+
+    return (
+      <Fragment key={`${type}-${id}`}>
+        {/* Polyline entre lampadaires */}
+        <Polyline
+          positions={positions}
+          color={polylineColor}
+          eventHandlers={{
+            click: () => {
+              const midPos = positions[Math.floor(positions.length / 2)];
+              if (type === 'cabinet') {
+                setPopupInfo({
+                  position: midPos,
+                  distance: totalDistance,
+                  cabinetId: id,
+                });
+              } else {
+                setPopupInfoMetter({
+                  position: midPos,
+                  distance: totalDistance,
+                  metterId: id,
+                });
               }
-            
-             
-              return (
-                <Marker
-                  key={`${category}-${eq.id}`}
-                  position={[lat, lng]}
-                  icon={IconEquipment}
-                  draggable={true}
-                  eventHandlers={{
-                    dragend: handleDragEnd,
-                  }}
-                >
-                  <Popup>{renderPopup(category, eq)}</Popup>
-                </Marker>
-              );
-            })
-          )}
-          {Object.entries(groupedByCabinet).map(
-            ([cabinetId, lampGroup], index) => {
-              const positions: [number, number][] = lampGroup
-                .map((l) => {
-                  const parts = l.location.split(",").map(Number);
-                  if (parts.length === 2)
-                    return [parts[0], parts[1]] as [number, number];
-                  return null;
-                })
-                .filter((pos): pos is [number, number] => pos !== null);
+            },
+          }}
+        />
 
-              const cabinet = cabinets.find((c) => c.id === Number(cabinetId));
-              const [cabLat, cabLng] =
-                cabinet?.location.split(",").map(Number) || [];
-                const hasCabinet = !!cabinet;
-                const hasMeter = hasCabinet && !!cabinet.meter_id;
-            
-                // Déterminer la couleur en fonction du type de regroupement
-                let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
-                
-                if (hasCabinet && !hasMeter) {
-                  polylineColor = "orange"; // Avec armoire, sans compteur
-                } else if (hasCabinet && hasMeter) {
-                  polylineColor = "green"; // Avec armoire et compteur
-                } else if (!hasCabinet && hasMeter) {
-                  polylineColor = "cyan"; // Sans armoire mais avec compteur
-                }
-            
+        {/* Ligne vers l'équipement parent si existant */}
+        {hasParent && positions.length > 0 && (
+          <Polyline
+            positions={[positions[0], [parentLat, parentLng]]}
+            color="gray"
+            dashArray="4"
+          />
+        )}
 
-              const totalDistance = calculateTotalDistance(positions);
+        {/* Marquage du groupe */}
+        {centerPos && (
+          <Marker
+            position={centerPos}
+            icon={customLabelIcon(`EP${globalIndex + 1}`)}
+          />
+        )}
+      </Fragment>
+    );
+  })}
 
-              const centerPos = positions[0];
+  {/* Lignes entre armoires et compteurs */}
+  {cabinets.map((cabinet) => {
+    if (!cabinet.location || !cabinet.meter_id) return null;
 
-              return (
-                <Fragment key={cabinetId}>
-                  {/* Polyline entre lampadaires */}
-                  <Polyline
-                    positions={positions}
-                    color={polylineColor}
-                    eventHandlers={{
-                      click: () => {
-                        const midIndex = Math.floor(positions.length / 2);
-                        const centerPos = positions[midIndex];
-                        setPopupInfo({
-                          position: centerPos,
-                          distance: totalDistance,
-                          cabinetId,
-                        });
-                      },
-                    }}
-                  />
+    const cabinetPos = parseLocation(cabinet.location);
+    const meter = metters.find((m) => m.id === cabinet.meter_id);
+    if (!meter || !meter.location) return null;
 
-                  {/* Lignes entre chaque groupe lampadaire et l’armoire */}
-                  {positions.length > 0 && (
-                    <Polyline
-                      positions={[positions[0], [cabLat, cabLng]]}
-                      color="gray"
-                      dashArray="4"
-                    />
-                  )}
-                  {centerPos && (
-                    <Marker
-                      position={centerPos}
-                      icon={customLabelIcon(`EP${index + 1}`)}
-                    />
-                  )}
-                </Fragment>
-              );
-            }
-          )}
-                    {Object.entries(groupedByMetter).map(
-            ([metterId, lampGroup], index) => {
-              const positions: [number, number][] = lampGroup
-                .map((l) => {
-                  const parts = l.location.split(",").map(Number);
-                  if (parts.length === 2)
-                    return [parts[0], parts[1]] as [number, number];
-                  return null;
-                })
-                .filter((pos): pos is [number, number] => pos !== null);
+    const meterPos = parseLocation(meter.location);
 
-              const metter = metters.find((c) => c.id === Number(metterId));
-              const [metLat, metLng] =
-              metter?.location.split(",").map(Number) || [];
-                // 
-            const hasMetter = !!metter;
-                // const hasMeter = hasCabinet && !!cabinet.meter_id;
-            
-                // // Déterminer la couleur en fonction du type de regroupement
-                // let polylineColor = "red"; // Par défaut (sans armoire, sans compteur)
-                
-                // if (hasCabinet && !hasMeter) {
-                //   polylineColor = "orange"; // Avec armoire, sans compteur
-                // } else if (hasCabinet && hasMeter) {
-                //   polylineColor = "green"; // Avec armoire et compteur
-                // } else if (!hasCabinet && hasMeter) {
-                //   polylineColor = "cyan"; // Sans armoire mais avec compteur
-                // }
-
-              const totalDistance = calculateTotalDistance(positions);
-
-              const centerPos = positions[0];
-
-              return (
-                <Fragment key={metterId}>
-                  {/* Polyline entre lampadaires */}
-                  <Polyline
-                    positions={positions}
-                    color="blue"
-                    eventHandlers={{
-                      click: () => {
-                        const midIndex = Math.floor(positions.length / 2);
-                        const centerPos = positions[midIndex];
-                        setPopupInfoMetter({
-                          position: centerPos,
-                          distance: totalDistance,
-                          metterId,
-                        });
-                      },
-                    }}
-                  />
-
-                  {/* Lignes entre chaque groupe lampadaire et le compteur */}
-                  {positions.length > 0 && (
-                    <Polyline
-                      positions={[positions[0], [metLat, metLng]]}
-                      color="gray"
-                      dashArray="4"
-                    />
-                  )}
-                  {centerPos && (
-                    <Marker
-                      position={centerPos}
-                      icon={customLabelIcon(`EP${index + 1}`)}
-                    />
-                  )}
-                </Fragment>
-              );
-            }
-          )}
-          {cabinets.map((cabinet) => {
-            if (!cabinet.location || !cabinet.meter_id) return null;
-
-            const cabinetPos = parseLocation(cabinet.location);
-            const meter = metters.find((m) => m.id === cabinet.meter_id);
-            if (!meter || !meter.location) return null;
-
-            const meterPos = parseLocation(meter.location);
-
-            return (
-              <Polyline
-                key={`cabinet-meter-${cabinet.id}`}
-                positions={[cabinetPos, meterPos]}
-                color="gray"
-                weight={2}
-                dashArray="6"
-              />
-            );
-          })}
-        </MapContainer>
+    return (
+      <Polyline
+        key={`cabinet-meter-${cabinet.id}`}
+        positions={[cabinetPos, meterPos]}
+        color="gray"
+        weight={2}
+        dashArray="6"
+      />
+    );
+  })}
+</MapContainer>
       </div>
 
       {/* Modal d'authentification */}
