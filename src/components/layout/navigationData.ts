@@ -17,7 +17,7 @@ export const navigationGroups: NavigationGroup[] = [
     items: [{ name: "Missions", href: "/missions", iconName: "briefcase" }],
   },
   {
-    items: [{ name: "Maps", href: "/maps", iconName: "map" }],
+    items: [{ name: "Cartes", href: "/maps", iconName: "map" }],
   },
   {
     items: [{ name: "Comptes", href: "/companies", iconName: "account" }],
@@ -42,7 +42,7 @@ export const maskingbox: NavigationGroup[] = [
     ],
   },
   {
-    items: [{ name: "Cartographie", href: "/carte", iconName: "carte" }],
+    items: [{ name: "Carte Temps-reel", href: "/carte", iconName: "carte" }],
   },
   {
     items: [

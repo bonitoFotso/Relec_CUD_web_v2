@@ -213,9 +213,9 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = ({
   const statisticsData = [
     {
       title: "Total des Reseaux",
-      value: statistics.totalNetworks || 0,
+      value: statistics.totalStreetlights || 0,
       icon: "Lamp",
-      color: "bg-blue-500",
+      color: "bg-blue-700",
       cardBackground: "bg-blue-100",
       subtitle: "Durée moyenne d'activité",
       stats: statistics.avgActiveTime,
@@ -225,8 +225,8 @@ const StatistiquesCard: React.FC<StatistiquesCardsProps> = ({
       title: "Lampadaires conformes",
       value: statistics.onStreetlights,
       icon: "Check",
-      color: "bg-amber-500",
-      cardBackground: "bg-amber-100",
+      color: "bg-green-700",
+      cardBackground: "bg-green-100",
       subtitle: "Intensité lumineuse moyenne",
       stats: statistics.avgBrightness,
       unit: "%",

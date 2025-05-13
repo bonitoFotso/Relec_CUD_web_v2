@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import ConsommationsPrimaires from "./Consommation/ConsommationPrimaire";
 import { useEquipements } from "@/contexts/EquipementContext";
-import StatistiquesCard from "./Statistiques";
+import DashboardReseauLampadaires from "./DashboardReseauLampadaires";
+import ConsommationStatistics from "./ConsommationStatistiques";
 
 export default function Tableau() {
   // Get streetlights data from context
@@ -51,6 +52,9 @@ export default function Tableau() {
     setSelectedMunicipality(e.target.value);
   };
 
+  // State for active view
+  const [activeView, setActiveView] = useState<string>("reseaux");
+
   return (
     <div className="bg-white dark:bg-gray-900 min-h-screen rounded-sm">
       <div className="py-4 px-2 md:px-3">
@@ -90,6 +94,30 @@ export default function Tableau() {
           </div>
         </div>
 
+        {/* Navigation tabs */}
+        <div className="flex border-b mb-4">
+          <button
+            className={`py-2 px-4 ${
+              activeView === "reseaux"
+                ? "border-b-2 border-blue-500 font-bold"
+                : "text-gray-500"
+            }`}
+            onClick={() => setActiveView("reseaux")}
+          >
+            Réseaux & lampadaires
+          </button>
+          <button
+            className={`py-2 px-4 ${
+              activeView === "consommation"
+                ? "border-b-2 border-blue-500 font-bold"
+                : "text-gray-500"
+            }`}
+            onClick={() => setActiveView("consommation")}
+          >
+            Consommation d'énergie
+          </button>
+        </div>
+
         {loading ? (
           <div className="animate-pulse space-y-4">
             <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
@@ -97,12 +125,26 @@ export default function Tableau() {
           </div>
         ) : (
           <>
-            {/* Pass the filtered streetlights to StatistiquesCard */}
-            <StatistiquesCard filteredStreetlights={filteredStreetlights} />
-            {/* Pass filtered data to consumption component */}
-            <ConsommationsPrimaires
-              filteredStreetlights={filteredStreetlights}
-            />
+            {activeView === "reseaux" && (
+              <DashboardReseauLampadaires
+                filteredStreetlights={filteredStreetlights.map((light) => ({
+                  ...light,
+                  id: light.id.toString(),
+                  cabinet_id: light.cabinet_id?.toString(),
+                }))}
+              />
+            )}
+
+            {activeView === "consommation" && (
+              <>
+                <ConsommationsPrimaires
+                  filteredStreetlights={filteredStreetlights}
+                />
+                <ConsommationStatistics
+                  filteredStreetlights={filteredStreetlights}
+                />
+              </>
+            )}
           </>
         )}
       </div>
